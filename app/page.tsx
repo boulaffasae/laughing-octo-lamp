@@ -1,2 +1,4 @@
 import Louma from "./components/louma";
-export default function Home(){return <Louma/>}
+export default function Home() {
+  return <Louma />;
+}

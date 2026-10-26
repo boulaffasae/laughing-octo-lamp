@@ -1,43 +1,793 @@
 "use client";
 import Link from "next/link";
-import { useState, useRef, useEffect } from "react";
-import { ArrowUpRight, ArrowRight, Check, ShieldCheck, ScanLine, FileText, CreditCard, CarFront, Camera, Upload, X, LockKeyhole, Globe2, CircleCheck, Sparkles, Menu, Download, Plus, Minus } from "lucide-react";
-type Lang = "FR" | "EN" | "AR";
-const copy = {
- FR: {nav:["Comment ça marche","Pourquoi Louma ?","Questions fréquentes"], start:"Créer un contrat", badge:"MOINS DE PAPIER. PLUS DE ROUTE.", title:<>Vos contrats de location.<br/>En quelques minutes.<br/><span>Tout simplement.</span></>, desc:"Trois documents, un scan intelligent, un contrat prêt à signer. Le copilote des agences de location au Maroc.", cta:"Créer mon premier contrat", free:"Sans inscription · Gratuit pour commencer", how:"Comment ça marche", section:"De la première pièce au dernier paraphe.", sub:"Votre prochain contrat commence ici.", docs:["Carte nationale d’identité","Permis de conduire","Carte grise"], detail:["Pour identifier votre client","Pour vérifier les informations du conducteur","Pour renseigner le véhicule"], newTitle:"Un nouveau contrat, en toute simplicité.", newDesc:"Ajoutez vos 3 documents. Louma s’occupe de la saisie.", scan:"Scanner le document", upload:"Importer un fichier", camera:"Utiliser la caméra", validate:"Valider et continuer", review:"Vérifiez les informations extraites", download:"Télécharger le contrat", done:"Tous vos documents sont prêts.", next:"À suivre", current:"À compléter", checked:"Validé", back:"Retour à l’accueil", faq:"Les bonnes réponses, sans détour.", features:"Pensé pour votre agence.", privacy:"Vos documents restent confidentiels", demo:"Essayer avec un exemple", consent:"J’autorise l’envoi de ce document à Mistral pour extraire ses informations.", scanning:"Lecture de votre document…", retry:"Choisir un autre document", contract:"Les détails de votre location", ready:"Votre contrat est prêt à prendre la route.", trust:"Conçu pour les agences marocaines"},
- EN: {nav:["How it works","Why Louma?","FAQs"],start:"Create a contract",badge:"LESS PAPERWORK. MORE OPEN ROAD.",title:<>Your rental agreements.<br/>Ready in minutes.<br/><span>It’s that simple.</span></>,desc:"Three documents, one intelligent scan, an agreement ready to sign. The copilot for car rental agencies in Morocco.",cta:"Create my first agreement",free:"No account needed · Free to get started",how:"How it works",section:"From the first document to the final signature.",sub:"Your next agreement starts here.",docs:["National identity card","Driving licence","Vehicle registration"],detail:["Identify your customer","Check the driver’s information","Add your vehicle’s details"],newTitle:"A new agreement. A simpler way.",newDesc:"Add your 3 documents. Louma takes care of the typing.",scan:"Scan document",upload:"Upload a file",camera:"Use camera",validate:"Confirm and continue",review:"Review the extracted information",download:"Download agreement",done:"All your documents are ready.",next:"Up next",current:"To complete",checked:"Confirmed",back:"Back to home",faq:"Straightforward answers.",features:"Made for your agency.",privacy:"Your documents stay confidential",demo:"Try an example",consent:"I agree to send this document to Mistral to extract its information.",scanning:"Reading your document…",retry:"Choose another document",contract:"Your rental details",ready:"Your agreement is ready for the road.",trust:"Built for Moroccan rental agencies"},
- AR: {nav:["كيف يعمل","لماذا لوما؟","الأسئلة الشائعة"],start:"إنشاء عقد",badge:"أوراق أقل. انطلاقة أسرع.",title:<>عقود إيجار سياراتك.<br/>جاهزة في دقائق.<br/><span>بكل بساطة.</span></>,desc:"ثلاث وثائق، مسح ذكي، وعقد جاهز للتوقيع. المساعد اليومي لوكالات تأجير السيارات بالمغرب.",cta:"إنشاء عقدي الأول",free:"بدون تسجيل · ابدأ مجاناً",how:"كيف يعمل",section:"من أول وثيقة إلى آخر توقيع.",sub:"عقدك القادم يبدأ هنا.",docs:["البطاقة الوطنية للتعريف","رخصة السياقة","البطاقة الرمادية"],detail:["لتحديد هوية العميل","للتحقق من معلومات السائق","لإضافة معلومات السيارة"],newTitle:"عقد جديد، بكل سهولة.",newDesc:"أضف وثائقك الثلاث. لوما يتكفل بإدخال المعلومات.",scan:"مسح الوثيقة",upload:"رفع ملف",camera:"استخدام الكاميرا",validate:"تأكيد ومتابعة",review:"راجع المعلومات المستخرجة",download:"تحميل العقد",done:"جميع وثائقك جاهزة.",next:"التالي",current:"للإكمال",checked:"تم التأكيد",back:"العودة للرئيسية",faq:"إجابات واضحة لأسئلتك.",features:"مصمم لوكالتك.",privacy:"وثائقك تبقى سرية",demo:"تجربة مثال",consent:"أوافق على إرسال هذه الوثيقة إلى Mistral لاستخراج معلوماتها.",scanning:"جاري قراءة الوثيقة…",retry:"اختيار وثيقة أخرى",contract:"تفاصيل الإيجار",ready:"عقدك جاهز للانطلاق.",trust:"مصمم لوكالات تأجير السيارات المغربية"}
-};
-export function Logo(){return <Link className="logo" href="/" aria-label="Louma accueil"><span className="logo-mark"><i/><i/><i/></span>louma<span className="logo-dot">.</span></Link>}
-function MiniCard({kind=0}:{kind?:number}){return <div className={`mini-id id-${kind}`}><div className="id-top"><span>المملكة المغربية</span><span>✳</span></div><small>{kind===2?"CERTIFICAT D’IMMATRICULATION":"ROYAUME DU MAROC"}</small><div className="id-content"><div className="id-photo">{kind===2?<CarFront size={28}/>:<div className="silhouette"/>}</div><div className="id-lines"><b>{kind===2?"DACIA · CLIO":"AMINE EL MANSOURI"}</b><span/><span/><span/><strong>{kind===2?"12345 · أ · 6":"BK 123456"}</strong></div></div><div className="id-bottom">{kind===0?"CARTE NATIONALE D’IDENTITÉ":kind===1?"PERMIS DE CONDUIRE":"CARTE GRISE"}<span>MAR</span></div></div>}
-export default function Louma({workflow=false}:{workflow?:boolean}){
- const [lang,setLang]=useState<Lang>("FR"),[mobile,setMobile]=useState(false),[faq,setFaq]=useState<number|null>(0);
- useEffect(()=>{const saved=localStorage.getItem("louma-lang");if(saved&&saved in copy){setLang(saved as Lang);document.documentElement.lang=saved.toLowerCase();document.documentElement.dir=saved==="AR"?"rtl":"ltr"}},[]);
- const t=copy[lang]; function changeLang(v:Lang){setLang(v);localStorage.setItem("louma-lang",v);document.documentElement.lang=v.toLowerCase();document.documentElement.dir=v==="AR"?"rtl":"ltr"}
- return <div dir={lang==="AR"?"rtl":"ltr"}><header><div className="header-inner"><Logo/><nav className={mobile?"nav open":"nav"}>{t.nav.map((n,i)=><a key={n} href={`/#${["how","why","faq"][i]}`}>{n}</a>)}</nav><div className="header-actions"><div className="language"><Globe2 size={15}/><select aria-label="Language" value={lang} onChange={e=>changeLang(e.target.value as Lang)}>{["FR","EN","AR"].map(l=><option key={l}>{l}</option>)}</select></div><Link href="/new" className="button small">{t.start}<ArrowUpRight size={16}/></Link><button className="menu icon-button" aria-label="Menu" onClick={()=>setMobile(!mobile)}><Menu/></button></div></div></header>
- {workflow?<Workflow lang={lang}/>:<><main><section className="hero"><div className="hero-copy"><div className="eyebrow"><span className="status-dot"/>{t.badge}</div><h1>{t.title}</h1><p className="hero-desc">{t.desc}</p><Link className="button hero-cta" href="/new">{t.cta}<ArrowUpRight size={19}/></Link><p className="micro">{t.free}</p><div className="hero-proof"><div className="avatar-stack"><span>Y</span><span>S</span><span>A</span><span>M</span></div><div><div className="stars">★★★★★</div><span>{t.trust}</span></div></div></div><HeroArt lang={lang}/></section>
- <section className="trust-strip"><span><ShieldCheck/>{lang==="FR"?"Vos données, en sécurité":lang==="EN"?"Your data, protected":"بياناتك محمية"}</span><i/><span><ScanLine/>{lang==="FR"?"Propulsé par Mistral AI":lang==="EN"?"Powered by Mistral AI":"مدعوم بـ Mistral AI"}</span><i/><span><FileText/>{lang==="FR"?"Un PDF prêt à signer":lang==="EN"?"A PDF ready to sign":"ملف PDF جاهز للتوقيع"}</span><i/><span className="morocco"><span>✳</span>{lang==="FR"?"Pensé pour le Maroc":lang==="EN"?"Made for Morocco":"مصمم للمغرب"}</span></section>
- <section id="how" className="how section"><div className="section-top"><div><div className="eyebrow coral">{t.how}</div><h2>{t.section}</h2></div><p>{lang==="FR"?<>Trois étapes simples.<br/>Et votre journée reprend la route.</>:lang==="EN"?<>Three simple steps.<br/>Then get back to your day.</>:"ثلاث خطوات بسيطة ثم تنطلق في يومك."}</p></div><div className="steps-grid">{[CreditCard,ScanLine,FileText].map((Icon,i)=><div className="step-card" key={i}><div className="step-card-top"><div className="feature-icon"><Icon size={24}/></div><span>0{i+1}</span></div><h3>{(lang==="FR"?["Ajoutez vos documents","Laissez Louma faire le tri","Téléchargez. Faites signer."]:lang==="EN"?["Add your documents","Let Louma do the work","Download. Sign. Done."]:["أضف وثائقك","دع لوما يتولى المهمة","حمّل العقد ووقّعه"])[i]}</h3><p>{(lang==="FR"?["CNIE, permis de conduire et carte grise. Une photo ou un fichier, et c’est parti.","Notre IA extrait les informations. Vous vérifiez, ajustez et validez en un instant.","Votre contrat de location se génère automatiquement dans un PDF soigné."]:lang==="EN"?["ID card, driving licence and registration. A photo or a file, and you’re on your way.","AI extracts the details. Review, edit and confirm in a moment.","Your rental agreement is automatically generated in a beautifully formatted PDF."]:["البطاقة الوطنية ورخصة السياقة والبطاقة الرمادية. صورة أو ملف للبدء.","يستخرج الذكاء الاصطناعي المعلومات. راجعها وعدّلها وأكدها.","يتم إنشاء عقد الإيجار تلقائياً في ملف PDF منسق."])[i]}</p><div className="step-foot">{i===0?<><span>CNIE</span><span>{lang==="AR"?"الرخصة":"Permis"}</span><span>{lang==="AR"?"البطاقة الرمادية":"Carte grise"}</span></>:i===1?<span className="green"><Sparkles size={13}/> Mistral OCR</span>:<span><FileText size={13}/> PDF <Check size={13}/></span>}</div></div>)}</div></section>
- <section id="why" className="why section"><div className="why-heading"><div className="eyebrow coral">{lang==="FR"?"LE BON RÉFLEXE":lang==="EN"?"YOUR EVERYDAY ADVANTAGE":"اختيارك اليومي"}</div><h2>{t.features}</h2><p>{lang==="FR"?"Moins de saisie, moins d’allers-retours. Plus de temps pour vos clients.":lang==="EN"?"Less typing, less back and forth. More time for your customers.":"إدخال أقل ووقت أكثر لعملائك."}</p><Link className="text-link" href="/new">{t.start}<ArrowRight size={17}/></Link></div><div className="why-features">{[ShieldCheck,Globe2,CarFront].map((Icon,i)=><div key={i}><Icon/><div><h3>{(lang==="FR"?["La confiance, par défaut","Trois langues. Zéro barrière.","Au rythme de votre agence"]:lang==="EN"?["Trust comes first","Three languages. No barriers.","At your agency’s pace"]:["الثقة أولاً","ثلاث لغات دون حواجز","بإيقاع وكالتك"])[i]}</h3><p>{(lang==="FR"?["Aucun document conservé par Louma après votre session. Vous gardez le contrôle.","Français, anglais ou arabe. Une expérience fluide, dans votre langue.","Au comptoir ou sur le parking, votre contrat vous suit sur mobile et ordinateur."]:lang==="EN"?["Louma does not save documents after your session. You stay in control.","French, English or Arabic. A seamless experience in your language.","At the desk or in the car park. Your agreement follows you on any device."]:["لا يحتفظ لوما بوثائقك بعد الجلسة. أنت المتحكم.","بالفرنسية أو الإنجليزية أو العربية. تجربة سلسة بلغتك.","في المكتب أو موقف السيارات، عقدك معك على كل الأجهزة."])[i]}</p></div></div>)}</div></section>
- <section id="faq" className="faq section"><div><div className="eyebrow coral">FAQ</div><h2>{t.faq}</h2></div><div>{(lang==="FR"?["Quels documents dois-je préparer ?","Est-ce que mes documents sont conservés ?","Puis-je modifier les informations extraites ?","Louma vérifie-t-il l’authenticité des documents ?"]:lang==="EN"?["Which documents do I need?","Are my documents stored?","Can I edit extracted details?","Does Louma verify document authenticity?"]:["ما الوثائق المطلوبة؟","هل يتم حفظ وثائقي؟","هل يمكن تعديل المعلومات؟","هل يتحقق لوما من أصالة الوثائق؟"]).map((q,i)=><div className="faq-item" key={q}><button aria-expanded={faq===i} onClick={()=>setFaq(faq===i?null:i)}>{q}{faq===i?<Minus size={18}/>:<Plus size={18}/>}</button>{faq===i&&<p>{(lang==="FR"?["La CNIE du client, son permis de conduire et la carte grise du véhicule. Des photos lisibles ou des PDF suffisent.","Louma traite les documents en mémoire pour cette session. Le scan réel est transmis à Mistral pour l’extraction.","Oui. Chaque étape vous permet de corriger les champs avant de les valider.","Louma extrait les informations des documents. L’authenticité et les signatures doivent être vérifiées par votre agence."]:lang==="EN"?["Your customer’s ID, driving licence and the vehicle registration. Clear photos or PDFs are enough.","Louma processes documents in memory during this session. Live scans are sent to Mistral for extraction.","Yes. Review and correct every field before confirming each step.","Louma extracts document information. Your agency must verify authenticity and signatures."]:["البطاقة الوطنية ورخصة السياقة والبطاقة الرمادية. صور واضحة أو ملفات PDF.","تعالج الوثائق في ذاكرة الجلسة. يرسل المسح الفعلي إلى Mistral للاستخراج.","نعم، يمكنك مراجعة وتصحيح كل حقل قبل التأكيد.","يستخرج لوما المعلومات. يجب على الوكالة التحقق من الأصالة والتوقيعات."])[i]}</p>}</div>)}</div></section>
- <section className="bottom-cta"><span className="eyebrow">{t.sub}</span><h2>{lang==="FR"?"Les clés. Le contrat. C’est parti.":lang==="EN"?"The keys. The agreement. Let’s go.":"المفاتيح. العقد. انطلق."}</h2><Link href="/new" className="button">{t.cta}<ArrowUpRight size={18}/></Link></section></main></>}
- <footer><Logo/><p>{lang==="FR"?"Moins d’administratif. Plus de mouvement.":lang==="EN"?"Less paperwork. More possibility.":"أوراق أقل. إمكانيات أكثر."}</p><span>© 2026 Louma <span className="footer-star">✳</span> Made for Morocco</span></footer></div>
+import { Fragment, useState, useRef, useEffect } from "react";
+import {
+  ArrowUpRight,
+  ArrowRight,
+  Check,
+  ShieldCheck,
+  ScanLine,
+  FileText,
+  CreditCard,
+  CarFront,
+  Camera,
+  Upload,
+  X,
+  LockKeyhole,
+  Globe2,
+  CircleCheck,
+  Sparkles,
+  Menu,
+  Download,
+  Plus,
+  Minus,
+} from "lucide-react";
+import { copy, languages, type Lang } from "../translations";
+
+export function Logo() {
+  return (
+    <Link className="logo" href="/" aria-label="Louma accueil">
+      <span className="logo-mark">
+        <i />
+        <i />
+        <i />
+      </span>
+      louma<span className="logo-dot">.</span>
+    </Link>
+  );
 }
-function HeroArt({lang}:{lang:Lang}){return <div className="hero-art" aria-label="Aperçu du parcours de création de contrat"><div className="art-grid"/><div className="art-orbit"/><div className="floating-tag"><span className="tiny-spark">✦</span>{lang==="FR"?"La paperasse ? Dans le rétro.":lang==="EN"?"Paperwork? In the rearview.":"الأوراق؟ أصبحت خلفك."}</div><div className="back-id"><MiniCard kind={1}/></div><div className="scan-card"><div className="scan-header"><span className="scan-icon"><ScanLine size={17}/></span><b>{lang==="FR"?"Un scan. C’est tout.":lang==="EN"?"One scan. That’s it.":"مسح واحد. هذا كل شيء."}</b><span className="live-dot"/></div><div className="scan-frame"><i className="corner tl"/><i className="corner tr"/><i className="corner bl"/><i className="corner br"/><MiniCard/><div className="scan-beam"/></div><div className="extracted"><span className="check-round"><Check size={13}/></span><div><b>{lang==="FR"?"Informations extraites":lang==="EN"?"Information extracted":"تم استخراج المعلومات"}</b><small>{lang==="FR"?"Tout est à sa place.":lang==="EN"?"Everything in its place.":"كل شيء في مكانه."}</small></div><span className="mistral-symbol">▟</span></div></div><div className="contract-float"><div className="pdf-icon"><FileText size={22}/><span>PDF</span></div><div><b>{lang==="FR"?"Votre contrat est prêt !":lang==="EN"?"Your agreement is ready!":"عقدك جاهز!"}</b><small>contrat_location.pdf <span>· 128 Ko</span></small></div><span className="download-round"><ArrowRight size={17}/></span></div><div className="art-caption"><LockKeyhole size={12}/>{copy[lang].privacy}</div><span className="art-plus plus-one">+</span><span className="art-plus plus-two">+</span></div>}
-const initialFields:Record<string,string>[]=[{name:"",identity:"",address:""},{licence:"",category:"",expiry:""},{brand:"",plate:"",vin:""}];
-const examples:Record<string,string>[]=[{name:"Amine El Mansouri",identity:"BK123456",address:"24, avenue Hassan II, Casablanca"},{licence:"123456/06",category:"B",expiry:"2030-06-15"},{brand:"Dacia Sandero",plate:"12345-A-6",vin:"VF1B5220X12345678"}];
-function Workflow({lang}:{lang:Lang}){
- const t=copy[lang], [step,setStep]=useState(0),[modal,setModal]=useState(false),[phase,setPhase]=useState("upload"),[preview,setPreview]=useState(""),[file,setFile]=useState<File|null>(null),[consent,setConsent]=useState(false),[demo,setDemo]=useState(false),[usedDemo,setUsedDemo]=useState(false),[error,setError]=useState(""),[data,setData]=useState<Record<string,string>[]>(initialFields),[busy,setBusy]=useState(false);
- const input=useRef<HTMLInputElement>(null),camera=useRef<HTMLInputElement>(null);
- const [rental,setRental]=useState({agency:"",city:"Casablanca",start:"",end:"",price:"",deposit:""});
- const labels:Record<string,string>=lang==="FR"?{name:"Nom complet",identity:"N° CNIE",address:"Adresse",licence:"N° du permis",category:"Catégorie",expiry:"Date d’expiration",brand:"Marque et modèle",plate:"Immatriculation",vin:"N° de châssis",agency:"Nom de l’agence",city:"Ville",start:"Début de location",end:"Fin de location",price:"Prix par jour (MAD)",deposit:"Caution (MAD)"}:lang==="EN"?{name:"Full name",identity:"ID number",address:"Address",licence:"Licence number",category:"Category",expiry:"Expiry date",brand:"Make and model",plate:"Registration",vin:"VIN",agency:"Agency name",city:"City",start:"Rental start",end:"Rental end",price:"Daily rate (MAD)",deposit:"Deposit (MAD)"}:{name:"الاسم الكامل",identity:"رقم البطاقة الوطنية",address:"العنوان",licence:"رقم الرخصة",category:"الصنف",expiry:"تاريخ الانتهاء",brand:"نوع السيارة",plate:"رقم التسجيل",vin:"رقم الهيكل",agency:"اسم الوكالة",city:"المدينة",start:"بداية الإيجار",end:"نهاية الإيجار",price:"السعر اليومي (درهم)",deposit:"الضمان (درهم)"};
- useEffect(()=>()=>{if(preview)URL.revokeObjectURL(preview)},[preview]);
- function choose(f:File|undefined){if(!f)return;if(!["image/jpeg","image/png","image/webp","application/pdf"].includes(f.type)||f.size>10*1024*1024){setError(lang==="FR"?"Choisissez un JPG, PNG, WebP ou PDF de moins de 10 Mo.":"Use a JPG, PNG, WebP or PDF under 10 MB.");return}setError("");setFile(f);setPreview(URL.createObjectURL(f));setDemo(false)}
- async function scan(){if(!file||!consent)return;setPhase("scanning");setError("");try{const form=new FormData();form.append("file",file);form.append("kind",String(step));const res=await fetch("/api/ocr",{method:"POST",body:form});const result=await res.json();if(!res.ok)throw new Error(result.error);setData(d=>d.map((v,i)=>i===step?{...v,...result.fields}:v));setPhase("review")}catch(e){setError(e instanceof Error?e.message:"Scan failed");setPhase("upload")}}
- function sample(){setDemo(true);setUsedDemo(true);setPhase("scanning");setTimeout(()=>{setData(d=>d.map((v,i)=>i===step?examples[i]:v));setPhase("review")},1500)}
- function open(){setPhase("upload");setPreview("");setFile(null);setError("");setConsent(false);setDemo(false);setModal(true)}
- async function download(){setBusy(true);setError("");try{const {makeContract}=await import("./pdf");await makeContract(data,rental,usedDemo)}catch{setError(lang==="FR"?"Le PDF n’a pas pu être généré. Réessayez.":"Could not generate PDF. Please retry.")}finally{setBusy(false)}}
- const valid=Object.values(rental).every(Boolean)&&new Date(rental.end)>new Date(rental.start)&&Number(rental.price)>0&&Number(rental.deposit)>=0;
- return <main className="workflow"><Link className="back-link" href="/">← {t.back}</Link><div className="workflow-heading"><div className="eyebrow coral">{lang==="FR"?"VOTRE PROCHAIN DÉPART":lang==="EN"?"YOUR NEXT DEPARTURE":"انطلاقتك القادمة"}</div><h1>{t.newTitle}</h1><p>{t.newDesc}</p></div><div className="workflow-layout"><div className="checklist-panel"><div className="progress-title"><b>{lang==="AR"?"وثائقك":"Documents"}</b><span>{Math.min(step,3)} / 3</span></div><div className="progress-track"><span style={{width:`${step/3*100}%`}}/></div>{t.docs.map((name,i)=>{const Icon=[CreditCard,CreditCard,CarFront][i];return <div className={`checklist-row ${i===step?"active":""} ${i<step?"complete":""}`} key={name}><div className="step-number">{i<step?<Check size={17}/>:i+1}</div><div className="document-name"><h3>{name}</h3><p>{t.detail[i]}</p><span>{i<step?t.checked:i===step?t.current:t.next}</span></div><Icon size={21}/></div>})}<div className="checklist-security"><ShieldCheck size={18}/><span>{t.privacy}</span></div></div><div className="work-area">{step<3?<><div className="work-area-label"><span>0{step+1}</span>{t.docs[step]}</div><div className="document-illustration"><MiniCard kind={step}/><div className="document-badge"><ScanLine size={22}/></div></div><h2>{t.docs[step]}</h2><p>{t.detail[step]}.<br/>{lang==="FR"?"Assurez-vous que le document est lisible et bien éclairé.":lang==="EN"?"Make sure the document is clear and well lit.":"تأكد من وضوح الوثيقة وجودة الإضاءة."}</p><button className="button" onClick={open}><ScanLine size={18}/>{t.scan}<ArrowRight size={17}/></button><div className="format-note">JPG, PNG, WebP, PDF · 10 Mo max.</div><button className="demo-button" onClick={()=>{open();sample()}}>{t.demo}<ArrowUpRight size={14}/></button></>:<><span className="success-large"><CircleCheck size={40}/></span><div className="eyebrow coral">3 / 3 · {t.done}</div><h2>{t.contract}</h2><p>{lang==="FR"?"Une dernière étape avant de remettre les clés.":lang==="EN"?"One last step before handing over the keys.":"خطوة أخيرة قبل تسليم المفاتيح."}</p><form className="rental-form" onSubmit={e=>{e.preventDefault();download()}}>{Object.entries(rental).map(([k,v])=><label key={k}>{labels[k]}<input required value={v} type={k==="start"||k==="end"?"date":k==="price"||k==="deposit"?"number":"text"} min={k==="price"?1:0} onChange={e=>setRental({...rental,[k]:e.target.value})}/></label>)}<p className="contract-note">{lang==="FR"?"Le modèle PDF est en français. Relisez les conditions et complétez les signatures avant utilisation.":lang==="EN"?"The PDF template is in French. Review the terms and collect signatures before use.":"نموذج PDF باللغة الفرنسية. راجع الشروط وأكمل التوقيعات قبل الاستخدام."}</p>{usedDemo&&<p className="demo-label">{lang==="FR"?"Exemple — données fictives":"Demo — sample data"}</p>}<button type="submit" className="button" disabled={!valid||busy}><Download size={17}/>{busy?"…":t.download}</button>{error&&<p role="alert" className="error">{error}</p>}</form></>}</div></div><div className="workflow-bottom"><LockKeyhole size={14}/>{lang==="FR"?"Pas de compte à créer. Aucun document enregistré dans votre navigateur.":lang==="EN"?"No account needed. Documents are not saved in your browser.":"لا حاجة لحساب. لا تحفظ الوثائق في متصفحك."}</div>
- {modal&&<div className="modal-backdrop"><div className="scan-modal" role="dialog" aria-modal="true" aria-label={t.scan}><button className="modal-close icon-button" aria-label="Close" onClick={()=>phase!=="scanning"&&setModal(false)} disabled={phase==="scanning"}><X/></button><div className="eyebrow coral">0{step+1} / 03</div><h2>{phase==="review"?t.review:t.docs[step]}</h2>{phase==="scanning"?<div className="scanning-state"><div className="scanning-preview"><MiniCard kind={step}/><div className="scan-beam"/></div><Sparkles className="pulse"/><h3>{t.scanning}</h3><p>Mistral OCR {demo&&"· DEMO"}</p></div>:phase==="review"?<><div className="review-success"><CircleCheck size={18}/>{demo?(lang==="FR"?"Exemple — données fictives":"Demo — sample data"):t.checked}</div><div className="review-fields">{Object.entries(data[step]).map(([k,v])=><label key={k}>{labels[k]}<input value={v} required onChange={e=>setData(d=>d.map((o,i)=>i===step?{...o,[k]:e.target.value}:o))}/></label>)}</div><button className="button full" disabled={Object.values(data[step]).some(v=>!v.trim())} onClick={()=>{setStep(step+1);setModal(false)}}>{t.validate}<ArrowRight size={17}/></button></>:<><div className="upload-zone" onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();choose(e.dataTransfer.files[0])}}>{file?<><div className="file-preview">{file.type==="application/pdf"?<FileText size={55}/>:<img src={preview} alt="Document preview"/>}</div><b>{file.name}</b><button className="text-link" onClick={()=>input.current?.click()}>{t.retry}</button></>:<><div className="upload-icon"><Upload size={29}/></div><h3>{t.upload}</h3><p>JPG, PNG, WebP, PDF · 10 Mo max.</p><button className="button" onClick={()=>input.current?.click()}><Upload size={16}/>{t.upload}</button><button className="camera-button" onClick={()=>camera.current?.click()}><Camera size={17}/>{t.camera}</button></>}</div><input ref={input} type="file" hidden accept="image/jpeg,image/png,image/webp,application/pdf" onChange={e=>choose(e.target.files?.[0])}/><input ref={camera} type="file" hidden accept="image/*" capture="environment" onChange={e=>choose(e.target.files?.[0])}/>{file&&<><label className="consent"><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)}/>{t.consent}</label><button className="button full" disabled={!consent} onClick={scan}><ScanLine size={17}/>{t.scan}</button></>}{error&&<p className="error" role="alert">{error}</p>}</>}<div className="modal-security"><LockKeyhole size={12}/>{t.privacy}</div></div></div>}</main>
+function MiniCard({ kind = 0 }: { kind?: number }) {
+  return (
+    <div className={`mini-id id-${kind}`}>
+      <div className="id-top">
+        <span>المملكة المغربية</span>
+        <span>✳</span>
+      </div>
+      <small>
+        {kind === 2 ? "CERTIFICAT D’IMMATRICULATION" : "ROYAUME DU MAROC"}
+      </small>
+      <div className="id-content">
+        <div className="id-photo">
+          {kind === 2 ? <CarFront size={28} /> : <div className="silhouette" />}
+        </div>
+        <div className="id-lines">
+          <b>{kind === 2 ? "DACIA · CLIO" : "AMINE EL MANSOURI"}</b>
+          <span />
+          <span />
+          <span />
+          <strong>{kind === 2 ? "12345 · أ · 6" : "BK 123456"}</strong>
+        </div>
+      </div>
+      <div className="id-bottom">
+        {kind === 0
+          ? "CARTE NATIONALE D’IDENTITÉ"
+          : kind === 1
+            ? "PERMIS DE CONDUIRE"
+            : "CARTE GRISE"}
+        <span>MAR</span>
+      </div>
+    </div>
+  );
+}
+export default function Louma({ workflow = false }: { workflow?: boolean }) {
+  const [lang, setLang] = useState<Lang>("FR"),
+    [mobile, setMobile] = useState(false),
+    [faq, setFaq] = useState<number | null>(0);
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      const stored = localStorage.getItem("louma-lang");
+      const saved = stored === "AR" ? "Darija" : stored;
+      if (saved && languages.includes(saved as Lang)) {
+        setLang(saved as Lang);
+        document.documentElement.lang =
+          saved === "Darija" ? "ary" : saved.toLowerCase();
+        document.documentElement.dir = saved === "Darija" ? "rtl" : "ltr";
+      }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, []);
+  const t = copy[lang];
+  function changeLang(v: Lang) {
+    setLang(v);
+    localStorage.setItem("louma-lang", v);
+    document.documentElement.lang = v === "Darija" ? "ary" : v.toLowerCase();
+    document.documentElement.dir = v === "Darija" ? "rtl" : "ltr";
+  }
+  return (
+    <div dir={lang === "Darija" ? "rtl" : "ltr"}>
+      <header>
+        <div className="header-inner">
+          <Logo />
+          <nav className={mobile ? "nav open" : "nav"}>
+            {t.nav.map((n, i) => (
+              <a key={n} href={`/#${["how", "why", "faq"][i]}`}>
+                {n}
+              </a>
+            ))}
+          </nav>
+          <div className="header-actions">
+            <div className="language">
+              <Globe2 size={15} />
+              <select
+                aria-label={t.languageLabel}
+                value={lang}
+                onChange={(e) => changeLang(e.target.value as Lang)}
+              >
+                {languages.map((l) => (
+                  <option key={l}>{l}</option>
+                ))}
+              </select>
+            </div>
+            <Link href="/new" className="button small">
+              {t.start}
+              <ArrowUpRight size={16} />
+            </Link>
+            <button
+              className="menu icon-button"
+              aria-label="Menu"
+              onClick={() => setMobile(!mobile)}
+            >
+              <Menu />
+            </button>
+          </div>
+        </div>
+      </header>
+      {workflow ? (
+        <Workflow lang={lang} />
+      ) : (
+        <>
+          <main>
+            <section className="hero">
+              <div className="hero-copy">
+                <div className="eyebrow">
+                  <span className="status-dot" />
+                  {t.badge}
+                </div>
+                <h1>
+                  {t.title.map((line, i) => (
+                    <Fragment key={line}>
+                      {i > 0 && <br />}
+                      {i === 2 ? <span>{line}</span> : line}
+                    </Fragment>
+                  ))}
+                </h1>
+                <p className="hero-desc">{t.desc}</p>
+                <Link className="button hero-cta" href="/new">
+                  {t.cta}
+                  <ArrowUpRight size={19} />
+                </Link>
+                <p className="micro">{t.free}</p>
+                <div className="hero-proof">
+                  <div className="avatar-stack">
+                    <span>Y</span>
+                    <span>S</span>
+                    <span>A</span>
+                    <span>M</span>
+                  </div>
+                  <div>
+                    <div className="stars">★★★★★</div>
+                    <span>{t.trust}</span>
+                  </div>
+                </div>
+              </div>
+              <HeroArt lang={lang} />
+            </section>
+            <section className="trust-strip">
+              <span>
+                <ShieldCheck />
+                {copy[lang].dataProtected}
+              </span>
+              <i />
+              <span>
+                <ScanLine />
+                {copy[lang].poweredBy}
+              </span>
+              <i />
+              <span>
+                <FileText />
+                {copy[lang].readyPdf}
+              </span>
+              <i />
+              <span className="morocco">
+                <span>✳</span>
+                {copy[lang].madeForMorocco}
+              </span>
+            </section>
+            <section id="how" className="how section">
+              <div className="section-top">
+                <div>
+                  <div className="eyebrow coral">{t.how}</div>
+                  <h2>{t.section}</h2>
+                </div>
+                <p>
+                  {copy[lang].howSummary.map((line, i) => (
+                    <Fragment key={line}>
+                      {i > 0 && <br />}
+                      {line}
+                    </Fragment>
+                  ))}
+                </p>
+              </div>
+              <div className="steps-grid">
+                {[CreditCard, ScanLine, FileText].map((Icon, i) => (
+                  <div className="step-card" key={i}>
+                    <div className="step-card-top">
+                      <div className="feature-icon">
+                        <Icon size={24} />
+                      </div>
+                      <span>0{i + 1}</span>
+                    </div>
+                    <h3>{copy[lang].stepTitles[i]}</h3>
+                    <p>{copy[lang].stepDescriptions[i]}</p>
+                    <div className="step-foot">
+                      {i === 0 ? (
+                        <>
+                          <span>CNIE</span>
+                          <span>{copy[lang].licenceTag}</span>
+                          <span>{copy[lang].registrationTag}</span>
+                        </>
+                      ) : i === 1 ? (
+                        <span className="green">
+                          <Sparkles size={13} /> Mistral OCR
+                        </span>
+                      ) : (
+                        <span>
+                          <FileText size={13} /> PDF <Check size={13} />
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+            <section id="why" className="why section">
+              <div className="why-heading">
+                <div className="eyebrow coral">{copy[lang].whyEyebrow}</div>
+                <h2>{t.features}</h2>
+                <p>{copy[lang].whyDescription}</p>
+                <Link className="text-link" href="/new">
+                  {t.start}
+                  <ArrowRight size={17} />
+                </Link>
+              </div>
+              <div className="why-features">
+                {[ShieldCheck, Globe2, CarFront].map((Icon, i) => (
+                  <div key={i}>
+                    <Icon />
+                    <div>
+                      <h3>{copy[lang].featureTitles[i]}</h3>
+                      <p>{copy[lang].featureDescriptions[i]}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+            <section id="faq" className="faq section">
+              <div>
+                <div className="eyebrow coral">FAQ</div>
+                <h2>{t.faq}</h2>
+              </div>
+              <div>
+                {copy[lang].faqQuestions.map((q, i) => (
+                  <div className="faq-item" key={q}>
+                    <button
+                      aria-expanded={faq === i}
+                      onClick={() => setFaq(faq === i ? null : i)}
+                    >
+                      {q}
+                      {faq === i ? <Minus size={18} /> : <Plus size={18} />}
+                    </button>
+                    {faq === i && <p>{copy[lang].faqAnswers[i]}</p>}
+                  </div>
+                ))}
+              </div>
+            </section>
+            <section className="bottom-cta">
+              <span className="eyebrow">{t.sub}</span>
+              <h2>{copy[lang].bottomTitle}</h2>
+              <Link href="/new" className="button">
+                {t.cta}
+                <ArrowUpRight size={18} />
+              </Link>
+            </section>
+          </main>
+        </>
+      )}
+      <footer>
+        <Logo />
+        <p>{copy[lang].footerTagline}</p>
+        <span>
+          © 2026 Louma <span className="footer-star">✳</span> Made for Morocco
+        </span>
+      </footer>
+    </div>
+  );
+}
+function HeroArt({ lang }: { lang: Lang }) {
+  return (
+    <div className="hero-art" aria-label={copy[lang].heroPreview}>
+      <div className="art-grid" />
+      <div className="art-orbit" />
+      <div className="floating-tag">
+        <span className="tiny-spark">✦</span>
+        {copy[lang].paperworkTag}
+      </div>
+      <div className="back-id">
+        <MiniCard kind={1} />
+      </div>
+      <div className="scan-card">
+        <div className="scan-header">
+          <span className="scan-icon">
+            <ScanLine size={17} />
+          </span>
+          <b>{copy[lang].scanTag}</b>
+          <span className="live-dot" />
+        </div>
+        <div className="scan-frame">
+          <i className="corner tl" />
+          <i className="corner tr" />
+          <i className="corner bl" />
+          <i className="corner br" />
+          <MiniCard />
+          <div className="scan-beam" />
+        </div>
+        <div className="extracted">
+          <span className="check-round">
+            <Check size={13} />
+          </span>
+          <div>
+            <b>{copy[lang].extractedTitle}</b>
+            <small>{copy[lang].extractedDescription}</small>
+          </div>
+          <span className="scan-symbol">
+            <ScanLine size={18} />
+          </span>
+        </div>
+      </div>
+      <div className="contract-float">
+        <div className="pdf-icon">
+          <FileText size={22} />
+          <span>PDF</span>
+        </div>
+        <div>
+          <b>{copy[lang].readyTag}</b>
+          <small>
+            contrat_location.pdf <span>· 128 Ko</span>
+          </small>
+        </div>
+        <span className="download-round">
+          <ArrowRight size={17} />
+        </span>
+      </div>
+      <div className="art-caption">
+        <LockKeyhole size={12} />
+        {copy[lang].privacy}
+      </div>
+      <span className="art-plus plus-one">+</span>
+      <span className="art-plus plus-two">+</span>
+    </div>
+  );
+}
+const initialFields: Record<string, string>[] = [
+  { name: "", identity: "", address: "" },
+  { licence: "", category: "", expiry: "" },
+  { brand: "", plate: "", vin: "" },
+];
+const examples: Record<string, string>[] = [
+  {
+    name: "Amine El Mansouri",
+    identity: "BK123456",
+    address: "24, avenue Hassan II, Casablanca",
+  },
+  { licence: "123456/06", category: "B", expiry: "2030-06-15" },
+  { brand: "Dacia Sandero", plate: "12345-A-6", vin: "VF1B5220X12345678" },
+];
+function Workflow({ lang }: { lang: Lang }) {
+  const t = copy[lang],
+    [step, setStep] = useState(0),
+    [modal, setModal] = useState(false),
+    [phase, setPhase] = useState("upload"),
+    [preview, setPreview] = useState(""),
+    [file, setFile] = useState<File | null>(null),
+    [consent, setConsent] = useState(false),
+    [demo, setDemo] = useState(false),
+    [usedDemo, setUsedDemo] = useState(false),
+    [error, setError] = useState(""),
+    [data, setData] = useState<Record<string, string>[]>(initialFields),
+    [busy, setBusy] = useState(false);
+  const input = useRef<HTMLInputElement>(null),
+    camera = useRef<HTMLInputElement>(null);
+  const [rental, setRental] = useState({
+    agency: "",
+    city: "Casablanca",
+    start: "",
+    end: "",
+    price: "",
+    deposit: "",
+  });
+  const labels: Record<string, string> = copy[lang].labels;
+  useEffect(
+    () => () => {
+      if (preview) URL.revokeObjectURL(preview);
+    },
+    [preview],
+  );
+  function choose(f: File | undefined) {
+    if (!f) return;
+    if (
+      !["image/jpeg", "image/png", "image/webp", "application/pdf"].includes(
+        f.type,
+      ) ||
+      f.size > 10 * 1024 * 1024
+    ) {
+      setError(copy[lang].fileError);
+      return;
+    }
+    setError("");
+    setFile(f);
+    setPreview(URL.createObjectURL(f));
+    setDemo(false);
+  }
+  async function scan() {
+    if (!file || !consent) return;
+    setPhase("scanning");
+    setError("");
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      form.append("kind", String(step));
+      const res = await fetch("/api/ocr", { method: "POST", body: form });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error);
+      setData((d) =>
+        d.map((v, i) => (i === step ? { ...v, ...result.fields } : v)),
+      );
+      setPhase("review");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t.scanError);
+      setPhase("upload");
+    }
+  }
+  function sample() {
+    setDemo(true);
+    setUsedDemo(true);
+    setPhase("scanning");
+    setTimeout(() => {
+      setData((d) => d.map((v, i) => (i === step ? examples[i] : v)));
+      setPhase("review");
+    }, 1500);
+  }
+  function open() {
+    setPhase("upload");
+    setPreview("");
+    setFile(null);
+    setError("");
+    setConsent(false);
+    setDemo(false);
+    setModal(true);
+  }
+  async function download() {
+    setBusy(true);
+    setError("");
+    try {
+      const { makeContract } = await import("./pdf");
+      await makeContract(data, rental, usedDemo);
+    } catch {
+      setError(copy[lang].pdfError);
+    } finally {
+      setBusy(false);
+    }
+  }
+  const valid =
+    Object.values(rental).every(Boolean) &&
+    new Date(rental.end) > new Date(rental.start) &&
+    Number(rental.price) > 0 &&
+    Number(rental.deposit) >= 0;
+  return (
+    <main className="workflow">
+      <Link className="back-link" href="/">
+        ← {t.back}
+      </Link>
+      <div className="workflow-heading">
+        <div className="eyebrow coral">{copy[lang].workflowEyebrow}</div>
+        <h1>{t.newTitle}</h1>
+        <p>{t.newDesc}</p>
+      </div>
+      <div className="workflow-layout">
+        <div className="checklist-panel">
+          <div className="progress-title">
+            <b>{copy[lang].documentsLabel}</b>
+            <span>{Math.min(step, 3)} / 3</span>
+          </div>
+          <div className="progress-track">
+            <span style={{ width: `${(step / 3) * 100}%` }} />
+          </div>
+          {t.docs.map((name, i) => {
+            const Icon = [CreditCard, CreditCard, CarFront][i];
+            return (
+              <div
+                className={`checklist-row ${i === step ? "active" : ""} ${i < step ? "complete" : ""}`}
+                key={name}
+              >
+                <div className="step-number">
+                  {i < step ? <Check size={17} /> : i + 1}
+                </div>
+                <div className="document-name">
+                  <h3>{name}</h3>
+                  <p>{t.detail[i]}</p>
+                  <span>
+                    {i < step ? t.checked : i === step ? t.current : t.next}
+                  </span>
+                </div>
+                <Icon size={21} />
+              </div>
+            );
+          })}
+          <div className="checklist-security">
+            <ShieldCheck size={18} />
+            <span>{t.privacy}</span>
+          </div>
+        </div>
+        <div className="work-area">
+          {step < 3 ? (
+            <>
+              <div className="work-area-label">
+                <span>0{step + 1}</span>
+                {t.docs[step]}
+              </div>
+              <div className="document-illustration">
+                <MiniCard kind={step} />
+                <div className="document-badge">
+                  <ScanLine size={22} />
+                </div>
+              </div>
+              <h2>{t.docs[step]}</h2>
+              <p>
+                {t.detail[step]}.<br />
+                {copy[lang].documentHint}
+              </p>
+              <button className="button" onClick={open}>
+                <ScanLine size={18} />
+                {t.scan}
+                <ArrowRight size={17} />
+              </button>
+              <div className="format-note">{t.fileFormats}</div>
+              <button
+                className="demo-button"
+                onClick={() => {
+                  open();
+                  sample();
+                }}
+              >
+                {t.demo}
+                <ArrowUpRight size={14} />
+              </button>
+            </>
+          ) : (
+            <>
+              <span className="success-large">
+                <CircleCheck size={40} />
+              </span>
+              <div className="eyebrow coral">3 / 3 · {t.done}</div>
+              <h2>{t.contract}</h2>
+              <p>{copy[lang].rentalHint}</p>
+              <form
+                className="rental-form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  download();
+                }}
+              >
+                {Object.entries(rental).map(([k, v]) => (
+                  <label key={k}>
+                    {labels[k]}
+                    <input
+                      required
+                      value={v}
+                      type={
+                        k === "start" || k === "end"
+                          ? "date"
+                          : k === "price" || k === "deposit"
+                            ? "number"
+                            : "text"
+                      }
+                      min={k === "price" ? 1 : 0}
+                      onChange={(e) =>
+                        setRental({ ...rental, [k]: e.target.value })
+                      }
+                    />
+                  </label>
+                ))}
+                <p className="contract-note">{copy[lang].pdfNote}</p>
+                {usedDemo && (
+                  <p className="demo-label">{copy[lang].demoLabel}</p>
+                )}
+                <button
+                  type="submit"
+                  className="button"
+                  disabled={!valid || busy}
+                >
+                  <Download size={17} />
+                  {busy ? "…" : t.download}
+                </button>
+                {error && (
+                  <p role="alert" className="error">
+                    {error}
+                  </p>
+                )}
+              </form>
+            </>
+          )}
+        </div>
+      </div>
+      <div className="workflow-bottom">
+        <LockKeyhole size={14} />
+        {copy[lang].sessionPrivacy}
+      </div>
+      {modal && (
+        <div className="modal-backdrop">
+          <div
+            className="scan-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label={t.scan}
+          >
+            <button
+              className="modal-close icon-button"
+              aria-label={t.closeLabel}
+              onClick={() => phase !== "scanning" && setModal(false)}
+              disabled={phase === "scanning"}
+            >
+              <X />
+            </button>
+            <div className="eyebrow coral">0{step + 1} / 03</div>
+            <h2>{phase === "review" ? t.review : t.docs[step]}</h2>
+            {phase === "scanning" ? (
+              <div className="scanning-state">
+                <div className="scanning-preview">
+                  <MiniCard kind={step} />
+                  <div className="scan-beam" />
+                </div>
+                <Sparkles className="pulse" />
+                <h3>{t.scanning}</h3>
+                <p>Mistral OCR {demo && "· DEMO"}</p>
+              </div>
+            ) : phase === "review" ? (
+              <>
+                <div className="review-success">
+                  <CircleCheck size={18} />
+                  {demo ? copy[lang].demoLabel : t.checked}
+                </div>
+                <div className="review-fields">
+                  {Object.entries(data[step]).map(([k, v]) => (
+                    <label key={k}>
+                      {labels[k]}
+                      <input
+                        value={v}
+                        required
+                        onChange={(e) =>
+                          setData((d) =>
+                            d.map((o, i) =>
+                              i === step ? { ...o, [k]: e.target.value } : o,
+                            ),
+                          )
+                        }
+                      />
+                    </label>
+                  ))}
+                </div>
+                <button
+                  className="button full"
+                  disabled={Object.values(data[step]).some((v) => !v.trim())}
+                  onClick={() => {
+                    setStep(step + 1);
+                    setModal(false);
+                  }}
+                >
+                  {t.validate}
+                  <ArrowRight size={17} />
+                </button>
+              </>
+            ) : (
+              <>
+                <div
+                  className="upload-zone"
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    choose(e.dataTransfer.files[0]);
+                  }}
+                >
+                  {file ? (
+                    <>
+                      <div className="file-preview">
+                        {file.type === "application/pdf" ? (
+                          <FileText size={55} />
+                        ) : (
+                          <img src={preview} alt={t.documentPreview} />
+                        )}
+                      </div>
+                      <b>{file.name}</b>
+                      <button
+                        className="text-link"
+                        onClick={() => input.current?.click()}
+                      >
+                        {t.retry}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="upload-icon">
+                        <Upload size={29} />
+                      </div>
+                      <h3>{t.upload}</h3>
+                      <p>{t.fileFormats}</p>
+                      <button
+                        className="button"
+                        onClick={() => input.current?.click()}
+                      >
+                        <Upload size={16} />
+                        {t.upload}
+                      </button>
+                      <button
+                        className="camera-button"
+                        onClick={() => camera.current?.click()}
+                      >
+                        <Camera size={17} />
+                        {t.camera}
+                      </button>
+                    </>
+                  )}
+                </div>
+                <input
+                  ref={input}
+                  type="file"
+                  hidden
+                  accept="image/jpeg,image/png,image/webp,application/pdf"
+                  onChange={(e) => choose(e.target.files?.[0])}
+                />
+                <input
+                  ref={camera}
+                  type="file"
+                  hidden
+                  accept="image/*"
+                  capture="environment"
+                  onChange={(e) => choose(e.target.files?.[0])}
+                />
+                {file && (
+                  <>
+                    <label className="consent">
+                      <input
+                        type="checkbox"
+                        checked={consent}
+                        onChange={(e) => setConsent(e.target.checked)}
+                      />
+                      {t.consent}
+                    </label>
+                    <button
+                      className="button full"
+                      disabled={!consent}
+                      onClick={scan}
+                    >
+                      <ScanLine size={17} />
+                      {t.scan}
+                    </button>
+                  </>
+                )}
+                {error && (
+                  <p className="error" role="alert">
+                    {error}
+                  </p>
+                )}
+              </>
+            )}
+            <div className="modal-security">
+              <LockKeyhole size={12} />
+              {t.privacy}
+            </div>
+          </div>
+        </div>
+      )}
+    </main>
+  );
 }
