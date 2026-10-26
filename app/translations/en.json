@@ -36,7 +36,7 @@
   "features": "Made for your agency.",
   "privacy": "Your documents stay confidential",
   "demo": "Try an example",
-  "consent": "I agree to send this document to Mistral to extract its information.",
+  "consent": "I agree to process this document to extract its information.",
   "scanning": "Reading your document…",
   "retry": "Choose another document",
   "contract": "Your rental details",
@@ -79,7 +79,7 @@
   ],
   "faqAnswers": [
     "Your customer’s ID, driving licence and the vehicle registration. Clear photos or PDFs are enough.",
-    "Louma processes documents in memory during this session. Live scans are sent to Mistral for extraction.",
+    "Louma processes documents in memory during this session and sends them to its document reading provider for extraction.",
     "Yes. Review and correct every field before confirming each step.",
     "Louma extracts document information. Your agency must verify authenticity and signatures."
   ],
@@ -101,11 +101,8 @@
     "plate": "Registration",
     "vin": "VIN",
     "agency": "Agency name",
-    "city": "City",
     "start": "Rental start",
-    "end": "Rental end",
-    "price": "Daily rate (MAD)",
-    "deposit": "Deposit (MAD)"
+    "end": "Rental end"
   },
   "fileError": "Use a JPG, PNG, WebP or PDF under 4 MB.",
   "pdfError": "Could not generate PDF. Please retry.",
@@ -114,12 +111,14 @@
   "documentHint": "Make sure the document is clear and well lit.",
   "rentalHint": "One last step before handing over the keys.",
   "pdfNote": "The PDF template is in French. Review the terms and collect signatures before use.",
-  "demoLabel": "Demo — sample data",
   "sessionPrivacy": "No account needed. Documents are not saved in your browser.",
   "languageLabel": "Language",
   "closeLabel": "Close",
   "documentPreview": "Document preview",
   "heroPreview": "Agreement creation preview",
   "fileFormats": "JPG, PNG, WebP, PDF · 4 MB max.",
-  "scanError": "Could not scan the document. Please retry."
+  "scanError": "Could not scan the document. Please retry.",
+  "dateHint": "Select your departure date, then your return date.",
+  "selectDate": "Select a date",
+  "clearDates": "Clear dates"
 }

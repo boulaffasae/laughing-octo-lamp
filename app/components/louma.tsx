@@ -26,6 +26,7 @@ import {
   Plus,
   Minus,
 } from "lucide-react";
+import { RentalDates } from "./rental-dates";
 import { useCopy } from "../translations";
 
 export function Logo() {
@@ -225,7 +226,7 @@ export default function Louma({ workflow = false }: { workflow?: boolean }) {
                         </>
                       ) : i === 1 ? (
                         <span className="green">
-                          <Sparkles size={13} /> Mistral OCR
+                          <Sparkles size={13} /> {t.poweredBy}
                         </span>
                       ) : (
                         <span>
@@ -388,8 +389,6 @@ function Workflow() {
     [preview, setPreview] = useState(""),
     [file, setFile] = useState<File | null>(null),
     [consent, setConsent] = useState(false),
-    [demo, setDemo] = useState(false),
-    [usedDemo, setUsedDemo] = useState(false),
     [error, setError] = useState(""),
     [data, setData] = useState<Record<string, string>[]>(initialFields),
     [busy, setBusy] = useState(false);
@@ -397,11 +396,8 @@ function Workflow() {
     camera = useRef<HTMLInputElement>(null);
   const [rental, setRental] = useState({
     agency: "",
-    city: "Casablanca",
     start: "",
     end: "",
-    price: "",
-    deposit: "",
   });
   const labels: Record<string, string> = t.labels;
   useEffect(
@@ -425,7 +421,6 @@ function Workflow() {
     setError("");
     setFile(f);
     setPreview(URL.createObjectURL(f));
-    setDemo(false);
   }
   async function scan() {
     if (!file || !consent) return;
@@ -448,8 +443,6 @@ function Workflow() {
     }
   }
   function sample() {
-    setDemo(true);
-    setUsedDemo(true);
     setPhase("scanning");
     setTimeout(() => {
       setData((d) => d.map((v, i) => (i === step ? examples[i] : v)));
@@ -462,7 +455,6 @@ function Workflow() {
     setFile(null);
     setError("");
     setConsent(false);
-    setDemo(false);
     setModal(true);
   }
   async function download() {
@@ -470,7 +462,7 @@ function Workflow() {
     setError("");
     try {
       const { makeContract } = await import("./pdf");
-      await makeContract(data, rental, usedDemo);
+      await makeContract(data, rental);
     } catch {
       setError(t.pdfError);
     } finally {
@@ -479,9 +471,7 @@ function Workflow() {
   }
   const valid =
     Object.values(rental).every(Boolean) &&
-    new Date(rental.end) > new Date(rental.start) &&
-    Number(rental.price) > 0 &&
-    Number(rental.deposit) >= 0;
+    new Date(rental.end) > new Date(rental.start);
   return (
     <main className="workflow">
       <Link className="back-link" href="/">
@@ -577,28 +567,24 @@ function Workflow() {
                   download();
                 }}
               >
-                {Object.entries(rental).map(([k, v]) => (
-                  <label key={k}>
-                    {labels[k]}
-                    <input
-                      required
-                      value={v}
-                      type={
-                        k === "start" || k === "end"
-                          ? "date"
-                          : k === "price" || k === "deposit"
-                            ? "number"
-                            : "text"
-                      }
-                      min={k === "price" ? 1 : 0}
-                      onChange={(e) =>
-                        setRental({ ...rental, [k]: e.target.value })
-                      }
-                    />
-                  </label>
-                ))}
+                <label className="agency-field">
+                  {labels.agency}
+                  <input
+                    required
+                    value={rental.agency}
+                    onChange={(e) =>
+                      setRental({ ...rental, agency: e.target.value })
+                    }
+                  />
+                </label>
+                <RentalDates
+                  start={rental.start}
+                  end={rental.end}
+                  onChange={(start, end) =>
+                    setRental({ ...rental, start, end })
+                  }
+                />
                 <p className="contract-note">{t.pdfNote}</p>
-                {usedDemo && <p className="demo-label">{t.demoLabel}</p>}
                 <button
                   type="submit"
                   className="button"
@@ -647,13 +633,13 @@ function Workflow() {
                 </div>
                 <Sparkles className="pulse" />
                 <h3>{t.scanning}</h3>
-                <p>Mistral OCR {demo && "· DEMO"}</p>
+                <p>{t.poweredBy}</p>
               </div>
             ) : phase === "review" ? (
               <>
                 <div className="review-success">
                   <CircleCheck size={18} />
-                  {demo ? t.demoLabel : t.checked}
+                  {t.extractedTitle}
                 </div>
                 <div className="review-fields">
                   {Object.entries(data[step]).map(([k, v]) => (

@@ -36,7 +36,7 @@
   "features": "Pensé pour votre agence.",
   "privacy": "Vos documents restent confidentiels",
   "demo": "Essayer avec un exemple",
-  "consent": "J’autorise l’envoi de ce document à Mistral pour extraire ses informations.",
+  "consent": "J’autorise le traitement de ce document pour en extraire les informations.",
   "scanning": "Lecture de votre document…",
   "retry": "Choisir un autre document",
   "contract": "Les détails de votre location",
@@ -79,7 +79,7 @@
   ],
   "faqAnswers": [
     "La CNIE du client, son permis de conduire et la carte grise du véhicule. Des photos lisibles ou des PDF suffisent.",
-    "Louma traite les documents en mémoire pour cette session. Le scan réel est transmis à Mistral pour l’extraction.",
+    "Louma traite les documents en mémoire pendant cette session et les transmet à son prestataire de lecture pour l’extraction.",
     "Oui. Chaque étape vous permet de corriger les champs avant de les valider.",
     "Louma extrait les informations des documents. L’authenticité et les signatures doivent être vérifiées par votre agence."
   ],
@@ -101,11 +101,8 @@
     "plate": "Immatriculation",
     "vin": "N° de châssis",
     "agency": "Nom de l’agence",
-    "city": "Ville",
     "start": "Début de location",
-    "end": "Fin de location",
-    "price": "Prix par jour (MAD)",
-    "deposit": "Caution (MAD)"
+    "end": "Fin de location"
   },
   "fileError": "Choisissez un JPG, PNG, WebP ou PDF de moins de 4 Mo.",
   "pdfError": "Le PDF n’a pas pu être généré. Réessayez.",
@@ -114,12 +111,14 @@
   "documentHint": "Assurez-vous que le document est lisible et bien éclairé.",
   "rentalHint": "Une dernière étape avant de remettre les clés.",
   "pdfNote": "Le modèle PDF est en français. Relisez les conditions et complétez les signatures avant utilisation.",
-  "demoLabel": "Exemple — données fictives",
   "sessionPrivacy": "Pas de compte à créer. Aucun document enregistré dans votre navigateur.",
   "languageLabel": "Langue",
   "closeLabel": "Fermer",
   "documentPreview": "Aperçu du document",
   "heroPreview": "Aperçu du parcours de création de contrat",
   "fileFormats": "JPG, PNG, WebP, PDF · 4 Mo max.",
-  "scanError": "La lecture du document a échoué. Réessayez."
+  "scanError": "La lecture du document a échoué. Réessayez.",
+  "dateHint": "Choisissez la date de départ, puis la date de retour.",
+  "selectDate": "Choisir une date",
+  "clearDates": "Effacer les dates"
 }
