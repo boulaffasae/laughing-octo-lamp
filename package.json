@@ -12,7 +12,9 @@
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "video:studio": "remotion studio remotion/index.tsx",
     "video:render": "remotion render remotion/index.tsx LoumaTikTok output/video/louma-tiktok.mp4",
-    "video:still": "remotion still remotion/index.tsx LoumaTikTok output/video/louma-cover.png --frame=700"
+    "video:still": "remotion still remotion/index.tsx LoumaTikTok output/video/louma-cover.png --frame=700",
+    "video:trust:render": "remotion render remotion/index.tsx LoumaSansCheque output/video/louma-sans-cheque.mp4",
+    "video:trust:still": "remotion still remotion/index.tsx LoumaSansCheque output/video/louma-sans-cheque-cover.png --frame=940"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.9.0",
