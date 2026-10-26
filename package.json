@@ -9,7 +9,10 @@
     "lint": "eslint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "node --experimental-strip-types --test tests/*.test.mjs"
+    "test": "node --experimental-strip-types --test tests/*.test.mjs",
+    "video:studio": "remotion studio remotion/index.tsx",
+    "video:render": "remotion render remotion/index.tsx LoumaTikTok output/video/louma-tiktok.mp4",
+    "video:still": "remotion still remotion/index.tsx LoumaTikTok output/video/louma-cover.png --frame=700"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.9.0",
@@ -22,6 +25,7 @@
     "react-dom": "19.3.0"
   },
   "devDependencies": {
+    "@remotion/cli": "4.0.539",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -29,7 +33,9 @@
     "eslint": "^9",
     "eslint-config-next": "16.4.3",
     "prettier": "3.9.10",
+    "remotion": "4.0.539",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "zod": "4.5.4"
   }
 }

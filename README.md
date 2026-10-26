@@ -34,3 +34,11 @@ Bot challenges and hosting/firewall configuration are intentionally deferred. Th
 ## Security checks
 
 Use Node.js 22.18+ or 24+ and run `npm test` for upload boundary, deadline, disconnect, concurrency and signature-validation tests. Tests make no external OCR requests.
+
+## TikTok demo video (Remotion)
+
+`npm run video:studio` opens the editable `LoumaTikTok` composition. `npm run video:render` exports `output/video/louma-tiktok.mp4`; `npm run video:still` exports the cover image. Remotion downloads Chrome Headless Shell on first use. To use an installed Chrome instead, append `-- --browser-executable="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"` to either render script.
+
+The French promotional demo runs for 27 seconds at 30 fps, 1080 × 1920 (9:16), with H.264 video and an original instrumental soundtrack. Five scenes cover the paperwork hook, three-document upload, extraction and review, PDF download, and a call to try Louma. It uses animated product illustrations and fictional data, with no external media or OCR requests. Edit copy, timing and artwork in `remotion/louma-demo.tsx`; composition settings live in `remotion/index.tsx`.
+
+Regenerate the original audio with `python3 scripts/create-video-audio.py`. The soundtrack has no third-party samples. Add your actual destination link to the TikTok post/profile when publishing; the video does not invent a production URL.
