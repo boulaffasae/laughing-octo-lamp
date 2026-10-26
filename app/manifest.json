@@ -6,13 +6,25 @@
       "src": "/web-app-manifest-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/web-app-manifest-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "theme_color": "#ffffff",
@@ -20,5 +32,22 @@
   "display": "standalone",
   "id": "/",
   "start_url": "/",
-  "scope": "/"
+  "scope": "/",
+  "description": "Créez vos contrats de location de véhicules au Maroc. Trois documents, un scan intelligent et un PDF prêt à signer.",
+  "screenshots": [
+    {
+      "src": "/install-desktop.png",
+      "sizes": "1440x900",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Louma — création de contrats de location sur ordinateur"
+    },
+    {
+      "src": "/install-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Louma — création de contrats de location sur mobile"
+    }
+  ]
 }
