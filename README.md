@@ -42,3 +42,21 @@ Use Node.js 22.18+ or 24+ and run `npm test` for upload boundary, deadline, disc
 The French promotional demo runs for 27 seconds at 30 fps, 1080 × 1920 (9:16), with H.264 video and an original instrumental soundtrack. Five scenes cover the paperwork hook, three-document upload, extraction and review, PDF download, and a call to try Louma. It uses animated product illustrations and fictional data, with no external media or OCR requests. Edit copy, timing and artwork in `remotion/louma-demo.tsx`; composition settings live in `remotion/index.tsx`.
 
 Regenerate the original audio with `python3 scripts/create-video-audio.py`. The soundtrack has no third-party samples. Add your actual destination link to the TikTok post/profile when publishing; the video does not invent a production URL.
+
+## Actualités / editorial workflow
+
+The journal lives at `/{fr,en,ar}/actus`, with three articles per page and crawlable `/actus/page/2` pagination. The home menu links to it; articles do not appear on the home page. Articles live in `content/actus/{locale}/{slug}.md`. Use the same slug in all three languages so language switching and hreflang point to matching translations. All published files are shown; add all three translations together.
+
+Each file begins with `---`, a YAML metadata object (JSON flow syntax is also accepted), and `---`, followed by Markdown. Required fields: `title`, `description`, `category`, `author`, `date` (ISO date). Use `##` for sections (automatic table of contents), `###` for subsections, GFM tables and `- [ ]` for checklists. Local article links can use the sibling slug. HTML and executable MDX are not enabled. Dates and author names must reflect real editorial publication.
+
+Supported fenced blocks (language after the opening triple backticks):
+
+- `warning`: `{"title":"Attention","text":"Do not sign a blank cheque."}`
+- `agencies`: `{"title":"Contacts vérifiés","items":[{"name":"Agency name","city":"City","phone":"Verified phone"}]}`. Publish only verified numbers with permission where needed.
+- `tiktok`: `{"id":"NUMERIC_VIDEO_ID","title":"Descriptive video title"}`. Lazy iframe; third-party content loads only on articles using this block.
+- `chart`: `{"title":"Chart title","labels":["A","B"],"values":[12,8],"source":"Source, date and methodology"}`. Chart.js loads only for charts; an HTML data table remains available. Do not present sample data as rental or market statistics.
+- `cars`: `{"items":[{"brand":"Opel","model":"Corsa","transmission":"Manuelle","image":"/images/licensed-car-image.jpg","alt":"Descriptive alternative text"}]}`. Images and logos must be supplied with publication rights; standard Markdown images are also supported.
+
+On Vercel, `NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL` automatically supplies the production domain (the application adds `https://`), including in preview deployments. No manually managed URL variable is needed. Optionally set `NEXT_PUBLIC_SITE_URL` to override it or configure another hosting provider. The shared origin enables absolute canonicals, language alternates, sitemap entries, social image URLs and the sitemap reference in robots.txt. Without either variable, no production domain is invented. Metadata includes article author/date, Open Graph, Twitter cards, a shared social preview, BlogPosting JSON-LD and breadcrumbs (when the origin is configured).
+
+The initial prices are editorial budget examples, not live agency quotes. Two years of driving experience is described as a condition to verify, not a universal law. Deposit and agreement articles link to Moroccan rental companies’ published terms; review facts and sources before updating legal or financial claims.

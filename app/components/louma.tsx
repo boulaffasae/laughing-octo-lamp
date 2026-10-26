@@ -98,6 +98,13 @@ export default function Louma({ workflow = false }: { workflow?: boolean }) {
                 {n}
               </Link>
             ))}
+            <Link href="/actus">
+              {lang === "ar"
+                ? "مقالات ونصائح"
+                : lang === "en"
+                  ? "News & guides"
+                  : "Actualités"}
+            </Link>
           </nav>
           <div className="header-actions">
             <div className="language">
