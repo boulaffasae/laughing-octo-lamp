@@ -1780,3 +1780,66 @@ html[dir="rtl"] .logo {
   font-size: 10px;
   padding: 12px 0 0;
 }
+
+.install-banner {
+  position: fixed;
+  inset-inline-end: max(16px, env(safe-area-inset-right));
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 20;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  width: min(420px, calc(100% - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--cream);
+  box-shadow: 0 12px 40px #263c3626;
+}
+.install-banner-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--green);
+}
+.install-banner-copy {
+  flex: 1;
+  min-width: 0;
+}
+.install-banner h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+.install-banner p {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.install-banner .button {
+  margin-top: 14px;
+  padding: 12px 18px;
+}
+.install-banner-close {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  margin: -10px -10px 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.install-banner button:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 3px;
+}
+@media (display-mode: standalone) {
+  .install-banner {
+    display: none;
+  }
+}

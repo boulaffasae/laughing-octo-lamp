@@ -120,5 +120,13 @@
   "scanError": "Could not scan the document. Please retry.",
   "dateHint": "Select your departure date, then your return date.",
   "selectDate": "Select a date",
-  "clearDates": "Clear dates"
+  "clearDates": "Clear dates",
+  "installBanner": {
+    "title": "Keep Louma close",
+    "description": "Add Louma to your home screen for quick access to your rental agreements.",
+    "ios": "To add Louma, open your browser’s Share menu, then choose “Add to Home Screen”. If this option is missing, open this page in Safari.",
+    "install": "Install Louma",
+    "installing": "Opening…",
+    "dismiss": "Remind me in 7 days"
+  }
 }

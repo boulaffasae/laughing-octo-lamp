@@ -1,3 +1,4 @@
+import { InstallBanner } from "../components/install-banner";
 import type { Metadata } from "next";
 import "../globals.css";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
     "Créez vos contrats de location de véhicules au Maroc. Trois documents, un scan intelligent et un PDF prêt à signer.",
   appleWebApp: {
     title: "Louma",
+    capable: true,
   },
 };
 
@@ -34,6 +36,7 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider locale={locale} messages={messages}>
           {children}
+          <InstallBanner />
         </NextIntlClientProvider>
       </body>
     </html>

@@ -120,5 +120,13 @@
   "scanError": "La lecture du document a échoué. Réessayez.",
   "dateHint": "Choisissez la date de départ, puis la date de retour.",
   "selectDate": "Choisir une date",
-  "clearDates": "Effacer les dates"
+  "clearDates": "Effacer les dates",
+  "installBanner": {
+    "title": "Gardez Louma à portée de main",
+    "description": "Ajoutez Louma à votre écran d’accueil pour accéder rapidement à vos contrats de location.",
+    "ios": "Pour ajouter Louma, ouvrez le menu Partager de votre navigateur, puis choisissez « Sur l’écran d’accueil ». Si cette option est absente, ouvrez cette page dans Safari.",
+    "install": "Installer Louma",
+    "installing": "Ouverture…",
+    "dismiss": "Me le rappeler dans 7 jours"
+  }
 }
