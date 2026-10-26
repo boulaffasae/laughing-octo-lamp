@@ -1,3 +1,4 @@
+import { newsRedirects } from "./lib/news-routing";
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
@@ -5,6 +6,9 @@ const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  async redirects() {
+    return newsRedirects();
+  },
   async headers() {
     return [
       {

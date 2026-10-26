@@ -1,7 +1,9 @@
-import { notFound } from "next/navigation";
+import { newsUrl } from "@/lib/news-routing";
+import { notFound, permanentRedirect } from "next/navigation";
 import Link from "next/link";
 import {
   absolute,
+  articleRoutes,
   articleDate,
   copy,
   getArticles,
@@ -19,15 +21,31 @@ export function generateStaticParams() {
   );
 }
 async function resolve(params: Props["params"]) {
-  const { locale, slug } = await params;
+  const { locale, slug: rawSlug } = await params;
+  let slug: string;
+  try {
+    slug = decodeURIComponent(rawSlug);
+  } catch {
+    notFound();
+  }
   if (!isLocale(locale)) notFound();
   const article = getArticles(locale).find((a) => a.slug === slug);
-  if (!article) notFound();
+  if (!article) {
+    const legacy = getArticles(locale).find((a) => a.id === slug);
+    if (legacy) permanentRedirect(newsUrl(locale, `/${legacy.slug}`));
+    notFound();
+  }
   return { locale, article };
 }
 export async function generateMetadata({ params }: Props) {
   const { locale, article: a } = await resolve(params);
-  const metadata = seo(locale, `/actus/${a.slug}`, a.title, a.description);
+  const metadata = seo(
+    locale,
+    `/actus/${a.slug}`,
+    a.title,
+    a.description,
+    articleRoutes(a.id),
+  );
   return {
     ...metadata,
     authors: [{ name: a.author }],
@@ -53,9 +71,9 @@ export default async function Page({ params }: Props) {
       author: { "@type": "Organization", name: a.author },
       publisher: { "@type": "Organization", name: "Louma" },
       inLanguage: locale,
-      mainEntityOfPage: absolute(`/${locale}/actus/${a.slug}`),
+      mainEntityOfPage: absolute(newsUrl(locale, `/${a.slug}`)),
     },
-    ...(absolute(`/${locale}/actus`)
+    ...(absolute(newsUrl(locale))
       ? [
           {
             "@context": "https://schema.org",
@@ -71,13 +89,13 @@ export default async function Page({ params }: Props) {
                 "@type": "ListItem",
                 position: 2,
                 name: t.nav,
-                item: absolute(`/${locale}/actus`),
+                item: absolute(newsUrl(locale)),
               },
               {
                 "@type": "ListItem",
                 position: 3,
                 name: a.title,
-                item: absolute(`/${locale}/actus/${a.slug}`),
+                item: absolute(newsUrl(locale, `/${a.slug}`)),
               },
             ],
           },
@@ -85,11 +103,11 @@ export default async function Page({ params }: Props) {
       : []),
   ];
   return (
-    <NewsShell locale={locale} route={`/actus/${a.slug}`}>
+    <NewsShell locale={locale} languageRoutes={articleRoutes(a.id)}>
       <main className="article-main">
         <nav className="news-breadcrumb" aria-label={t.home}>
           <Link href={`/${locale}`}>{t.home}</Link> /{" "}
-          <Link href={`/${locale}/actus`}>{t.nav}</Link>
+          <Link href={newsUrl(locale)}>{t.nav}</Link>
         </nav>
         <article>
           <div className="article-heading">
@@ -111,7 +129,7 @@ export default async function Page({ params }: Props) {
               ))}
             </aside>
             <div className="article-prose">
-              <ArticleMarkdown body={a.body} />
+              <ArticleMarkdown body={a.body} locale={locale} />
               <Link className="button" href={`/${locale}/new`}>
                 {t.cta} ↗
               </Link>
@@ -124,7 +142,7 @@ export default async function Page({ params }: Props) {
             .filter((b) => b.slug !== a.slug)
             .slice(0, 3)
             .map((b) => (
-              <Link key={b.slug} href={`/${locale}/actus/${b.slug}`}>
+              <Link key={b.slug} href={newsUrl(locale, `/${b.slug}`)}>
                 {b.title} ↗
               </Link>
             ))}

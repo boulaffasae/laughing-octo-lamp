@@ -1,3 +1,4 @@
+import { localizeNewsRoute } from "./news-routing";
 import fs from "node:fs";
 import { siteUrl } from "./site-url";
 export { siteUrl } from "./site-url";
@@ -7,12 +8,12 @@ import { cache } from "react";
 import type { Metadata } from "next";
 export const locales = ["fr", "en", "ar"] as const;
 export type Locale = (typeof locales)[number];
-export const pageSize = 3;
+export const pageSize = 20;
 export const copy = {
   fr: {
     title: "Le journal de la location",
     seoTitle: "Actualités et conseils de location de voiture au Maroc",
-    nav: "Actualités",
+    nav: "Conseils location",
     intro:
       "Les bons réflexes, avant de prendre la route. Guides et conseils pour louer une voiture au Maroc en confiance.",
     read: "Lire le guide",
@@ -28,7 +29,7 @@ export const copy = {
   en: {
     title: "The rental journal",
     seoTitle: "Morocco car rental news and practical guides",
-    nav: "News & guides",
+    nav: "Car rental guides",
     intro:
       "Good habits before you hit the road. Practical guides for renting a car in Morocco with confidence.",
     read: "Read the guide",
@@ -44,7 +45,7 @@ export const copy = {
   ar: {
     title: "دليل كراء السيارات",
     seoTitle: "مقالات ونصائح كراء السيارات في المغرب",
-    nav: "مقالات ونصائح",
+    nav: "دليل كراء السيارات",
     intro:
       "خطوات واضحة قبل الانطلاق. أدلة ونصائح لكراء سيارة في المغرب بثقة وراحة بال.",
     read: "اقرأ الدليل",
@@ -60,6 +61,7 @@ export const copy = {
 };
 export type Article = {
   slug: string;
+  id: string;
   title: string;
   description: string;
   category: string;
@@ -90,7 +92,8 @@ export const getArticles = cache((locale: Locale): Article[] => {
         category: meta.category,
         author: meta.author,
         date: meta.date,
-        slug: file.replace(/\.md$/, ""),
+        id: file.replace(/\.md$/, ""),
+        slug: articleSlug(meta.title),
         body: match[2],
         locale,
       };
@@ -113,8 +116,9 @@ export function seo(
   route: string,
   title: string,
   description: string,
+  languageRoutes?: Partial<Record<Locale, string>>,
 ): Metadata {
-  const url = absolute(`/${locale}${route}`);
+  const url = absolute(`/${locale}${localizeNewsRoute(locale, route)}`);
   return {
     title: `${title} | Louma`,
     description,
@@ -122,7 +126,14 @@ export function seo(
       canonical: url,
       languages: siteUrl
         ? Object.fromEntries(
-            locales.map((l) => [l, absolute(`/${l}${route}`)!]),
+            locales
+              .filter((l) => !languageRoutes || languageRoutes[l])
+              .map((l) => [
+                l,
+                absolute(
+                  `/${l}${languageRoutes?.[l] ?? localizeNewsRoute(l, route)}`,
+                )!,
+              ]),
           )
         : undefined,
     },
@@ -142,4 +153,18 @@ export function headingId(text: string) {
     .toLowerCase()
     .replace(/[^\p{L}\p{N}]+/gu, "-")
     .replace(/^-|-$/g, "");
+}
+
+export function articleSlug(title: string) {
+  return headingId(title.normalize("NFKD").replace(/\p{M}/gu, ""));
+}
+export function articleRoutes(id: string) {
+  return Object.fromEntries(
+    locales.flatMap((locale) => {
+      const article = getArticles(locale).find((a) => a.id === id);
+      return article
+        ? [[locale, localizeNewsRoute(locale, `/actus/${article.slug}`)]]
+        : [];
+    }),
+  ) as Partial<Record<Locale, string>>;
 }

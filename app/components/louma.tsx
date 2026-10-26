@@ -1,9 +1,9 @@
 "use client";
 
 import { MAX_FILE_BYTES } from "@/lib/upload-policy";
-import { Link, usePathname, useRouter } from "../../i18n/navigation";
+import { Link } from "../../i18n/navigation";
 import { useLocale } from "next-intl";
-import { routing } from "../../i18n/routing";
+import { SiteHeader, SiteFooter, BottomCTA } from "./site-chrome";
 import { Fragment, useState, useRef, useEffect } from "react";
 import {
   ArrowUpRight,
@@ -21,7 +21,6 @@ import {
   Globe2,
   CircleCheck,
   Sparkles,
-  Menu,
   Download,
   Plus,
   Minus,
@@ -29,18 +28,6 @@ import {
 import { RentalDates } from "./rental-dates";
 import { useCopy } from "../translations";
 
-export function Logo() {
-  return (
-    <Link className="logo" href="/" aria-label="Louma accueil">
-      <span className="logo-mark">
-        <i />
-        <i />
-        <i />
-      </span>
-      louma<span className="logo-dot">.</span>
-    </Link>
-  );
-}
 function MiniCard({ kind = 0 }: { kind?: number }) {
   return (
     <div className={`mini-id id-${kind}`}>
@@ -76,67 +63,11 @@ function MiniCard({ kind = 0 }: { kind?: number }) {
 }
 export default function Louma({ workflow = false }: { workflow?: boolean }) {
   const lang = useLocale();
-  const pathname = usePathname();
-  const router = useRouter();
-  const [mobile, setMobile] = useState(false),
-    [faq, setFaq] = useState<number | null>(0);
+  const [faq, setFaq] = useState<number | null>(0);
   const t = useCopy();
-  function changeLang(locale: (typeof routing.locales)[number]) {
-    router.replace(
-      `${pathname}${window.location.search}${window.location.hash}`,
-      { locale, scroll: false },
-    );
-  }
   return (
     <div dir={lang === "ar" ? "rtl" : "ltr"}>
-      <header>
-        <div className="header-inner">
-          <Logo />
-          <nav className={mobile ? "nav open" : "nav"}>
-            {t.nav.map((n, i) => (
-              <Link key={n} href={`/#${["how", "why", "faq"][i]}`}>
-                {n}
-              </Link>
-            ))}
-            <Link href="/actus">
-              {lang === "ar"
-                ? "مقالات ونصائح"
-                : lang === "en"
-                  ? "News & guides"
-                  : "Actualités"}
-            </Link>
-          </nav>
-          <div className="header-actions">
-            <div className="language">
-              <Globe2 size={15} />
-              <select
-                aria-label={t.languageLabel}
-                value={lang}
-                onChange={(e) =>
-                  changeLang(e.target.value as (typeof routing.locales)[number])
-                }
-              >
-                {routing.locales.map((l) => (
-                  <option key={l} value={l}>
-                    {l.toUpperCase()}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <Link href="/new" className="button small">
-              {t.start}
-              <ArrowUpRight size={16} />
-            </Link>
-            <button
-              className="menu icon-button"
-              aria-label="Menu"
-              onClick={() => setMobile(!mobile)}
-            >
-              <Menu />
-            </button>
-          </div>
-        </div>
-      </header>
+      <SiteHeader />
       {workflow ? (
         <Workflow />
       ) : (
@@ -287,24 +218,11 @@ export default function Louma({ workflow = false }: { workflow?: boolean }) {
                 ))}
               </div>
             </section>
-            <section className="bottom-cta">
-              <span className="eyebrow">{t.sub}</span>
-              <h2>{t.bottomTitle}</h2>
-              <Link href="/new" className="button">
-                {t.cta}
-                <ArrowUpRight size={18} />
-              </Link>
-            </section>
+            <BottomCTA />
           </main>
         </>
       )}
-      <footer>
-        <Logo />
-        <p>{t.footerTagline}</p>
-        <span>
-          © 2026 Louma <span className="footer-star">✳</span> Made for Morocco
-        </span>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { newsUrl } from "@/lib/news-routing";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -17,7 +18,7 @@ export function NewsListing({
   page?: number;
 }) {
   const articles = getArticles(locale),
-    count = Math.ceil(articles.length / pageSize),
+    count = Math.max(1, Math.ceil(articles.length / pageSize)),
     t = copy[locale];
   if (!Number.isInteger(page) || page < 1 || page > count) notFound();
   return (
@@ -37,18 +38,21 @@ export function NewsListing({
             .map((a, i) => (
               <article className="news-card" key={a.slug}>
                 <Link
-                  href={`/${locale}/actus/${a.slug}`}
-                  className={`news-cover cover-${a.slug}`}
+                  href={newsUrl(locale, `/${a.slug}`)}
+                  className={`news-cover cover-${a.id}`}
                   aria-label={a.title}
                 >
                   <BookOpen size={56} strokeWidth={1} />
-                  <span>0{(page - 1) * pageSize + i + 1} / LOUMA</span>
+                  <span>
+                    {String((page - 1) * pageSize + i + 1).padStart(2, "0")} /
+                    LOUMA
+                  </span>
                   <ArrowUpRight size={24} />
                 </Link>
                 <div className="news-card-body">
                   <span className="news-category">{a.category}</span>
                   <h2>
-                    <Link href={`/${locale}/actus/${a.slug}`}>{a.title}</Link>
+                    <Link href={newsUrl(locale, `/${a.slug}`)}>{a.title}</Link>
                   </h2>
                   <p>{a.description}</p>
                   <div className="news-meta">
@@ -57,7 +61,7 @@ export function NewsListing({
                   </div>
                   <Link
                     className="text-link"
-                    href={`/${locale}/actus/${a.slug}`}
+                    href={newsUrl(locale, `/${a.slug}`)}
                   >
                     {t.read} ↗
                   </Link>
@@ -69,7 +73,7 @@ export function NewsListing({
           {Array.from({ length: count }, (_, i) => (
             <Link
               key={i}
-              href={`/${locale}/actus${i ? `/page/${i + 1}` : ""}`}
+              href={newsUrl(locale, i ? `/page/${i + 1}` : "")}
               aria-label={`${t.page} ${i + 1}`}
               aria-current={page === i + 1 ? "page" : undefined}
             >

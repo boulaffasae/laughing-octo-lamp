@@ -1,6 +1,7 @@
+import { newsUrl } from "@/lib/news-routing";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { headingId } from "@/lib/actus";
+import { headingId, getArticles, type Locale } from "@/lib/actus";
 import ArticleChart from "./chart";
 // Fenced JSON widgets keep articles plain Markdown; no executable MDX or raw HTML.
 function Widget({ type, text }: { type: string; text: string }) {
@@ -78,7 +79,13 @@ function Widget({ type, text }: { type: string; text: string }) {
     return <ArticleChart {...data} />;
   return <pre>{text}</pre>;
 }
-export function ArticleMarkdown({ body }: { body: string }) {
+export function ArticleMarkdown({
+  body,
+  locale,
+}: {
+  body: string;
+  locale: Locale;
+}) {
   return (
     <Markdown
       remarkPlugins={[remarkGfm]}
@@ -91,16 +98,19 @@ export function ArticleMarkdown({ body }: { body: string }) {
             <table>{children}</table>
           </div>
         ),
-        a: ({ href, children }) => (
-          <a
-            href={href}
-            rel={
-              href?.startsWith("https://") ? "noopener noreferrer" : undefined
-            }
-          >
-            {children}
-          </a>
-        ),
+        a: ({ href, children }) => {
+          const article = getArticles(locale).find((a) => a.id === href);
+          return (
+            <a
+              href={article ? newsUrl(locale, `/${article.slug}`) : href}
+              rel={
+                href?.startsWith("https://") ? "noopener noreferrer" : undefined
+              }
+            >
+              {children}
+            </a>
+          );
+        },
         img: ({ src, alt }) =>
           typeof src === "string" ? (
             <figure>
