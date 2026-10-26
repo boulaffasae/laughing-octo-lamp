@@ -68,7 +68,7 @@
   ],
   "featureDescriptions": [
     "Aucun document conservé par Louma après votre session. Vous gardez le contrôle.",
-    "Français, anglais ou darija. Une expérience fluide, dans votre langue.",
+    "Français, anglais ou arabe. Une expérience fluide, dans votre langue.",
     "Au comptoir ou sur le parking, votre contrat vous suit sur mobile et ordinateur."
   ],
   "faqQuestions": [
@@ -107,7 +107,7 @@
     "price": "Prix par jour (MAD)",
     "deposit": "Caution (MAD)"
   },
-  "fileError": "Choisissez un JPG, PNG, WebP ou PDF de moins de 10 Mo.",
+  "fileError": "Choisissez un JPG, PNG, WebP ou PDF de moins de 4 Mo.",
   "pdfError": "Le PDF n’a pas pu être généré. Réessayez.",
   "workflowEyebrow": "VOTRE PROCHAIN DÉPART",
   "documentsLabel": "Documents",
@@ -120,6 +120,6 @@
   "closeLabel": "Fermer",
   "documentPreview": "Aperçu du document",
   "heroPreview": "Aperçu du parcours de création de contrat",
-  "fileFormats": "JPG, PNG, WebP, PDF · 10 Mo max.",
+  "fileFormats": "JPG, PNG, WebP, PDF · 4 Mo max.",
   "scanError": "La lecture du document a échoué. Réessayez."
 }

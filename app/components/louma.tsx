@@ -1,5 +1,9 @@
 "use client";
-import Link from "next/link";
+
+import { MAX_FILE_BYTES } from "@/lib/upload-policy";
+import { Link, usePathname, useRouter } from "../../i18n/navigation";
+import { useLocale } from "next-intl";
+import { routing } from "../../i18n/routing";
 import { Fragment, useState, useRef, useEffect } from "react";
 import {
   ArrowUpRight,
@@ -22,7 +26,7 @@ import {
   Plus,
   Minus,
 } from "lucide-react";
-import { copy, languages, type Lang } from "../translations";
+import { useCopy } from "../translations";
 
 export function Logo() {
   return (
@@ -70,39 +74,28 @@ function MiniCard({ kind = 0 }: { kind?: number }) {
   );
 }
 export default function Louma({ workflow = false }: { workflow?: boolean }) {
-  const [lang, setLang] = useState<Lang>("FR"),
-    [mobile, setMobile] = useState(false),
+  const lang = useLocale();
+  const pathname = usePathname();
+  const router = useRouter();
+  const [mobile, setMobile] = useState(false),
     [faq, setFaq] = useState<number | null>(0);
-  useEffect(() => {
-    const frame = requestAnimationFrame(() => {
-      const stored = localStorage.getItem("louma-lang");
-      const saved = stored === "AR" ? "Darija" : stored;
-      if (saved && languages.includes(saved as Lang)) {
-        setLang(saved as Lang);
-        document.documentElement.lang =
-          saved === "Darija" ? "ary" : saved.toLowerCase();
-        document.documentElement.dir = saved === "Darija" ? "rtl" : "ltr";
-      }
-    });
-    return () => cancelAnimationFrame(frame);
-  }, []);
-  const t = copy[lang];
-  function changeLang(v: Lang) {
-    setLang(v);
-    localStorage.setItem("louma-lang", v);
-    document.documentElement.lang = v === "Darija" ? "ary" : v.toLowerCase();
-    document.documentElement.dir = v === "Darija" ? "rtl" : "ltr";
+  const t = useCopy();
+  function changeLang(locale: (typeof routing.locales)[number]) {
+    router.replace(
+      `${pathname}${window.location.search}${window.location.hash}`,
+      { locale, scroll: false },
+    );
   }
   return (
-    <div dir={lang === "Darija" ? "rtl" : "ltr"}>
+    <div dir={lang === "ar" ? "rtl" : "ltr"}>
       <header>
         <div className="header-inner">
           <Logo />
           <nav className={mobile ? "nav open" : "nav"}>
             {t.nav.map((n, i) => (
-              <a key={n} href={`/#${["how", "why", "faq"][i]}`}>
+              <Link key={n} href={`/#${["how", "why", "faq"][i]}`}>
                 {n}
-              </a>
+              </Link>
             ))}
           </nav>
           <div className="header-actions">
@@ -111,10 +104,14 @@ export default function Louma({ workflow = false }: { workflow?: boolean }) {
               <select
                 aria-label={t.languageLabel}
                 value={lang}
-                onChange={(e) => changeLang(e.target.value as Lang)}
+                onChange={(e) =>
+                  changeLang(e.target.value as (typeof routing.locales)[number])
+                }
               >
-                {languages.map((l) => (
-                  <option key={l}>{l}</option>
+                {routing.locales.map((l) => (
+                  <option key={l} value={l}>
+                    {l.toUpperCase()}
+                  </option>
                 ))}
               </select>
             </div>
@@ -133,7 +130,7 @@ export default function Louma({ workflow = false }: { workflow?: boolean }) {
         </div>
       </header>
       {workflow ? (
-        <Workflow lang={lang} />
+        <Workflow />
       ) : (
         <>
           <main>
@@ -170,27 +167,27 @@ export default function Louma({ workflow = false }: { workflow?: boolean }) {
                   </div>
                 </div>
               </div>
-              <HeroArt lang={lang} />
+              <HeroArt />
             </section>
             <section className="trust-strip">
               <span>
                 <ShieldCheck />
-                {copy[lang].dataProtected}
+                {t.dataProtected}
               </span>
               <i />
               <span>
                 <ScanLine />
-                {copy[lang].poweredBy}
+                {t.poweredBy}
               </span>
               <i />
               <span>
                 <FileText />
-                {copy[lang].readyPdf}
+                {t.readyPdf}
               </span>
               <i />
               <span className="morocco">
                 <span>✳</span>
-                {copy[lang].madeForMorocco}
+                {t.madeForMorocco}
               </span>
             </section>
             <section id="how" className="how section">
@@ -200,7 +197,7 @@ export default function Louma({ workflow = false }: { workflow?: boolean }) {
                   <h2>{t.section}</h2>
                 </div>
                 <p>
-                  {copy[lang].howSummary.map((line, i) => (
+                  {t.howSummary.map((line, i) => (
                     <Fragment key={line}>
                       {i > 0 && <br />}
                       {line}
@@ -217,14 +214,14 @@ export default function Louma({ workflow = false }: { workflow?: boolean }) {
                       </div>
                       <span>0{i + 1}</span>
                     </div>
-                    <h3>{copy[lang].stepTitles[i]}</h3>
-                    <p>{copy[lang].stepDescriptions[i]}</p>
+                    <h3>{t.stepTitles[i]}</h3>
+                    <p>{t.stepDescriptions[i]}</p>
                     <div className="step-foot">
                       {i === 0 ? (
                         <>
                           <span>CNIE</span>
-                          <span>{copy[lang].licenceTag}</span>
-                          <span>{copy[lang].registrationTag}</span>
+                          <span>{t.licenceTag}</span>
+                          <span>{t.registrationTag}</span>
                         </>
                       ) : i === 1 ? (
                         <span className="green">
@@ -242,9 +239,9 @@ export default function Louma({ workflow = false }: { workflow?: boolean }) {
             </section>
             <section id="why" className="why section">
               <div className="why-heading">
-                <div className="eyebrow coral">{copy[lang].whyEyebrow}</div>
+                <div className="eyebrow coral">{t.whyEyebrow}</div>
                 <h2>{t.features}</h2>
-                <p>{copy[lang].whyDescription}</p>
+                <p>{t.whyDescription}</p>
                 <Link className="text-link" href="/new">
                   {t.start}
                   <ArrowRight size={17} />
@@ -255,8 +252,8 @@ export default function Louma({ workflow = false }: { workflow?: boolean }) {
                   <div key={i}>
                     <Icon />
                     <div>
-                      <h3>{copy[lang].featureTitles[i]}</h3>
-                      <p>{copy[lang].featureDescriptions[i]}</p>
+                      <h3>{t.featureTitles[i]}</h3>
+                      <p>{t.featureDescriptions[i]}</p>
                     </div>
                   </div>
                 ))}
@@ -268,7 +265,7 @@ export default function Louma({ workflow = false }: { workflow?: boolean }) {
                 <h2>{t.faq}</h2>
               </div>
               <div>
-                {copy[lang].faqQuestions.map((q, i) => (
+                {t.faqQuestions.map((q, i) => (
                   <div className="faq-item" key={q}>
                     <button
                       aria-expanded={faq === i}
@@ -277,14 +274,14 @@ export default function Louma({ workflow = false }: { workflow?: boolean }) {
                       {q}
                       {faq === i ? <Minus size={18} /> : <Plus size={18} />}
                     </button>
-                    {faq === i && <p>{copy[lang].faqAnswers[i]}</p>}
+                    {faq === i && <p>{t.faqAnswers[i]}</p>}
                   </div>
                 ))}
               </div>
             </section>
             <section className="bottom-cta">
               <span className="eyebrow">{t.sub}</span>
-              <h2>{copy[lang].bottomTitle}</h2>
+              <h2>{t.bottomTitle}</h2>
               <Link href="/new" className="button">
                 {t.cta}
                 <ArrowUpRight size={18} />
@@ -295,7 +292,7 @@ export default function Louma({ workflow = false }: { workflow?: boolean }) {
       )}
       <footer>
         <Logo />
-        <p>{copy[lang].footerTagline}</p>
+        <p>{t.footerTagline}</p>
         <span>
           © 2026 Louma <span className="footer-star">✳</span> Made for Morocco
         </span>
@@ -303,14 +300,15 @@ export default function Louma({ workflow = false }: { workflow?: boolean }) {
     </div>
   );
 }
-function HeroArt({ lang }: { lang: Lang }) {
+function HeroArt() {
+  const t = useCopy();
   return (
-    <div className="hero-art" aria-label={copy[lang].heroPreview}>
+    <div className="hero-art" aria-label={t.heroPreview}>
       <div className="art-grid" />
       <div className="art-orbit" />
       <div className="floating-tag">
         <span className="tiny-spark">✦</span>
-        {copy[lang].paperworkTag}
+        {t.paperworkTag}
       </div>
       <div className="back-id">
         <MiniCard kind={1} />
@@ -320,7 +318,7 @@ function HeroArt({ lang }: { lang: Lang }) {
           <span className="scan-icon">
             <ScanLine size={17} />
           </span>
-          <b>{copy[lang].scanTag}</b>
+          <b>{t.scanTag}</b>
           <span className="live-dot" />
         </div>
         <div className="scan-frame">
@@ -336,8 +334,8 @@ function HeroArt({ lang }: { lang: Lang }) {
             <Check size={13} />
           </span>
           <div>
-            <b>{copy[lang].extractedTitle}</b>
-            <small>{copy[lang].extractedDescription}</small>
+            <b>{t.extractedTitle}</b>
+            <small>{t.extractedDescription}</small>
           </div>
           <span className="scan-symbol">
             <ScanLine size={18} />
@@ -350,7 +348,7 @@ function HeroArt({ lang }: { lang: Lang }) {
           <span>PDF</span>
         </div>
         <div>
-          <b>{copy[lang].readyTag}</b>
+          <b>{t.readyTag}</b>
           <small>
             contrat_location.pdf <span>· 128 Ko</span>
           </small>
@@ -361,7 +359,7 @@ function HeroArt({ lang }: { lang: Lang }) {
       </div>
       <div className="art-caption">
         <LockKeyhole size={12} />
-        {copy[lang].privacy}
+        {t.privacy}
       </div>
       <span className="art-plus plus-one">+</span>
       <span className="art-plus plus-two">+</span>
@@ -382,8 +380,8 @@ const examples: Record<string, string>[] = [
   { licence: "123456/06", category: "B", expiry: "2030-06-15" },
   { brand: "Dacia Sandero", plate: "12345-A-6", vin: "VF1B5220X12345678" },
 ];
-function Workflow({ lang }: { lang: Lang }) {
-  const t = copy[lang],
+function Workflow() {
+  const t = useCopy(),
     [step, setStep] = useState(0),
     [modal, setModal] = useState(false),
     [phase, setPhase] = useState("upload"),
@@ -405,7 +403,7 @@ function Workflow({ lang }: { lang: Lang }) {
     price: "",
     deposit: "",
   });
-  const labels: Record<string, string> = copy[lang].labels;
+  const labels: Record<string, string> = t.labels;
   useEffect(
     () => () => {
       if (preview) URL.revokeObjectURL(preview);
@@ -418,9 +416,10 @@ function Workflow({ lang }: { lang: Lang }) {
       !["image/jpeg", "image/png", "image/webp", "application/pdf"].includes(
         f.type,
       ) ||
-      f.size > 10 * 1024 * 1024
+      f.size === 0 ||
+      f.size > MAX_FILE_BYTES
     ) {
-      setError(copy[lang].fileError);
+      setError(t.fileError);
       return;
     }
     setError("");
@@ -473,7 +472,7 @@ function Workflow({ lang }: { lang: Lang }) {
       const { makeContract } = await import("./pdf");
       await makeContract(data, rental, usedDemo);
     } catch {
-      setError(copy[lang].pdfError);
+      setError(t.pdfError);
     } finally {
       setBusy(false);
     }
@@ -489,14 +488,14 @@ function Workflow({ lang }: { lang: Lang }) {
         ← {t.back}
       </Link>
       <div className="workflow-heading">
-        <div className="eyebrow coral">{copy[lang].workflowEyebrow}</div>
+        <div className="eyebrow coral">{t.workflowEyebrow}</div>
         <h1>{t.newTitle}</h1>
         <p>{t.newDesc}</p>
       </div>
       <div className="workflow-layout">
         <div className="checklist-panel">
           <div className="progress-title">
-            <b>{copy[lang].documentsLabel}</b>
+            <b>{t.documentsLabel}</b>
             <span>{Math.min(step, 3)} / 3</span>
           </div>
           <div className="progress-track">
@@ -544,7 +543,7 @@ function Workflow({ lang }: { lang: Lang }) {
               <h2>{t.docs[step]}</h2>
               <p>
                 {t.detail[step]}.<br />
-                {copy[lang].documentHint}
+                {t.documentHint}
               </p>
               <button className="button" onClick={open}>
                 <ScanLine size={18} />
@@ -570,7 +569,7 @@ function Workflow({ lang }: { lang: Lang }) {
               </span>
               <div className="eyebrow coral">3 / 3 · {t.done}</div>
               <h2>{t.contract}</h2>
-              <p>{copy[lang].rentalHint}</p>
+              <p>{t.rentalHint}</p>
               <form
                 className="rental-form"
                 onSubmit={(e) => {
@@ -598,10 +597,8 @@ function Workflow({ lang }: { lang: Lang }) {
                     />
                   </label>
                 ))}
-                <p className="contract-note">{copy[lang].pdfNote}</p>
-                {usedDemo && (
-                  <p className="demo-label">{copy[lang].demoLabel}</p>
-                )}
+                <p className="contract-note">{t.pdfNote}</p>
+                {usedDemo && <p className="demo-label">{t.demoLabel}</p>}
                 <button
                   type="submit"
                   className="button"
@@ -622,7 +619,7 @@ function Workflow({ lang }: { lang: Lang }) {
       </div>
       <div className="workflow-bottom">
         <LockKeyhole size={14} />
-        {copy[lang].sessionPrivacy}
+        {t.sessionPrivacy}
       </div>
       {modal && (
         <div className="modal-backdrop">
@@ -656,7 +653,7 @@ function Workflow({ lang }: { lang: Lang }) {
               <>
                 <div className="review-success">
                   <CircleCheck size={18} />
-                  {demo ? copy[lang].demoLabel : t.checked}
+                  {demo ? t.demoLabel : t.checked}
                 </div>
                 <div className="review-fields">
                   {Object.entries(data[step]).map(([k, v]) => (

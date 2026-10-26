@@ -68,7 +68,7 @@
   ],
   "featureDescriptions": [
     "Louma does not save documents after your session. You stay in control.",
-    "French, English or Darija. A seamless experience in your language.",
+    "French, English or Arabic. A seamless experience in your language.",
     "At the desk or in the car park. Your agreement follows you on any device."
   ],
   "faqQuestions": [
@@ -107,7 +107,7 @@
     "price": "Daily rate (MAD)",
     "deposit": "Deposit (MAD)"
   },
-  "fileError": "Use a JPG, PNG, WebP or PDF under 10 MB.",
+  "fileError": "Use a JPG, PNG, WebP or PDF under 4 MB.",
   "pdfError": "Could not generate PDF. Please retry.",
   "workflowEyebrow": "YOUR NEXT DEPARTURE",
   "documentsLabel": "Documents",
@@ -120,6 +120,6 @@
   "closeLabel": "Close",
   "documentPreview": "Document preview",
   "heroPreview": "Agreement creation preview",
-  "fileFormats": "JPG, PNG, WebP, PDF · 10 MB max.",
+  "fileFormats": "JPG, PNG, WebP, PDF · 4 MB max.",
   "scanError": "Could not scan the document. Please retry."
 }

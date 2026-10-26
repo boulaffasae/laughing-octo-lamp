@@ -1,17 +1,34 @@
-const MAX_FILE_BYTES = 10 * 1024 * 1024;
-const MAX_BODY_BYTES = MAX_FILE_BYTES + 64 * 1024;
+import {
+  ALLOWED_UPLOAD_TYPES,
+  MAX_BODY_BYTES,
+  MAX_FILE_BYTES,
+} from "@/lib/upload-policy";
+import {
+  createRequestLimiter,
+  readLimitedBody,
+  UploadError,
+  validateUploadType,
+} from "@/lib/ocr-security";
 
-function reply(body: unknown, status: number) {
+const requests = createRequestLimiter(2);
+
+function reply(
+  body: unknown,
+  status: number,
+  headers: Record<string, string> = {},
+) {
   return Response.json(body, {
     status,
     headers: {
       "Cache-Control": "no-store",
       "X-Content-Type-Options": "nosniff",
+      ...headers,
     },
   });
 }
 
 export async function POST(request: Request) {
+  let release: (() => void) | undefined;
   try {
     // Browser protection only: scripts can forge Origin. This is not authentication.
     const origin = request.headers.get("origin");
@@ -38,31 +55,20 @@ export async function POST(request: Request) {
         },
         503,
       );
-    // Count actual bytes too: Content-Length may be absent or untrusted.
-    if (!request.body) return reply({ error: "Document manquant." }, 400);
-    const reader = request.body.getReader();
-    const chunks: Uint8Array[] = [];
-    let total = 0;
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        total += value.byteLength;
-        if (total > MAX_BODY_BYTES) {
-          await reader.cancel();
-          return reply({ error: "Document trop volumineux." }, 413);
-        }
-        chunks.push(value);
-      }
-    } finally {
-      reader.releaseLock();
-    }
+    release = requests.acquire();
+    if (!release)
+      return reply(
+        { error: "Le service est occupé. Réessayez dans quelques instants." },
+        503,
+        { "Retry-After": "5" },
+      );
+    const body = await readLimitedBody(request, MAX_BODY_BYTES);
     let form: FormData;
     try {
       form = await new Request(request.url, {
         method: "POST",
         headers: { "Content-Type": request.headers.get("content-type")! },
-        body: Buffer.concat(chunks),
+        body,
       }).formData();
     } catch {
       return reply({ error: "Document invalide." }, 400);
@@ -76,14 +82,12 @@ export async function POST(request: Request) {
     if (
       !(file instanceof File) ||
       ![0, 1, 2].includes(kind) ||
-      !["image/jpeg", "image/png", "image/webp", "application/pdf"].includes(
-        file.type,
-      ) ||
+      !ALLOWED_UPLOAD_TYPES.some((type) => type === file.type) ||
       file.size === 0 ||
       file.size > MAX_FILE_BYTES
     )
       return reply(
-        { error: "Document invalide (JPG, PNG, WebP, PDF ; 10 Mo maximum)." },
+        { error: "Document invalide (JPG, PNG, WebP, PDF ; 4 Mo maximum)." },
         400,
       );
     const keys = [
@@ -91,9 +95,15 @@ export async function POST(request: Request) {
       ["licence", "category", "expiry"],
       ["brand", "plate", "vin"],
     ][kind];
-    const encoded = `data:${file.type};base64,${Buffer.from(await file.arrayBuffer()).toString("base64")}`;
+    const bytes = Buffer.from(await file.arrayBuffer());
+    const mime = await validateUploadType(
+      bytes,
+      file.type,
+      ALLOWED_UPLOAD_TYPES,
+    );
+    const encoded = `data:${mime};base64,${bytes.toString("base64")}`;
     const document =
-      file.type === "application/pdf"
+      mime === "application/pdf"
         ? { type: "document_url", document_url: encoded }
         : { type: "image_url", image_url: encoded };
     const result = await fetch("https://api.mistral.ai/v1/ocr", {
@@ -126,7 +136,7 @@ export async function POST(request: Request) {
         document_annotation_prompt:
           "Extract the requested fields from this Moroccan document. Transcribe Latin script where available. name=full name; identity=CNIE number; address=address; licence=driving licence number; category=licence category; expiry=expiry date YYYY-MM-DD; brand=vehicle make and model; plate=registration number; vin=chassis number. Return empty string for absent or unreadable fields. Never invent values.",
       }),
-      signal: AbortSignal.timeout(60000),
+      signal: AbortSignal.any([request.signal, AbortSignal.timeout(60000)]),
     });
     if (!result.ok)
       return reply(
@@ -150,7 +160,9 @@ export async function POST(request: Request) {
       },
       200,
     );
-  } catch {
+  } catch (error) {
+    if (error instanceof UploadError)
+      return reply({ error: error.message }, error.status);
     return reply(
       {
         error:
@@ -158,5 +170,7 @@ export async function POST(request: Request) {
       },
       500,
     );
+  } finally {
+    release?.();
   }
 }
