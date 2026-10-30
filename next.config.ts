@@ -1,3 +1,4 @@
+import { withSentryConfig } from "@sentry/nextjs/config";
 import { newsRedirects } from "./lib/news-routing";
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
@@ -40,4 +41,8 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withNextIntl(nextConfig);
+export default withSentryConfig(withNextIntl(nextConfig), {
+  silent: true,
+  // Enable uploads only when CI has a Sentry auth token and project settings.
+  sourcemaps: { disable: !process.env.SENTRY_AUTH_TOKEN },
+});

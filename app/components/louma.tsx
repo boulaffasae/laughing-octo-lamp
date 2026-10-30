@@ -357,7 +357,10 @@ function Workflow() {
       form.append("kind", String(step));
       const res = await fetch("/api/ocr", { method: "POST", body: form });
       const result = await res.json();
-      if (!res.ok) throw new Error(result.error);
+      if (!res.ok)
+        throw new Error(
+          `${result.error || t.scanError}${result.requestId ? ` (Réf. : ${result.requestId})` : ""}`,
+        );
       setData((d) =>
         d.map((v, i) => (i === step ? { ...v, ...result.fields } : v)),
       );

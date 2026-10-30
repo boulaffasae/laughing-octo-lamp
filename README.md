@@ -52,3 +52,13 @@ Supported fenced blocks (language after the opening triple backticks):
 On Vercel, `NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL` automatically supplies the production domain (the application adds `https://`), including in preview deployments. No manually managed URL variable is needed. Optionally set `NEXT_PUBLIC_SITE_URL` to override it or configure another hosting provider. The shared origin enables absolute canonicals, language alternates, sitemap entries, social image URLs and the sitemap reference in robots.txt. Without either variable, no production domain is invented. Metadata includes article author/date, Open Graph, Twitter cards, a shared social preview, BlogPosting JSON-LD and breadcrumbs (when the origin is configured).
 
 The initial prices are editorial budget examples, not live agency quotes. Two years of driving experience is described as a condition to verify, not a universal law. Deposit and agreement articles link to Moroccan rental companies’ published terms; review facts and sources before updating legal or financial claims.
+
+## Error monitoring (Sentry)
+
+Sentry captures browser exceptions, server/Edge exceptions and handled OCR service failures. The supplied public DSN is configured in `lib/sentry-options.ts`; `NEXT_PUBLIC_SENTRY_DSN` can override it at build time. Deploy this change to enable monitoring in production.
+
+OCR responses include a `requestId` (also `X-Request-ID`), shown beside failed scans. Search Sentry by `request_id` to find the report. Its `ocr` context contains the processing stage, elapsed time, provider HTTP status and provider request ID when available. Structured server logs include request outcomes and matching IDs. Invalid user uploads remain request logs rather than Sentry issues. Raw provider bodies, uploaded documents and extracted fields are never deliberately logged; Sentry request bodies, cookies, headers and user details are removed. Session replay and performance sampling are disabled.
+
+For readable production source maps, configure `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` and `SENTRY_PROJECT` in the build environment. The auth token must remain server-only. Error ingestion works with the DSN alone; source-map uploads are disabled without a token.
+
+To verify delivery after deploying, reproduce a failing OCR request and search its reference ID in Sentry. Local checks do not deliberately send test events to the production project.
