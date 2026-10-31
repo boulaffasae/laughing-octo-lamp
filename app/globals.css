@@ -2213,3 +2213,26 @@ html[dir="rtl"] .logo {
     padding-top: 10px;
   }
 }
+
+.cnie-hint {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #869579;
+  margin: 0 0 16px;
+}
+.cnie-uploads {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+.upload-zone-compact {
+  padding: 18px 10px;
+  gap: 10px;
+}
+.upload-zone-compact .upload-icon {
+  display: none;
+}
+.upload-zone-compact .file-preview,
+.upload-zone-compact .file-preview img {
+  max-height: 90px;
+}

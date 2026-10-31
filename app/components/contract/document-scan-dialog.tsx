@@ -3,6 +3,7 @@
 import { useCopy } from "@/app/translations";
 import type { ContractBuilderState } from "./use-contract-builder";
 import Image from "next/image";
+import { useRef } from "react";
 import {
   X,
   Sparkles,
@@ -30,8 +31,9 @@ export function DocumentScanDialog({
     documentData,
     selectedFile,
     previewUrl,
-    fileInputRef,
-    cameraInputRef,
+    backPreviewUrl,
+    backFile,
+    selectBackFile,
     hasConsent,
     setHasConsent,
     errorMessage,
@@ -103,76 +105,28 @@ export function DocumentScanDialog({
           </>
         ) : (
           <>
-            <div
-              className="upload-zone"
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => {
-                e.preventDefault();
-                selectFile(e.dataTransfer.files[0]);
-              }}
-            >
-              {selectedFile ? (
-                <>
-                  <div className="file-preview">
-                    {selectedFile.type === "application/pdf" ? (
-                      <FileText size={55} />
-                    ) : (
-                      <Image
-                        src={previewUrl}
-                        alt={copy.documentPreview}
-                        width={360}
-                        height={220}
-                        unoptimized
-                      />
-                    )}
-                  </div>
-                  <b>{selectedFile.name}</b>
-                  <button
-                    className="text-link"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    {copy.retry}
-                  </button>
-                </>
-              ) : (
-                <>
-                  <div className="upload-icon">
-                    <Upload size={29} />
-                  </div>
-                  <h3>{copy.upload}</h3>
-                  <p>{copy.fileFormats}</p>
-                  <button
-                    className="button"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Upload size={16} />
-                    {copy.upload}
-                  </button>
-                  <button
-                    className="camera-button"
-                    onClick={() => cameraInputRef.current?.click()}
-                  >
-                    <Camera size={17} />
-                    {copy.camera}
-                  </button>
-                </>
-              )}
+            {documentIndex === 0 && (
+              <p className="cnie-hint">{copy.cnieHint}</p>
+            )}
+            <div className={documentIndex === 0 ? "cnie-uploads" : undefined}>
+              <DocumentUpload
+                file={selectedFile}
+                previewUrl={previewUrl}
+                selectFile={selectFile}
+                label={documentIndex === 0 ? copy.cnieFront : undefined}
+                compact={documentIndex === 0}
+              />
+              {documentIndex === 0 &&
+                selectedFile?.type !== "application/pdf" && (
+                  <DocumentUpload
+                    file={backFile}
+                    previewUrl={backPreviewUrl}
+                    selectFile={selectBackFile}
+                    label={copy.cnieBack}
+                    compact
+                  />
+                )}
             </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              hidden
-              accept="image/jpeg,image/png,image/webp,application/pdf"
-              onChange={(e) => selectFile(e.target.files?.[0])}
-            />
-            <input
-              ref={cameraInputRef}
-              type="file"
-              hidden
-              accept="image/*"
-              capture="environment"
-              onChange={(e) => selectFile(e.target.files?.[0])}
-            />
             {selectedFile && (
               <>
                 <label className="consent">
@@ -206,5 +160,98 @@ export function DocumentScanDialog({
         </div>
       </div>
     </div>
+  );
+}
+
+function DocumentUpload({
+  file: selectedFile,
+  previewUrl,
+  selectFile,
+  label,
+  compact = false,
+}: {
+  file: File | null;
+  previewUrl: string;
+  selectFile: (file: File | undefined) => void;
+  label?: string;
+  compact?: boolean;
+}) {
+  const copy = useCopy();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  return (
+    <>
+      <div
+        className={`upload-zone${compact ? " upload-zone-compact" : ""}`}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => {
+          e.preventDefault();
+          selectFile(e.dataTransfer.files[0]);
+        }}
+      >
+        {label && <h3>{label}</h3>}
+        {selectedFile ? (
+          <>
+            <div className="file-preview">
+              {selectedFile.type === "application/pdf" ? (
+                <FileText size={55} />
+              ) : (
+                <Image
+                  src={previewUrl}
+                  alt={copy.documentPreview}
+                  width={360}
+                  height={220}
+                  unoptimized
+                />
+              )}
+            </div>
+            <b>{selectedFile.name}</b>
+            <button
+              className="text-link"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {copy.retry}
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="upload-icon">
+              <Upload size={29} />
+            </div>
+            {!compact && <h3>{copy.upload}</h3>}
+            <p>{copy.fileFormats}</p>
+            <button
+              className="button"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload size={16} />
+              {copy.upload}
+            </button>
+            <button
+              className="camera-button"
+              onClick={() => cameraInputRef.current?.click()}
+            >
+              <Camera size={17} />
+              {copy.camera}
+            </button>
+          </>
+        )}
+      </div>
+      <input
+        ref={fileInputRef}
+        type="file"
+        hidden
+        accept="image/jpeg,image/png,image/webp,application/pdf"
+        onChange={(e) => selectFile(e.target.files?.[0])}
+      />
+      <input
+        ref={cameraInputRef}
+        type="file"
+        hidden
+        accept="image/*"
+        capture="environment"
+        onChange={(e) => selectFile(e.target.files?.[0])}
+      />
+    </>
   );
 }

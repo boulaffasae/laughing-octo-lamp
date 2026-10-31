@@ -19,6 +19,8 @@ export function useContractBuilder() {
   const [isScanDialogOpen, setScanDialogOpen] = useState(false);
   const [phase, setPhase] = useState<ScanPhase>("upload");
   const [previewUrl, setPreviewUrl] = useState("");
+  const [backPreviewUrl, setBackPreviewUrl] = useState("");
+  const [backFile, setBackFile] = useState<File | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [hasConsent, setHasConsent] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -30,8 +32,6 @@ export function useContractBuilder() {
     start: "",
     end: "",
   });
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
   const scanController = useRef<AbortController | null>(null);
   const sampleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -40,6 +40,12 @@ export function useContractBuilder() {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
     },
     [previewUrl],
+  );
+  useEffect(
+    () => () => {
+      if (backPreviewUrl) URL.revokeObjectURL(backPreviewUrl);
+    },
+    [backPreviewUrl],
   );
   useEffect(
     () => () => {
@@ -58,6 +64,21 @@ export function useContractBuilder() {
     setErrorMessage("");
     setSelectedFile(file);
     setPreviewUrl(URL.createObjectURL(file));
+    if (file.type === "application/pdf") {
+      setBackFile(null);
+      setBackPreviewUrl("");
+    }
+  }
+
+  function selectBackFile(file: File | undefined) {
+    if (!file) return;
+    if (!isSupportedDocument(file)) {
+      setErrorMessage(copy.fileError);
+      return;
+    }
+    setErrorMessage("");
+    setBackFile(file);
+    setBackPreviewUrl(URL.createObjectURL(file));
   }
 
   async function scanSelectedDocument() {
@@ -73,6 +94,19 @@ export function useContractBuilder() {
         copy.scanError,
         controller.signal,
       );
+      if (
+        documentIndex === 0 &&
+        backFile &&
+        selectedFile.type !== "application/pdf"
+      ) {
+        const backFields = await scanDocument(
+          backFile,
+          documentIndex,
+          copy.scanError,
+          controller.signal,
+        );
+        if (backFields.address.trim()) fields.address = backFields.address;
+      }
       setDocumentData((documents) =>
         documents.map((document, index) =>
           index === documentIndex ? { ...document, ...fields } : document,
@@ -106,6 +140,8 @@ export function useContractBuilder() {
   function openScanDialog() {
     setPhase("upload");
     setPreviewUrl("");
+    setBackPreviewUrl("");
+    setBackFile(null);
     setSelectedFile(null);
     setErrorMessage("");
     setHasConsent(false);
@@ -145,14 +181,15 @@ export function useContractBuilder() {
     setScanDialogOpen,
     phase,
     previewUrl,
+    backPreviewUrl,
+    backFile,
+    selectBackFile,
     selectedFile,
     hasConsent,
     setHasConsent,
     errorMessage,
     documentData,
     isDownloading,
-    fileInputRef,
-    cameraInputRef,
     rental,
     setRental,
     isRentalValid: isValidRental(rental),
