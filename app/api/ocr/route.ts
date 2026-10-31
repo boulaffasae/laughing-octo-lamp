@@ -1,3 +1,5 @@
+import LlamaCloud from "@llamaindex/llama-cloud";
+import { extractDocument } from "@/lib/llama-ocr";
 import * as Sentry from "@sentry/nextjs";
 import {
   ALLOWED_UPLOAD_TYPES,
@@ -89,7 +91,7 @@ export async function POST(request: Request) {
     const length = request.headers.get("content-length");
     if (length && (!/^\d+$/.test(length) || Number(length) > MAX_BODY_BYTES))
       return respond({ error: "Document trop volumineux." }, 413);
-    if (!process.env.MISTRAL_API_KEY) {
+    if (!process.env.LLAMA_CLOUD_API_KEY) {
       report(
         new Error("OCR provider API key is missing"),
         "OCR_NOT_CONFIGURED",
@@ -148,73 +150,17 @@ export async function POST(request: Request) {
       file.type,
       ALLOWED_UPLOAD_TYPES,
     );
-    const encoded = `data:${mime};base64,${bytes.toString("base64")}`;
-    const document =
-      mime === "application/pdf"
-        ? { type: "document_url", document_url: encoded }
-        : { type: "image_url", image_url: encoded };
     stage = "provider_request";
-    const result = await fetch("https://api.mistral.ai/v1/ocr", {
-      method: "POST",
-      redirect: "error",
-      cache: "no-store",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.MISTRAL_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "mistral-ocr-latest",
-        document,
-        include_image_base64: false,
-        document_annotation_format: {
-          type: "json_schema",
-          json_schema: {
-            name: "rental_document",
-            strict: true,
-            schema: {
-              type: "object",
-              properties: Object.fromEntries(
-                keys.map((k) => [k, { type: "string" }]),
-              ),
-              required: keys,
-              additionalProperties: false,
-            },
-          },
-        },
-        document_annotation_prompt:
-          "Extract the requested fields from this Moroccan document. Transcribe Latin script where available. name=full name; identity=CNIE number; address=address; licence=driving licence number; category=licence category; expiry=expiry date YYYY-MM-DD; brand=vehicle make and model; plate=registration number; vin=chassis number. Return empty string for absent or unreadable fields. Never invent values.",
-      }),
-      signal: AbortSignal.any([request.signal, AbortSignal.timeout(60000)]),
-    });
-    providerStatus = result.status;
-    providerRequestId = result.headers.get("x-request-id") ?? undefined;
-    if (!result.ok) {
-      // Do not attach raw provider bodies: they may echo document contents.
-      const code =
-        result.status === 429
-          ? "OCR_PROVIDER_RATE_LIMITED"
-          : [401, 403].includes(result.status)
-            ? "OCR_PROVIDER_AUTH_FAILED"
-            : "OCR_PROVIDER_FAILED";
-      const eventId = report(
-        new Error(`Mistral OCR returned HTTP ${result.status}`),
-        code,
-      );
-      return respond(
-        {
-          error: "La lecture du document a échoué. Réessayez plus tard.",
-          code,
-          eventId,
-        },
-        502,
-      );
-    }
+    const parsed = await extractDocument(
+      new File(
+        [new Uint8Array(bytes)],
+        `document.${mime === "application/pdf" ? "pdf" : mime.split("/")[1]}`,
+        { type: mime },
+      ),
+      keys,
+      AbortSignal.any([request.signal, AbortSignal.timeout(60000)]),
+    );
     stage = "parse_response";
-    const json = await result.json();
-    const parsed =
-      typeof json.document_annotation === "string"
-        ? JSON.parse(json.document_annotation)
-        : json.document_annotation;
     if (!parsed || typeof parsed !== "object")
       throw new Error("Invalid extraction");
     return respond(
@@ -226,6 +172,28 @@ export async function POST(request: Request) {
       200,
     );
   } catch (error) {
+    if (error instanceof LlamaCloud.APIError) {
+      providerStatus = error.status;
+      providerRequestId = error.headers?.get("x-request-id") ?? undefined;
+      const code =
+        error.status === 429
+          ? "OCR_PROVIDER_RATE_LIMITED"
+          : [401, 403].includes(error.status ?? 0)
+            ? "OCR_PROVIDER_AUTH_FAILED"
+            : "OCR_PROVIDER_FAILED";
+      const eventId = report(
+        new Error(`LlamaCloud returned HTTP ${error.status}`),
+        code,
+      );
+      return respond(
+        {
+          error: "La lecture du document a échoué. Réessayez plus tard.",
+          code,
+          eventId,
+        },
+        502,
+      );
+    }
     if (error instanceof UploadError)
       return respond({ error: error.message }, error.status);
     const timedOut = error instanceof Error && error.name === "TimeoutError";

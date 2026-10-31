@@ -12,6 +12,7 @@
     "test": "node --experimental-strip-types --test tests/*.test.mjs"
   },
   "dependencies": {
+    "@llamaindex/llama-cloud": "^2.19.0",
     "@react-pdf/renderer": "^4.9.0",
     "@sentry/nextjs": "^11.10.0",
     "chart.js": "^4.6.1",
