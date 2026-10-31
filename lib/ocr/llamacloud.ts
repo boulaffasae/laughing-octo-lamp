@@ -1,7 +1,7 @@
 import LlamaCloud from "@llamaindex/llama-cloud";
 import { setTimeout } from "node:timers/promises";
 
-import { descriptions } from "./ocr-schema.ts";
+import { descriptions } from "./schema.ts";
 
 export async function extractDocument(
   file: File,

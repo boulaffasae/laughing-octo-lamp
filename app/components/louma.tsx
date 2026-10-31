@@ -355,11 +355,7 @@ function Workflow() {
       const form = new FormData();
       form.append("file", file);
       form.append("kind", String(step));
-      const endpoint = new URL("/api/ocr", window.location.origin);
-      const provider = new URLSearchParams(window.location.search).get("ocr");
-      if (provider === "datalab" || provider === "llamacloud")
-        endpoint.searchParams.set("ocr", provider);
-      const res = await fetch(endpoint, { method: "POST", body: form });
+      const res = await fetch("/api/ocr", { method: "POST", body: form });
       const result = await res.json();
       if (!res.ok)
         throw new Error(

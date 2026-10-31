@@ -1,14 +1,6 @@
-// Synthetic document only. Run: node --env-file=.env.local scripts/smoke-llama-ocr.mjs
+// Synthetic document only. Run: node --env-file=.env.local scripts/smoke-ocr.mjs
 import assert from "node:assert/strict";
-import { extractDocument } from "../lib/llama-ocr.ts";
-import { extractDatalabDocument } from "../lib/datalab-ocr.ts";
-const provider = process.argv[2] ?? "llamacloud";
-assert.ok(
-  ["llamacloud", "datalab"].includes(provider),
-  "Expected llamacloud or datalab",
-);
-const extract =
-  provider === "datalab" ? extractDatalabDocument : extractDocument;
+import { extractDatalabDocument } from "../lib/ocr/datalab.ts";
 
 const stream =
   "BT /F1 18 Tf 50 750 Td (TEST DOCUMENT - SYNTHETIC) Tj 0 -30 Td (Name: TEST PERSON) Tj 0 -30 Td (CNIE: AB123456) Tj 0 -30 Td (Address: 123 Test Street, Rabat) Tj ET";
@@ -32,7 +24,7 @@ pdf += `xref\n0 6\n0000000000 65535 f \n${offsets
   .join("")}trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
 const started = Date.now();
 try {
-  const fields = await extract(
+  const fields = await extractDatalabDocument(
     new File([pdf], "synthetic-test.pdf", { type: "application/pdf" }),
     ["name", "identity", "address"],
     AbortSignal.timeout(60000),
@@ -43,9 +35,11 @@ try {
   console.log(
     JSON.stringify({
       success: true,
-      provider,
+      provider: "datalab",
       durationMs: Date.now() - started,
-      fields,
+      fields: Object.fromEntries(
+        ["name", "identity", "address"].map((key) => [key, fields[key]]),
+      ),
     }),
   );
 } catch (error) {
@@ -53,7 +47,7 @@ try {
   console.error(
     JSON.stringify({
       success: false,
-      provider,
+      provider: "datalab",
       error: error.name,
       status: error.status,
       durationMs: Date.now() - started,

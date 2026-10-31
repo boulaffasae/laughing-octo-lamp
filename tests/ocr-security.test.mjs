@@ -6,7 +6,7 @@ import {
   readLimitedBody,
   UploadError,
   validateUploadType,
-} from "../lib/ocr-security.ts";
+} from "../lib/ocr/upload-security.ts";
 import {
   ALLOWED_UPLOAD_TYPES,
   MAX_BODY_BYTES,

@@ -1,6 +1,6 @@
 # Louma
 
-Mobile-first Moroccan vehicle rental agreement builder, using Next.js 16, React 19, LlamaCloud Extract and React-PDF.
+Mobile-first Moroccan vehicle rental agreement builder, using Next.js 16, React 19, Datalab Extract and React-PDF.
 
 ## Run
 
@@ -9,7 +9,7 @@ Install with `pnpm install`, then run `pnpm dev` and open http://localhost:3000.
 - `/fr`, `/en`, `/ar`: French, English and Arabic marketing site.
 - `/fr/new`, `/en/new`, `/ar/new`: three-document checklist, mobile camera or file upload, animated extraction, editable review and PDF download.
 
-Copy `.env.example` to `.env.local` and set `LLAMA_CLOUD_API_KEY` to enable real OCR. The key stays on the server. Without a key, use the explicitly labelled sample mode. Real uploads are transmitted to LlamaCloud after consent. Louma processes uploads in memory locally. LlamaCloud receives an uploaded copy; the server attempts to delete the extraction job and file after processing, including on failure. Cleanup failures are logged without document data. Review hosting and LlamaCloud retention settings before production use.
+Copy `.env.example` to `.env.local` and set `DATALAB_API_KEY` to enable real OCR. The key stays on the server. Without a key, use the explicitly labelled sample mode. Real uploads are transmitted to Datalab after consent. Louma processes uploads in memory locally; Datalab processing follows your team's region and retention settings. Checkpoint saving is disabled and cache reuse skipped; these settings do not guarantee deletion. Review hosting and Datalab retention settings before production use.
 
 The generated contract template is French in every interface language. Agency, rental dates, daily rate and deposit must be completed before download. Sample data produces a watermarked example. The contract is a starter template: agency terms, insurance, vehicle condition annex and signatures must be completed and reviewed before operational use. OCR transcribes information; it does not verify identity or document authenticity.
 
@@ -27,7 +27,7 @@ The OCR credential stays in server environment variables; never give it a `NEXT_
 
 There is no custom URL blacklist or repeated URL decoding. Production hosting must serve only the Next.js application and its public assets, never the repository directory; secrets must never be placed in `public/`.
 
-OCR rejects cross-site browser requests, malformed multipart uploads and oversized bodies, and disables response caching. Files are limited to 4 MiB, with 64 KiB reserved for multipart overhead, below the [Vercel Functions 4.5 MB request limit](https://vercel.com/docs/functions/limitations#request-body-size). The byte limit is enforced while reading, even when `Content-Length` is missing. Upload reading has a 30-second deadline and is cancelled on disconnect. Binary signatures are checked with `file-type` and must match an allowed declared MIME type; signature detection is not malware scanning or proof that a document is well formed. At most two requests may upload/process documents per server instance; excess requests receive 503 with `Retry-After: 5`, and slots are released on success or failure. LlamaCloud upload and extraction share a 60-second timeout and are cancelled on client disconnect. These checks do not authenticate clients or stop direct scripts. Browser origin checks follow the defense-in-depth approach documented in the [OWASP CSRF Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html). Security response headers are configured through Next.js `headers()`.
+OCR rejects cross-site browser requests, malformed multipart uploads and oversized bodies, and disables response caching. Files are limited to 4 MiB, with 64 KiB reserved for multipart overhead, below the [Vercel Functions 4.5 MB request limit](https://vercel.com/docs/functions/limitations#request-body-size). The byte limit is enforced while reading, even when `Content-Length` is missing. Upload reading has a 30-second deadline and is cancelled on disconnect. Binary signatures are checked with `file-type` and must match an allowed declared MIME type; signature detection is not malware scanning or proof that a document is well formed. At most two requests may upload/process documents per server instance; excess requests receive 503 with `Retry-After: 5`, and slots are released on success or failure. Datalab upload and extraction share a 60-second timeout and are cancelled on client disconnect. These checks do not authenticate clients or stop direct scripts. Browser origin checks follow the defense-in-depth approach documented in the [OWASP CSRF Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html). Security response headers are configured through Next.js `headers()`.
 
 Bot challenges and hosting/firewall configuration are intentionally deferred. The local concurrency limit is backpressure, not rate limiting: Vercel can start additional instances and requests can continue sequentially. Shared quotas and a provider spending cap remain necessary to bound paid OCR usage. If a credential has previously leaked, revoke and replace it; hiding its name does not invalidate a stolen key.
 
@@ -63,17 +63,12 @@ For readable production source maps, configure `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`
 
 To verify delivery after deploying, reproduce a failing OCR request and search its reference ID in Sentry. Local checks do not deliberately send test events to the production project.
 
-Run a live synthetic-document smoke test with `node --env-file=.env.local scripts/smoke-llama-ocr.mjs`. It uses the EU endpoint and makes a billable extraction request.
+## OCR implementation
 
-## OCR provider comparison
+Datalab is the only active provider. URL parameters, previous `ocr_provider` cookies, and `OCR_AB_TEST` no longer affect routing. No provider cookie is written. LlamaCloud is retained in `lib/ocr/llamacloud.ts` with mocked tests, but is not imported or called by the application or smoke test.
 
-LlamaCloud remains the default. Set `DATALAB_API_KEY` server-side to enable Datalab Extract (accurate parsing, balanced extraction). The existing file validation, concurrency limit and 60-second deadline apply to both providers. A request goes to one provider; there is no automatic fallback that could hide failures in the comparison.
+OCR code is grouped in `lib/ocr/`: `datalab.ts` handles requests and polling, `schema.ts` defines extraction fields, and `upload-security.ts` validates upload boundaries and file signatures. `app/api/ocr/route.ts` handles HTTP validation, responses and error reporting. The shared client/server upload limits remain in `lib/upload-policy.ts`.
 
-- Open `/fr/new?ocr=datalab` to select Datalab, or `/fr/new?ocr=llamacloud` to select LlamaCloud. The same parameters work for `/en/new` and `/ar/new`.
-- The upload forwards the override to `/api/ocr`. A valid choice is remembered in an `ocr_provider` HttpOnly, SameSite=Lax cookie for 30 days (Secure over HTTPS). Priority: valid query override, valid cookie, default/experiment assignment. Invalid values are ignored. Remove the query and clear the cookie for a fresh assignment.
-- Set `OCR_AB_TEST=true` only after both keys are configured to randomly assign unassigned browsers 50/50. Existing cookie assignments remain unchanged. A missing key returns 503 for that provider rather than changing the assignment. Query overrides are for manual testing; filter `assignmentSource=query` out of randomized comparisons. Cookies are preferences, not authentication.
-- Responses expose `X-OCR-Provider`; `ocr.request` logs include provider, assignment source, status, and duration. Sentry OCR errors include the provider. Compare success rates and latency by provider. Field accuracy still requires a labelled test set or review of user corrections; success alone does not measure extraction quality.
+Datalab uses accurate parsing and balanced extraction with a shared 60-second deadline. Signed regional results are downloaded without forwarding the API key to storage. Cancellation stops local polling but may not stop remote processing or billing. Responses expose `X-OCR-Provider: datalab`; structured logs record status and duration without document fields.
 
-Datalab receives the uploaded file. Multipart processing follows the Datalab team's configured region and retention policy; it does not inherit LlamaCloud's EU endpoint. Check these settings before uploading real identity documents. Checkpoint saving is disabled and cache reuse skipped; these flags do not guarantee deletion. Unlike LlamaCloud's cleanup flow, this integration does not delete Datalab requests or results. Signed regional result downloads are fetched without sending the API key to storage. Request cancellation stops local polling, but may not stop remote Datalab processing or billing.
-
-Run a synthetic Datalab test with `node --env-file=.env.local scripts/smoke-llama-ocr.mjs datalab`. Both smoke-test providers make billable API requests.
+Run a live synthetic-document smoke test with `node --env-file=.env.local scripts/smoke-ocr.mjs`. It makes one billable Datalab extraction request and verifies name, identity number and address.

@@ -1,6 +1,16 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
-import { extractDatalabDocument, DatalabError } from "../lib/datalab-ocr.ts";
+import { test, beforeEach, afterEach } from "node:test";
+
+let previousKey;
+beforeEach(() => {
+  previousKey = process.env.DATALAB_API_KEY;
+  process.env.DATALAB_API_KEY = "test-only";
+});
+afterEach(() => {
+  if (previousKey === undefined) delete process.env.DATALAB_API_KEY;
+  else process.env.DATALAB_API_KEY = previousKey;
+});
+import { extractDatalabDocument, DatalabError } from "../lib/ocr/datalab.ts";
 
 test("Datalab submits a schema and polls a local URL, ignoring untrusted check URLs", async (t) => {
   const calls = [];
@@ -59,7 +69,7 @@ test("Datalab polling respects the shared request deadline", async (t) => {
       ["identity"],
       AbortSignal.timeout(10),
     ),
-    (error) => error.name === "AbortError",
+    (error) => error.name === "TimeoutError",
   );
 });
 

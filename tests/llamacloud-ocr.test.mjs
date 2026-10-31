@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { extractDocument } from "../lib/llama-ocr.ts";
+import { extractDocument } from "../lib/ocr/llamacloud.ts";
 
 test("LlamaCloud extracts schema fields and deletes the job and file", async (t) => {
   const previousKey = process.env.LLAMA_CLOUD_API_KEY;
