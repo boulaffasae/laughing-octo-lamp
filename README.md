@@ -64,3 +64,16 @@ For readable production source maps, configure `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`
 To verify delivery after deploying, reproduce a failing OCR request and search its reference ID in Sentry. Local checks do not deliberately send test events to the production project.
 
 Run a live synthetic-document smoke test with `node --env-file=.env.local scripts/smoke-llama-ocr.mjs`. It uses the EU endpoint and makes a billable extraction request.
+
+## OCR provider comparison
+
+LlamaCloud remains the default. Set `DATALAB_API_KEY` server-side to enable Datalab Extract (accurate parsing, balanced extraction). The existing file validation, concurrency limit and 60-second deadline apply to both providers. A request goes to one provider; there is no automatic fallback that could hide failures in the comparison.
+
+- Open `/fr/new?ocr=datalab` to select Datalab, or `/fr/new?ocr=llamacloud` to select LlamaCloud. The same parameters work for `/en/new` and `/ar/new`.
+- The upload forwards the override to `/api/ocr`. A valid choice is remembered in an `ocr_provider` HttpOnly, SameSite=Lax cookie for 30 days (Secure over HTTPS). Priority: valid query override, valid cookie, default/experiment assignment. Invalid values are ignored. Remove the query and clear the cookie for a fresh assignment.
+- Set `OCR_AB_TEST=true` only after both keys are configured to randomly assign unassigned browsers 50/50. Existing cookie assignments remain unchanged. A missing key returns 503 for that provider rather than changing the assignment. Query overrides are for manual testing; filter `assignmentSource=query` out of randomized comparisons. Cookies are preferences, not authentication.
+- Responses expose `X-OCR-Provider`; `ocr.request` logs include provider, assignment source, status, and duration. Sentry OCR errors include the provider. Compare success rates and latency by provider. Field accuracy still requires a labelled test set or review of user corrections; success alone does not measure extraction quality.
+
+Datalab receives the uploaded file. Multipart processing follows the Datalab team's configured region and retention policy; it does not inherit LlamaCloud's EU endpoint. Check these settings before uploading real identity documents. Checkpoint saving is disabled and cache reuse skipped; these flags do not guarantee deletion. Unlike LlamaCloud's cleanup flow, this integration does not delete Datalab requests or results. Signed regional result downloads are fetched without sending the API key to storage. Request cancellation stops local polling, but may not stop remote Datalab processing or billing.
+
+Run a synthetic Datalab test with `node --env-file=.env.local scripts/smoke-llama-ocr.mjs datalab`. Both smoke-test providers make billable API requests.

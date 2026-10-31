@@ -1,3 +1,5 @@
+import { extractDatalabDocument, DatalabError } from "@/lib/datalab-ocr";
+import { selectOcrProvider, providerCookie } from "@/lib/ocr-provider";
 import LlamaCloud from "@llamaindex/llama-cloud";
 import { extractDocument } from "@/lib/llama-ocr";
 import * as Sentry from "@sentry/nextjs";
@@ -31,6 +33,11 @@ function reply(
 }
 
 export async function POST(request: Request) {
+  const { provider, source } = selectOcrProvider(
+    request,
+    process.env.OCR_AB_TEST === "true",
+  );
+  let rememberProvider = false;
   const requestId = crypto.randomUUID();
   const started = Date.now();
   let stage = "validation";
@@ -44,6 +51,8 @@ export async function POST(request: Request) {
     console.info(
       JSON.stringify({
         event: "ocr.request",
+        provider,
+        assignmentSource: source,
         requestId,
         stage,
         status,
@@ -53,6 +62,10 @@ export async function POST(request: Request) {
     return reply({ ...body, requestId }, status, {
       ...headers,
       "X-Request-ID": requestId,
+      "X-OCR-Provider": provider,
+      ...(rememberProvider
+        ? { "Set-Cookie": providerCookie(provider, request.url) }
+        : {}),
     });
   }
   function report(error: unknown, code: string) {
@@ -60,6 +73,7 @@ export async function POST(request: Request) {
       requestId,
       code,
       stage,
+      provider,
       providerStatus,
       providerRequestId,
       durationMs: Date.now() - started,
@@ -91,7 +105,12 @@ export async function POST(request: Request) {
     const length = request.headers.get("content-length");
     if (length && (!/^\d+$/.test(length) || Number(length) > MAX_BODY_BYTES))
       return respond({ error: "Document trop volumineux." }, 413);
-    if (!process.env.LLAMA_CLOUD_API_KEY) {
+    rememberProvider = true;
+    const apiKey =
+      provider === "datalab"
+        ? process.env.DATALAB_API_KEY
+        : process.env.LLAMA_CLOUD_API_KEY;
+    if (!apiKey) {
       report(
         new Error("OCR provider API key is missing"),
         "OCR_NOT_CONFIGURED",
@@ -151,7 +170,9 @@ export async function POST(request: Request) {
       ALLOWED_UPLOAD_TYPES,
     );
     stage = "provider_request";
-    const parsed = await extractDocument(
+    const extract =
+      provider === "datalab" ? extractDatalabDocument : extractDocument;
+    const parsed = await extract(
       new File(
         [new Uint8Array(bytes)],
         `document.${mime === "application/pdf" ? "pdf" : mime.split("/")[1]}`,
@@ -172,9 +193,12 @@ export async function POST(request: Request) {
       200,
     );
   } catch (error) {
-    if (error instanceof LlamaCloud.APIError) {
+    if (error instanceof LlamaCloud.APIError || error instanceof DatalabError) {
       providerStatus = error.status;
-      providerRequestId = error.headers?.get("x-request-id") ?? undefined;
+      providerRequestId =
+        error instanceof DatalabError
+          ? error.requestId
+          : (error.headers?.get("x-request-id") ?? undefined);
       const code =
         error.status === 429
           ? "OCR_PROVIDER_RATE_LIMITED"
@@ -182,7 +206,9 @@ export async function POST(request: Request) {
             ? "OCR_PROVIDER_AUTH_FAILED"
             : "OCR_PROVIDER_FAILED";
       const eventId = report(
-        new Error(`LlamaCloud returned HTTP ${error.status}`),
+        new Error(
+          `${provider} extraction failed (HTTP ${error.status ?? "unknown"})`,
+        ),
         code,
       );
       return respond(
