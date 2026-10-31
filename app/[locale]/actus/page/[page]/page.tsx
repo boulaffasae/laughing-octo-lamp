@@ -1,20 +1,19 @@
 import { newsUrl } from "@/lib/news-routing";
 import { notFound, permanentRedirect } from "next/navigation";
-import {
-  copy,
-  getArticles,
-  isLocale,
-  locales,
-  pageSize,
-  seo,
-} from "@/lib/actus";
-import { NewsListing } from "@/app/components/actus/listing";
+import { newsCopy } from "@/lib/news/copy";
+import { getArticles, ARTICLES_PER_PAGE } from "@/lib/news/articles";
+import { isLocale, locales } from "@/i18n/locales";
+import { createPageMetadata } from "@/lib/news/metadata";
+import { NewsListing } from "@/app/components/news/listing";
 type Props = { params: Promise<{ locale: string; page: string }> };
 export function generateStaticParams() {
   return locales.flatMap((locale) =>
     Array.from(
       {
-        length: Math.max(1, Math.ceil(getArticles(locale).length / pageSize)),
+        length: Math.max(
+          1,
+          Math.ceil(getArticles(locale).length / ARTICLES_PER_PAGE),
+        ),
       },
       (_, i) => ({ locale, page: String(i + 1) }),
     ),
@@ -25,16 +24,22 @@ export async function generateMetadata({ params }: Props) {
   if (
     !isLocale(locale) ||
     !/^[1-9]\d*$/.test(page) ||
-    Number(page) > Math.max(1, Math.ceil(getArticles(locale).length / pageSize))
+    Number(page) >
+      Math.max(1, Math.ceil(getArticles(locale).length / ARTICLES_PER_PAGE))
   )
     notFound();
   if (page === "1")
-    return seo(locale, "/actus", copy[locale].seoTitle, copy[locale].intro);
-  return seo(
+    return createPageMetadata(
+      locale,
+      "/actus",
+      newsCopy[locale].seoTitle,
+      newsCopy[locale].intro,
+    );
+  return createPageMetadata(
     locale,
     `/actus/page/${page}`,
-    `${copy[locale].seoTitle} — ${copy[locale].page} ${page}`,
-    copy[locale].intro,
+    `${newsCopy[locale].seoTitle} — ${newsCopy[locale].page} ${page}`,
+    newsCopy[locale].intro,
   );
 }
 export default async function Page({ params }: Props) {

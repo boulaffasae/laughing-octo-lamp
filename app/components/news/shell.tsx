@@ -1,6 +1,8 @@
-import { SiteHeader, SiteFooter, BottomCTA } from "../site-chrome";
+import { SiteHeader } from "../layout/site-header";
+import { SiteFooter } from "../layout/site-footer";
+import { CallToAction } from "../layout/call-to-action";
 import { localizeNewsRoute } from "@/lib/news-routing";
-import { locales, type Locale } from "@/lib/actus";
+import { locales, type Locale } from "@/i18n/locales";
 export function NewsShell({
   locale,
   route = "/actus",
@@ -18,12 +20,15 @@ export function NewsShell({
         languageRoutes={
           languageRoutes ??
           Object.fromEntries(
-            locales.map((l) => [l, localizeNewsRoute(l, route)]),
+            locales.map((language) => [
+              language,
+              localizeNewsRoute(language, route),
+            ]),
           )
         }
       />
       {children}
-      <BottomCTA />
+      <CallToAction />
       <SiteFooter />
     </div>
   );

@@ -1,4 +1,4 @@
-import { InstallBanner } from "../components/install-banner";
+import { InstallBanner } from "@/app/components/install/install-banner";
 import type { Metadata } from "next";
 import { siteUrl } from "@/lib/site-url";
 import "../globals.css";

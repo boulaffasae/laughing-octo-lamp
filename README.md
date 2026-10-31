@@ -37,7 +37,7 @@ Use Node.js 22.18+ or 24+ and run `npm test` for upload boundary, deadline, disc
 
 ## Actualités / editorial workflow
 
-The journal lives at `/{fr,en,ar}/actus`, with three articles per page and crawlable `/actus/page/2` pagination. The home menu links to it; articles do not appear on the home page. Articles live in `content/actus/{locale}/{slug}.md`. Use the same slug in all three languages so language switching and hreflang point to matching translations. All published files are shown; add all three translations together.
+The journal lives at `/{fr,en,ar}/actus`, with 20 articles per page and crawlable `/actus/page/2` pagination. The home menu links to it; articles do not appear on the home page. Articles live in `content/actus/{locale}/{slug}.md`. Use the same slug in all three languages so language switching and hreflang point to matching translations. All published files are shown; add all three translations together.
 
 Each file begins with `---`, a YAML metadata object (JSON flow syntax is also accepted), and `---`, followed by Markdown. Required fields: `title`, `description`, `category`, `author`, `date` (ISO date). Use `##` for sections (automatic table of contents), `###` for subsections, GFM tables and `- [ ]` for checklists. Local article links can use the sibling slug. HTML and executable MDX are not enabled. Dates and author names must reflect real editorial publication.
 
@@ -67,8 +67,14 @@ To verify delivery after deploying, reproduce a failing OCR request and search i
 
 Datalab is the only active provider. URL parameters, previous `ocr_provider` cookies, and `OCR_AB_TEST` no longer affect routing. No provider cookie is written. LlamaCloud is retained in `lib/ocr/llamacloud.ts` with mocked tests, but is not imported or called by the application or smoke test.
 
-OCR code is grouped in `lib/ocr/`: `datalab.ts` handles requests and polling, `schema.ts` defines extraction fields, and `upload-security.ts` validates upload boundaries and file signatures. `app/api/ocr/route.ts` handles HTTP validation, responses and error reporting. The shared client/server upload limits remain in `lib/upload-policy.ts`.
+OCR code is grouped in `lib/ocr/`: `datalab.ts` handles requests and polling, `schema.ts` defines extraction fields, and `upload-security.ts` validates upload boundaries and file signatures. `app/api/ocr/route.ts` composes the workflow; `request.ts` validates uploads and `response.ts` handles responses and safe error reporting. The shared client/server upload limits remain in `lib/upload-policy.ts`.
 
 Datalab uses accurate parsing and balanced extraction with a shared 60-second deadline. Signed regional results are downloaded without forwarding the API key to storage. Cancellation stops local polling but may not stop remote processing or billing. Responses expose `X-OCR-Provider: datalab`; structured logs record status and duration without document fields.
 
 Run a live synthetic-document smoke test with `node --env-file=.env.local scripts/smoke-ocr.mjs`. It makes one billable Datalab extraction request and verifies name, identity number and address.
+
+## Development conventions
+
+See [Code organization](docs/code-organization.md) for the feature folders, naming conventions, server/client boundaries, and error handling rules. The home page renders on the server; FAQ, navigation, scanning, dates, and installation prompts keep their interactive behavior in client components and hooks.
+
+Run `npm run check` for ESLint, TypeScript, and tests. ESLint enforces separate variable declarations and type-only imports. Use Prettier on changed files. Contract, OCR upload, and news widget tests cover boundary validation and failure cases; the live smoke test uses a synthetic document.

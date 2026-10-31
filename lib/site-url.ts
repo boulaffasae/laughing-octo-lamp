@@ -14,3 +14,7 @@ export const siteUrl = resolveSiteUrl(
   process.env.NEXT_PUBLIC_SITE_URL,
   process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL,
 );
+
+export function absoluteUrl(path: string) {
+  return siteUrl ? new URL(path, siteUrl).toString() : undefined;
+}

@@ -1,13 +1,12 @@
 import { localizeNewsRoute } from "@/lib/news-routing";
 import type { MetadataRoute } from "next";
+import { absoluteUrl, siteUrl } from "@/lib/site-url";
 import {
-  absolute,
-  articleRoutes,
+  getArticleLanguageRoutes,
   getArticles,
-  locales,
-  pageSize,
-  siteUrl,
-} from "@/lib/actus";
+  ARTICLES_PER_PAGE,
+} from "@/lib/news/articles";
+import { locales } from "@/i18n/locales";
 export default function sitemap(): MetadataRoute.Sitemap {
   if (!siteUrl) return [];
   return locales.flatMap((locale) => {
@@ -16,24 +15,28 @@ export default function sitemap(): MetadataRoute.Sitemap {
       "",
       "/actus",
       ...Array.from(
-        { length: Math.ceil(articles.length / pageSize) - 1 },
+        { length: Math.ceil(articles.length / ARTICLES_PER_PAGE) - 1 },
         (_, i) => `/actus/page/${i + 2}`,
       ),
-      ...articles.map((a) => `/actus/${a.slug}`),
+      ...articles.map((article) => `/actus/${article.slug}`),
     ];
     return routes.map((route) => {
-      const article = articles.find((a) => route === `/actus/${a.slug}`);
-      const translations = article ? articleRoutes(article.id) : undefined;
+      const article = articles.find(
+        (article) => route === `/actus/${article.slug}`,
+      );
+      const translations = article
+        ? getArticleLanguageRoutes(article.id)
+        : undefined;
       return {
-        url: absolute(`/${locale}${localizeNewsRoute(locale, route)}`)!,
+        url: absoluteUrl(`/${locale}${localizeNewsRoute(locale, route)}`)!,
         alternates: {
           languages: Object.fromEntries(
             locales
-              .filter((l) => !translations || translations[l])
-              .map((l) => [
-                l,
-                absolute(
-                  `/${l}${translations?.[l] ?? localizeNewsRoute(l, route)}`,
+              .filter((language) => !translations || translations[language])
+              .map((language) => [
+                language,
+                absoluteUrl(
+                  `/${language}${translations?.[language] ?? localizeNewsRoute(language, route)}`,
                 )!,
               ]),
           ),

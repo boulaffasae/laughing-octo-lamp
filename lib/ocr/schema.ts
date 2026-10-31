@@ -10,12 +10,6 @@ export const descriptions: Record<string, string> = {
   vin: "Chassis number / VIN",
 };
 
-export const documentFields = [
-  ["name", "identity", "address"],
-  ["licence", "category", "expiry"],
-  ["brand", "plate", "vin"],
-];
-
 export function createExtractionSchema(keys: string[]) {
   return {
     type: "object",
@@ -30,4 +24,19 @@ export function createExtractionSchema(keys: string[]) {
     required: keys,
     additionalProperties: false,
   };
+}
+
+export function normalizeExtractionFields(
+  result: unknown,
+  fieldNames: string[],
+): Record<string, string> {
+  if (!result || typeof result !== "object" || Array.isArray(result))
+    throw new Error("Invalid extraction");
+  const fields = result as Record<string, unknown>;
+  return Object.fromEntries(
+    fieldNames.map((name) => [
+      name,
+      typeof fields[name] === "string" ? fields[name] : "",
+    ]),
+  );
 }

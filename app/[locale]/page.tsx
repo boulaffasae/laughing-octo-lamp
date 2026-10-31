@@ -1,4 +1,5 @@
-import Louma from "../components/louma";
-export default function Home() {
-  return <Louma />;
+import { HomePage } from "@/app/components/marketing/home-page";
+
+export default function Page() {
+  return <HomePage />;
 }

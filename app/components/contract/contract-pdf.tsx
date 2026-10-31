@@ -1,3 +1,4 @@
+import type { DocumentFields, RentalDetails } from "@/lib/contract/documents";
 import {
   Document,
   Page,
@@ -76,20 +77,22 @@ const styles = StyleSheet.create({
 });
 
 export function ContractDocument({
-  data,
-  rental: r,
+  documentData,
+  rental,
 }: {
-  data: Record<string, string>[];
-  rental: Record<string, string>;
+  documentData: DocumentFields[];
+  rental: RentalDetails;
 }) {
-  const date = (value: string) =>
+  const formatRentalDate = (value: string) =>
     new Date(`${value}T12:00:00`).toLocaleDateString("fr-MA", {
       day: "2-digit",
       month: "long",
       year: "numeric",
     });
-  const days = Math.round((Date.parse(r.end) - Date.parse(r.start)) / 86400000);
-  const fields = (values: [string, string][]) =>
+  const days = Math.round(
+    (Date.parse(rental.end) - Date.parse(rental.start)) / 86400000,
+  );
+  const renderFields = (values: [string, string][]) =>
     values.map(([label, value]) => (
       <View key={label} style={styles.field}>
         <Text style={styles.label}>{label}</Text>
@@ -110,27 +113,27 @@ export function ContractDocument({
           <View style={styles.column}>
             <View style={styles.card}>
               <Text style={styles.heading}>01 / LE LOCATAIRE</Text>
-              {fields([
-                ["Nom complet", data[0].name],
-                ["N° CNIE", data[0].identity],
-                ["Adresse", data[0].address],
-                ["Permis de conduire", data[1].licence],
-                ["Catégorie", data[1].category],
-                ["Expiration du permis", data[1].expiry],
+              {renderFields([
+                ["Nom complet", documentData[0].name],
+                ["N° CNIE", documentData[0].identity],
+                ["Adresse", documentData[0].address],
+                ["Permis de conduire", documentData[1].licence],
+                ["Catégorie", documentData[1].category],
+                ["Expiration du permis", documentData[1].expiry],
               ])}
             </View>
           </View>
           <View style={styles.column}>
             <View style={styles.card}>
               <Text style={styles.heading}>02 / L’AGENCE DE LOCATION</Text>
-              {fields([["Loueur", r.agency]])}
+              {renderFields([["Loueur", rental.agency]])}
             </View>
             <View style={styles.card}>
               <Text style={styles.heading}>03 / LE VÉHICULE</Text>
-              {fields([
-                ["Marque et modèle", data[2].brand],
-                ["Immatriculation", data[2].plate],
-                ["N° de châssis", data[2].vin],
+              {renderFields([
+                ["Marque et modèle", documentData[2].brand],
+                ["Immatriculation", documentData[2].plate],
+                ["N° de châssis", documentData[2].vin],
               ])}
             </View>
           </View>
@@ -139,13 +142,13 @@ export function ContractDocument({
           <Text style={styles.heading}>04 / PÉRIODE DE LOCATION</Text>
           <View style={styles.dates}>
             <View style={styles.date}>
-              {fields([["Départ", date(r.start)]])}
+              {renderFields([["Départ", formatRentalDate(rental.start)]])}
             </View>
             <View style={styles.date}>
-              {fields([["Retour prévu", date(r.end)]])}
+              {renderFields([["Retour prévu", formatRentalDate(rental.end)]])}
             </View>
             <View style={styles.duration}>
-              {fields([["Durée", `${days} jour${days > 1 ? "s" : ""}`]])}
+              {renderFields([["Durée", `${days} jour${days > 1 ? "s" : ""}`]])}
             </View>
           </View>
         </View>
@@ -189,17 +192,17 @@ export function ContractDocument({
   );
 }
 
-export async function makeContract(
-  data: Record<string, string>[],
-  rental: Record<string, string>,
+export async function downloadContractPdf(
+  documentData: DocumentFields[],
+  rental: RentalDetails,
 ) {
   const blob = await pdf(
-    <ContractDocument data={data} rental={rental} />,
+    <ContractDocument documentData={documentData} rental={rental} />,
   ).toBlob();
   const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "contrat_location.pdf";
-  a.click();
+  const downloadLink = document.createElement("a");
+  downloadLink.href = url;
+  downloadLink.download = "contrat_location.pdf";
+  downloadLink.click();
   setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
