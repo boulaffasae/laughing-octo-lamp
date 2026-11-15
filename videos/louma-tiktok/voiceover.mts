@@ -3,15 +3,18 @@ import { EdgeTTS } from "node-edge-tts";
 
 const directory = new URL("./voice/", import.meta.url);
 const narration = [
-  ["intro", "عندك وكالة كراء؟ عقدك واجد مع لُوما."],
-  ["customize", "زيد اللوغو ديال الوكالة، بدّل اللون، وشوف التغييرات فالحين."],
-  ["download", "حمّل العقد بي دي إف، وطبّعو ولا شاركو."],
+  ["intro", "Avec Louma, votre contrat de location est déjà prêt."],
+  [
+    "customize",
+    "Ajoutez le logo de votre agence, changez la couleur et voyez le résultat en direct.",
+  ],
+  ["download", "Téléchargez le PDF pour l’imprimer ou le partager."],
 ] as const;
 
 await mkdir(directory, { recursive: true });
 const tts = new EdgeTTS({
-  voice: "ar-MA-MounaNeural",
-  lang: "ar-MA",
+  voice: "fr-FR-DeniseNeural",
+  lang: "fr-FR",
   rate: "+8%",
   timeout: 12000,
 });

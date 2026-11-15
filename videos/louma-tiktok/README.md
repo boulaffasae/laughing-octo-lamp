@@ -1,9 +1,9 @@
-# Louma · TikTok en arabe
+# Louma · TikTok avec texte arabe et voix française
 
 La composition HyperFrames dure 16 secondes et utilise le format vertical
 1080 × 1920. Elle reprend le logo, les couleurs et le modèle recto verso de
 Louma. Les textes animés utilisent Cairo, comme sur le site. La voix de
-synthèse Mouna lit le script en darija. La démo utilise des données fictives.
+synthèse Denise lit le script en français. La démo utilise des données fictives.
 
 Avec Node.js, Chrome et FFmpeg installés, lancez depuis la racine du dépôt :
 
