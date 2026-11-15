@@ -12,7 +12,7 @@ Copiez `.env.example` vers `.env.local` et renseignez les services utilisés.
 - **Neon** : configurez `DATABASE_URL` et appliquez [db/001_documents.sql](db/001_documents.sql) à la base cible, par exemple avec `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/001_documents.sql`.
 - **Vercel Blob** : créez ou rattachez un espace d’accès **privé** au projet et configurez `BLOB_READ_WRITE_TOKEN`. Les objets existants d’un espace public doivent rester séparés du dossier Louma.
 - **Datalab** : configurez `DATALAB_API_KEY` pour le préremplissage. Le formulaire indique à l’utilisateur que l’import OCR transmet le PDF à Datalab. Les réglages de région et de rétention sont gérés dans le compte fournisseur.
-- **Liens publics** : configurez `NEXT_PUBLIC_APP_STORE_URL` et `NEXT_PUBLIC_CONTACT_EMAIL` si disponibles. Les liens sociaux provisoires se trouvent dans `app/components/louma/site.tsx`. Complétez les informations sur l’exploitant du site dans les mentions légales avant publication.
+- **Liens publics** : configurez `NEXT_PUBLIC_CONTACT_EMAIL` si disponible. Les badges des boutiques et les réseaux sans compte sont affichés sans lien ; seul TikTok est actif. Complétez les informations sur l’exploitant du site dans les mentions légales avant publication.
 
 Le formulaire manuel et le téléchargement local fonctionnent sans compte. L’enregistrement et l’import dans le tableau de bord exigent un compte et les services privés configurés. Le navigateur conserve le brouillon en mémoire pendant la connexion dans la fenêtre Clerk.
 

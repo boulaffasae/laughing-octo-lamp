@@ -693,12 +693,16 @@ h4 {
   padding-top: 30px;
   padding-bottom: 36px;
 }
-.socials a {
+.social-icon {
   width: 32px;
   height: 36px;
   display: grid;
   place-items: center;
   border-radius: 8px;
+}
+.social-pending {
+  color: var(--muted);
+  opacity: 0.7;
 }
 .socials a:hover {
   background: var(--pale);
@@ -1313,22 +1317,15 @@ body {
 .store-badges {
   gap: 10px;
 }
-.official-store {
-  display: grid;
-  place-items: center;
-  height: 44px;
-}
-.official-store img {
+.official-store-badge {
   display: block;
-  height: 100%;
+  height: 44px;
   width: auto;
 }
-.google-store {
-  overflow: hidden;
-}
-.google-store img {
-  height: 65px;
-  margin-block: -10px;
+.store-status {
+  margin-top: 6px;
+  color: #d1e2d8;
+  font-size: 0.8rem;
 }
 .app-device {
   width: min(100%, 300px);

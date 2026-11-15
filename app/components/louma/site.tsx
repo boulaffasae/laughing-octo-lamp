@@ -68,35 +68,24 @@ export function Header({
 
 export function AppBanner({ locale }: { locale: Locale }) {
   const t = words(locale);
-  const url = process.env.NEXT_PUBLIC_APP_STORE_URL;
-  const googleBadge = `/stores/google-${locale}.png`;
-  const appleBadge = `/stores/apple-${t("fr-fr", "ar-sa")}.svg`;
   return (
     <section className="app-banner">
       <div className="shell app-grid">
         <div className="app-copy">
           <h2>{t("Louma sur mobile", "لوما على الهاتف")}</h2>
           <div className="store-badges">
-            {url && (
-              <a className="official-store apple-store" href={url}>
-                {/* eslint-disable-next-line @next/next/no-img-element -- official store artwork */}
-                <img
-                  src={appleBadge}
-                  alt={t("Télécharger dans l’App Store", "تنزيل من App Store")}
-                />
-              </a>
-            )}
-            <a
-              className="official-store google-store"
-              href="https://play.google.com/store/apps/details?id=com.getlouma"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element -- official store artwork */}
-              <img
-                src={googleBadge}
-                alt={t("Disponible sur Google Play", "متوفر على Google Play")}
+            {(["App Store", "Google Play"] as const).map((store) => (
+              <Image
+                className="official-store-badge"
+                key={store}
+                src={`/stores/${store === "App Store" ? "apple" : "google"}-${locale}.svg`}
+                alt={store}
+                width={150}
+                height={44}
               />
-            </a>
+            ))}
           </div>
+          <p className="store-status">{t("Bientôt", "قريبًا")}</p>
         </div>
         <div className="app-device">
           <Image src="/louma-phone.svg" alt="" width={300} height={340} />
@@ -130,7 +119,7 @@ export function AppBanner({ locale }: { locale: Locale }) {
 const socials = [
   [
     "Instagram",
-    "https://www.instagram.com/getlouma/",
+    null,
     "M8 3h8a5 5 0 0 1 5 5v8a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5V8a5 5 0 0 1 5-5ZM12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm5-1h.01",
   ],
   [
@@ -138,29 +127,26 @@ const socials = [
     "https://www.tiktok.com/@louma.site",
     "M14 3v12a4.5 4.5 0 1 1-4.5-4.5M14 3c0 3 2 5 5 5",
   ],
-  [
-    "Facebook",
-    "https://www.facebook.com/getlouma",
-    "M14 22V7q0-3 4-3h1m-9 7h9",
-  ],
+  ["Facebook", null, "M14 22V7q0-3 4-3h1m-9 7h9"],
   [
     "LinkedIn",
-    "https://www.linkedin.com/company/getlouma/",
+    null,
     "M3 6a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6Zm5 5v6m4 0v-6m0 2c1-3 5-3 5 1v3M8 7h.01",
   ],
 ] as const;
 
 export function Footer({ locale }: { locale: Locale }) {
+  const t = words(locale);
   return (
     <footer className="shell site-footer">
       <div>
         <Logo locale={locale} />
         <nav
-          aria-label={words(locale)("Réseaux sociaux", "شبكات التواصل")}
+          aria-label={t("Réseaux sociaux", "شبكات التواصل")}
           className="socials"
         >
-          {socials.map(([name, href, path]) => (
-            <a key={name} href={href} aria-label={name}>
+          {socials.map(([name, href, path]) => {
+            const icon = (
               <svg
                 width="20"
                 height="20"
@@ -174,8 +160,29 @@ export function Footer({ locale }: { locale: Locale }) {
               >
                 <path d={path} />
               </svg>
-            </a>
-          ))}
+            );
+            const pending = `${name} · ${t("Pas encore disponible", "غير متاح بعد")}`;
+            return href ? (
+              <a
+                className="social-icon"
+                key={name}
+                href={href}
+                aria-label={name}
+              >
+                {icon}
+              </a>
+            ) : (
+              <span
+                className="social-icon social-pending"
+                key={name}
+                role="img"
+                aria-label={pending}
+                title={pending}
+              >
+                {icon}
+              </span>
+            );
+          })}
         </nav>
       </div>
       <div className="footer-grid">
