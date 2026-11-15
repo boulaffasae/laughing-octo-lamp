@@ -16,6 +16,7 @@ test("OCR responses keep only the expected document fields", async (t) => {
       fields: {
         name: "TEST",
         identity: "TEST123",
+        issued: "2022-01-28",
         address: "Rabat",
         unexpected: "discard",
       },
@@ -23,7 +24,12 @@ test("OCR responses keep only the expected document fields", async (t) => {
   });
   assert.deepEqual(
     await scanDocument(file, 0, "Fallback", AbortSignal.timeout(1000)),
-    { name: "TEST", identity: "TEST123", address: "Rabat" },
+    {
+      name: "TEST",
+      identity: "TEST123",
+      issued: "2022-01-28",
+      address: "Rabat",
+    },
   );
 });
 

@@ -1,4 +1,4 @@
-import { CarFront, FileText, Play, Apple } from "lucide-react";
+import Image from "next/image";
 import { words } from "@/lib/contract/agreement";
 import type { Locale } from "@/i18n/locales";
 import { AccountButtons } from "./account";
@@ -22,10 +22,7 @@ export function siteLabels(locale: Locale) {
 export function Logo({ locale }: { locale: Locale }) {
   return (
     <a className="logo" href={`/${locale}`} aria-label="Louma">
-      <span className="logo-mark">
-        <CarFront size={21} aria-hidden />
-        <FileText className="logo-paper" size={12} aria-hidden />
-      </span>
+      <Image src="/louma.svg" width={36} height={36} alt="" />
       louma
     </a>
   );
@@ -72,40 +69,57 @@ export function Header({
 export function AppBanner({ locale }: { locale: Locale }) {
   const t = words(locale);
   const url = process.env.NEXT_PUBLIC_APP_STORE_URL;
+  const googleBadge = `/stores/google-${locale}.png`;
+  const appleBadge = `/stores/apple-${t("fr-fr", "ar-sa")}.svg`;
   return (
     <section className="app-banner">
       <div className="shell app-grid">
-        <div>
+        <div className="app-copy">
           <h2>{t("Louma sur mobile", "لوما على الهاتف")}</h2>
           <div className="store-badges">
+            {url && (
+              <a className="official-store apple-store" href={url}>
+                {/* eslint-disable-next-line @next/next/no-img-element -- official store artwork */}
+                <img
+                  src={appleBadge}
+                  alt={t("Télécharger dans l’App Store", "تنزيل من App Store")}
+                />
+              </a>
+            )}
             <a
-              className="store-badge"
+              className="official-store google-store"
               href="https://play.google.com/store/apps/details?id=com.getlouma"
             >
-              <Play size={19} aria-hidden /> Google Play
+              {/* eslint-disable-next-line @next/next/no-img-element -- official store artwork */}
+              <img
+                src={googleBadge}
+                alt={t("Disponible sur Google Play", "متوفر على Google Play")}
+              />
             </a>
-            {url ? (
-              <a className="store-badge" href={url}>
-                <Apple size={20} aria-hidden /> App Store
-              </a>
-            ) : (
-              <span
-                className="store-badge pending"
-                title={t("Lien App Store à venir", "رابط App Store قريبًا")}
-              >
-                <Apple size={20} aria-hidden /> App Store
-              </span>
-            )}
           </div>
         </div>
-        <div className="phone" aria-hidden>
-          <div className="phone-speaker" />
-          <strong>louma</strong>
-          <div className="phone-sheet">
-            <FileText size={28} />
-            <i />
-            <i />
-            <i />
+        <div className="app-device">
+          <Image src="/louma-phone.svg" alt="" width={300} height={340} />
+          <div
+            className="device-scroll"
+            tabIndex={0}
+            aria-label={t(
+              "Exemple de contrat PDF recto verso",
+              "مثال لعقد PDF بوجهين",
+            )}
+          >
+            <Image
+              src={`/demo/${locale}-1.png`}
+              width={420}
+              height={594}
+              alt={t("Recto du contrat", "الوجه الأول للعقد")}
+            />
+            <Image
+              src={`/demo/${locale}-2.png`}
+              width={420}
+              height={594}
+              alt={t("Verso du contrat", "الوجه الثاني للعقد")}
+            />
           </div>
         </div>
       </div>

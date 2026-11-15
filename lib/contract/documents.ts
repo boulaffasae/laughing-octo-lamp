@@ -9,19 +9,20 @@ export interface RentalDetails {
 }
 
 export const DOCUMENT_FIELDS = [
-  ["name", "identity", "address"],
-  ["licence", "category", "expiry"],
-  ["brand", "plate", "vin"],
+  ["name", "identity", "issued", "address"],
+  ["licence", "issued"],
+  ["brand", "plate", "fuel"],
 ];
 
 export const SAMPLE_DOCUMENTS: DocumentFields[] = [
   {
     name: "Amine El Mansouri",
     identity: "BK123456",
+    issued: "2020-06-15",
     address: "24, avenue Hassan II, Casablanca",
   },
-  { licence: "123456/06", category: "B", expiry: "2030-06-15" },
-  { brand: "Dacia Sandero", plate: "12345-A-6", vin: "VF1B5220X12345678" },
+  { licence: "123456/06", issued: "2020-06-15" },
+  { brand: "Dacia Sandero", plate: "12345-A-6", fuel: "Diesel" },
 ];
 
 export function createEmptyDocuments(): DocumentFields[] {

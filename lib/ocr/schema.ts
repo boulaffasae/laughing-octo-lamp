@@ -3,11 +3,11 @@ export const descriptions: Record<string, string> = {
   identity: "CNIE number",
   address: "Address",
   licence: "Driving licence number",
-  category: "Licence category",
-  expiry: "Expiry date in YYYY-MM-DD format",
+  issued:
+    "Date the document was issued, in YYYY-MM-DD format. Never use the expiry date.",
   brand: "Vehicle make and model",
   plate: "Registration number",
-  vin: "Chassis number / VIN",
+  fuel: "Vehicle fuel type (for example Diesel, Essence, Hybride), not the tank level",
 };
 
 export function createExtractionSchema(keys: string[]) {

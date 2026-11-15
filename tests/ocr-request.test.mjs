@@ -26,7 +26,7 @@ test("upload parsing chooses the schema and replaces the original file name", as
   const upload = await readOcrUpload(request);
   assert.equal(upload.file.name, "document.pdf");
   assert.equal(upload.file.type, "application/pdf");
-  assert.deepEqual(upload.fieldNames, ["licence", "category", "expiry"]);
+  assert.deepEqual(upload.fieldNames, ["licence", "issued"]);
 });
 
 test("headers reject cross-site uploads before consuming the body", () => {

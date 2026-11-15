@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 340" fill="none">
+<style>
+.spark{transform-origin:center;transform-box:fill-box;animation:pulse 3.6s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.48;transform:scale(.76)}}
+@media(prefers-reduced-motion:reduce){.spark{animation:none}}
+</style>
+<path class="spark" d="M259 10v38m-19-19h38" stroke="#caff74" stroke-width="2.5" stroke-linecap="round"/>
+<path class="spark" d="M24 65v20M14 75h20" stroke="#caff74" stroke-width="2" stroke-linecap="round"/>
+<rect x="32" y="26" width="236" height="487" rx="36" fill="#101c17" stroke="#719185" stroke-width="2"/>
+<rect x="41" y="35" width="218" height="468" rx="29" fill="#eef4ee"/>
+<rect x="119" y="45" width="62" height="13" rx="6.5" fill="#101c17"/>
+<rect x="54" y="70" width="21" height="21" rx="6" fill="#caff74"/>
+<path d="M60 75h4v8h6l-2 3h-8z" fill="#152821"/>
+<text x="81" y="85" font-family="system-ui,sans-serif" font-weight="750" font-size="13" fill="#152821">louma</text>
+<path d="M46 99h208" stroke="#dce7df"/>
+</svg>
