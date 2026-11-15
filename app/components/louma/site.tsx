@@ -61,7 +61,7 @@ export function Header({
               <span className="sr-only">العربية</span>
             </a>
           </nav>
-          <AccountButtons locale={locale} />
+          <AccountButtons locale={locale} dashboard={path === "/dashboard"} />
         </div>
       </div>
     </header>
@@ -136,7 +136,13 @@ const socials = [
   ],
 ] as const;
 
-export function Footer({ locale }: { locale: Locale }) {
+export function Footer({
+  locale,
+  dashboard = false,
+}: {
+  locale: Locale;
+  dashboard?: boolean;
+}) {
   const t = words(locale);
   return (
     <footer className="shell site-footer">
@@ -195,7 +201,7 @@ export function Footer({ locale }: { locale: Locale }) {
           ))}
         </nav>
         <div>
-          <AccountButtons locale={locale} />
+          <AccountButtons locale={locale} dashboard={dashboard} />
         </div>
       </div>
     </footer>

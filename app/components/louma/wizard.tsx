@@ -12,6 +12,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Camera,
+  Check,
   Printer,
   Share2,
   Upload,
@@ -114,11 +115,13 @@ function ScanFields({
   const t = words(a.locale);
   const [kind, setKind] = useState(vehicle ? 2 : 0);
   const [busy, setBusy] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
   const [status, setStatus] = useState("");
   const controller = useRef<AbortController | null>(null);
   useEffect(() => () => controller.current?.abort(), []);
 
   async function scan(file: File) {
+    if (controller.current) return;
     if (!isSupportedDocument(file)) {
       setStatus(
         t("Image ou PDF · 4 Mo max.", "صورة أو PDF · الحد الأقصى 4 ميغابايت"),
@@ -151,7 +154,10 @@ function ScanFields({
       if (!active.signal.aborted)
         setStatus(t("Lecture impossible.", "تعذرت القراءة."));
     } finally {
-      if (!active.signal.aborted) setBusy(false);
+      if (!active.signal.aborted) {
+        controller.current = null;
+        setBusy(false);
+      }
     }
   }
 
@@ -186,7 +192,44 @@ function ScanFields({
 
   return (
     <>
-      <div className="quick-import">
+      <section
+        className="quick-import"
+        aria-labelledby="scan-title"
+        aria-busy={busy}
+        data-drag-over={dragOver || undefined}
+        onDragOver={(e) => {
+          if (!e.dataTransfer.types.includes("Files")) return;
+          e.preventDefault();
+          if (!busy) setDragOver(true);
+        }}
+        onDragLeave={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+            setDragOver(false);
+          }
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragOver(false);
+          const file = e.dataTransfer.files[0];
+          if (file) void scan(file);
+        }}
+      >
+        <div className="scan-intro">
+          <span className="scan-symbol" aria-hidden>
+            <Upload size={20} />
+          </span>
+          <div>
+            <h2 id="scan-title">
+              {t("Importer un document", "استيراد وثيقة")}
+            </h2>
+            <p>
+              {t(
+                "Glissez un fichier ici · Image ou PDF, 4 Mo max.",
+                "أفلت ملفًا هنا · صورة أو PDF، حتى 4 ميغابايت",
+              )}
+            </p>
+          </div>
+        </div>
         {!vehicle && (
           <select
             aria-label={t("Type de document", "نوع الوثيقة")}
@@ -204,43 +247,45 @@ function ScanFields({
             "تُرسل الوثيقة إلى Datalab لقراءتها.",
           )}
         </span>
-        {([false, true] as const).map((camera) => {
-          const label = camera
-            ? t("Prendre une photo", "التقاط صورة")
-            : t("Importer un document", "استيراد وثيقة");
-          const Icon = camera ? Camera : Upload;
-          return (
-            <label
-              key={String(camera)}
-              className="button secondary upload-control"
-              title={label}
-            >
-              <Icon size={19} aria-hidden />
-              <input
-                aria-label={label}
-                aria-describedby="ocr-notice"
-                type="file"
-                accept={(camera
-                  ? ALLOWED_UPLOAD_TYPES.filter((type) =>
-                      type.startsWith("image/"),
-                    )
-                  : ALLOWED_UPLOAD_TYPES
-                ).join(",")}
-                capture={camera ? "environment" : undefined}
-                disabled={busy}
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  e.target.value = "";
-                  if (file) void scan(file);
-                }}
-              />
-            </label>
-          );
-        })}
-      </div>
-      <p className="status" aria-live="polite">
-        {status}
-      </p>
+        <div className="scan-sources">
+          {([false, true] as const).map((camera) => {
+            const label = camera
+              ? t("Prendre une photo", "التقاط صورة")
+              : t("Parcourir les fichiers", "تصفح الملفات");
+            const Icon = camera ? Camera : Upload;
+            return (
+              <label
+                key={String(camera)}
+                className="button secondary upload-control"
+              >
+                <Icon size={17} aria-hidden />
+                {label}
+                <input
+                  aria-label={label}
+                  aria-describedby="ocr-notice"
+                  type="file"
+                  accept={(camera
+                    ? ALLOWED_UPLOAD_TYPES.filter((type) =>
+                        type.startsWith("image/"),
+                      )
+                    : ALLOWED_UPLOAD_TYPES
+                  ).join(",")}
+                  capture={camera ? "environment" : undefined}
+                  disabled={busy}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = "";
+                    if (file) void scan(file);
+                  }}
+                />
+              </label>
+            );
+          })}
+        </div>
+        <p className="status" role="status">
+          {status}
+        </p>
+      </section>
       <div className="divider">{t("ou", "أو")}</div>
       <div className="fields">
         {vehicle ? (
@@ -432,10 +477,6 @@ function ContractPreview({
         } as CSSProperties
       }
     >
-      <div className="preview-label">
-        {t("Aperçu", "معاينة")}
-        <span> A4 · PDF</span>
-      </div>
       <div
         className="paper-scroll"
         tabIndex={0}
@@ -543,7 +584,13 @@ function ContractPreview({
     </aside>
   );
 }
-function FinalPdf({ blob, locale }: { blob: Blob; locale: Locale }) {
+function FinalPdf({
+  getPdf,
+  locale,
+}: {
+  getPdf: () => Promise<Blob>;
+  locale: Locale;
+}) {
   const t = words(locale);
   const account = useAccount();
   const pending = useRef(false);
@@ -561,7 +608,7 @@ function FinalPdf({ blob, locale }: { blob: Blob; locale: Locale }) {
     setStatus("");
     try {
       const form = new FormData();
-      form.set("file", blob, pdfName);
+      form.set("file", await getPdf(), pdfName);
       form.set("kind", "contract");
       const result = await fetch("/api/documents", {
         method: "POST",
@@ -594,10 +641,6 @@ function FinalPdf({ blob, locale }: { blob: Blob; locale: Locale }) {
   return (
     <>
       <div className="final-actions">
-        <button className="button" type="button" onClick={() => download(blob)}>
-          <ArrowDownToLine size={18} aria-hidden />
-          {t("Télécharger", "تنزيل")}
-        </button>
         <button
           className="button secondary"
           type="button"
@@ -625,6 +668,16 @@ function FinalPdf({ blob, locale }: { blob: Blob; locale: Locale }) {
             title={t("Partager le PDF", "مشاركة PDF")}
             type="button"
             onClick={async () => {
+              let blob: Blob;
+              try {
+                blob = await getPdf();
+              } catch {
+                setError(true);
+                setStatus(
+                  t("Création du PDF impossible.", "تعذّر إنشاء ملف PDF."),
+                );
+                return;
+              }
               const file = new File([blob], pdfName, {
                 type: "application/pdf",
               });
@@ -671,12 +724,15 @@ export function Wizard({ locale }: { locale: Locale }) {
   const t = words(locale);
   const [stage, setStage] = useState(0);
   const [a, setAgreement] = useState(() => initialAgreement(locale));
-  const [blob, setBlob] = useState<Blob | null>(null);
+  const [completed, setCompleted] = useState<Set<number>>(() => new Set());
+  const pdfCache = useRef<{ agreement: Agreement; result: Promise<Blob> }>(
+    null,
+  );
   const [busy, setBusy] = useState(false);
   const [logoBusy, setLogoBusy] = useState(false);
   const [error, setError] = useState("");
   const section = useRef<HTMLElement>(null);
-  const progress = useRef<HTMLOListElement>(null);
+  const stepButtons = useRef<(HTMLButtonElement | null)[]>([]);
 
   const change: Patch = (patch) =>
     setAgreement((current) => ({ ...current, ...patch }));
@@ -698,24 +754,37 @@ export function Wizard({ locale }: { locale: Locale }) {
   const Next = locale === "ar" ? ArrowLeft : ArrowRight;
   const Back = locale === "ar" ? ArrowRight : ArrowLeft;
 
-  function go(next: number) {
+  function complete(index: number) {
+    setCompleted((previous) => new Set(previous).add(index));
+  }
+
+  function go(next: number, completeCurrent = false) {
+    if (next === stage) return;
+    if (completeCurrent) complete(stage);
     setError("");
     setStage(next);
     section.current?.scrollIntoView({ block: "start" });
     requestAnimationFrame(() =>
-      progress.current?.focus({ preventScroll: true }),
+      stepButtons.current[next]?.focus({ preventScroll: true }),
     );
   }
-  async function exportPdf(template: boolean) {
+
+  function getPdf() {
+    if (pdfCache.current?.agreement === a) return pdfCache.current.result;
+    const result = generate(a).catch((error) => {
+      if (pdfCache.current?.agreement === a) pdfCache.current = null;
+      throw error;
+    });
+    pdfCache.current = { agreement: a, result };
+    return result;
+  }
+
+  async function exportPdf() {
     setBusy(true);
     setError("");
     try {
-      const result = await generate(a);
-      if (template) download(result, "modele-contrat-location.pdf");
-      else {
-        setBlob(result);
-        go(5);
-      }
+      download(await getPdf());
+      if (stage === steps.length - 1) complete(stage);
     } catch {
       setError(t("Création du PDF impossible.", "تعذّر إنشاء ملف PDF."));
     } finally {
@@ -763,31 +832,68 @@ export function Wizard({ locale }: { locale: Locale }) {
       aria-label={t("Créer un contrat", "إنشاء عقد")}
     >
       <ol
-        ref={progress}
-        tabIndex={-1}
         className="steps"
         aria-label={t("Progression", "التقدم")}
+        style={
+          {
+            "--progress": `${(stage / (steps.length - 1)) * 100}%`,
+          } as CSSProperties
+        }
       >
         {steps.map((label, i) => (
-          <li
-            key={label}
-            aria-current={i === stage ? "step" : undefined}
-            className={i <= stage ? "reached" : undefined}
-          >
-            <span className="step-number" aria-hidden>
-              {i + 1}
-            </span>
-            <span>{label}</span>
+          <li key={label}>
+            <button
+              ref={(element) => {
+                stepButtons.current[i] = element;
+              }}
+              className="step-button"
+              type="button"
+              aria-current={i === stage ? "step" : undefined}
+              data-completed={completed.has(i) || undefined}
+              disabled={busy || logoBusy}
+              onClick={() => go(i)}
+            >
+              <span className="step-dot" aria-hidden>
+                {completed.has(i) && <Check size={12} strokeWidth={3} />}
+              </span>
+              {label}
+              {completed.has(i) && (
+                <span className="sr-only"> · {t("Terminé", "مكتمل")}</span>
+              )}
+            </button>
           </li>
         ))}
       </ol>
-      <div className="work-grid" data-exported={stage === 5 || undefined}>
+      <div className="preview-label">
+        <button
+          className="button secondary pdf-download"
+          type="button"
+          disabled={busy || logoBusy}
+          onClick={() => void exportPdf()}
+        >
+          <ArrowDownToLine size={17} aria-hidden />
+          {busy
+            ? t("Création…", "جارٍ الإنشاء…")
+            : t("Télécharger le PDF", "تنزيل PDF")}
+        </button>
+        <label className="color-control">
+          {t("Couleur du contrat", "لون العقد")}
+          <input
+            type="color"
+            value={a.color}
+            disabled={busy}
+            onChange={(e) => change({ color: e.target.value })}
+          />
+        </label>
+      </div>
+      <div className="work-grid">
         <div className="work-form" key={stage}>
           {stage === 0 && (
-            <>
+            <div className="fields">
               <div className="model-tools">
+                <span>{t("Logo", "الشعار")}</span>
                 <label className="button secondary upload-control">
-                  {t("Logo", "الشعار")}
+                  {t("Choisir", "اختيار")}
                   <input
                     type="file"
                     aria-label={t("Remplacer le logo", "استبدال الشعار")}
@@ -823,50 +929,13 @@ export function Wizard({ locale }: { locale: Locale }) {
                     {t("Logo Louma", "شعار Louma")}
                   </button>
                 )}
-                <label
-                  className="color-control"
-                  title={t("Couleur du contrat", "لون العقد")}
-                >
-                  <input
-                    aria-label={t("Couleur du contrat", "لون العقد")}
-                    type="color"
-                    value={a.color}
-                    onChange={(e) => change({ color: e.target.value })}
-                  />
-                </label>
-                <button
-                  className="button secondary template-download"
-                  type="button"
-                  aria-label={t("Télécharger le modèle PDF", "تنزيل نموذج PDF")}
-                  disabled={busy || logoBusy}
-                  onClick={() => void exportPdf(true)}
-                >
-                  <ArrowDownToLine size={17} aria-hidden /> PDF
-                </button>
               </div>
-              <div className="fields">
-                {field(
-                  "agency",
-                  t("Nom de l’agence", "اسم الوكالة"),
-                  undefined,
-                  true,
-                )}
-                {field(
-                  "company",
-                  t("Raison sociale", "اسم الشركة"),
-                  undefined,
-                  true,
-                )}
-                {field(
-                  "agencyAddress",
-                  t("Adresse", "العنوان"),
-                  undefined,
-                  true,
-                )}
-                {field("registration", "RC / ICE")}
-                {field("phone", t("Téléphone", "الهاتف"), "tel")}
-              </div>
-            </>
+              {field("agency", t("Nom de l’agence", "اسم الوكالة"))}
+              {field("phone", t("Téléphone", "الهاتف"), "tel", true)}
+              {field("agencyAddress", t("Adresse", "العنوان"), undefined, true)}
+              {field("company", t("Raison sociale", "اسم الشركة"))}
+              {field("registration", "RC / ICE")}
+            </div>
           )}
           {(stage === 1 || stage === 2) && (
             <ScanFields vehicle={stage === 2} a={a} update={update} />
@@ -895,7 +964,9 @@ export function Wizard({ locale }: { locale: Locale }) {
               {field("deposit", t("Caution (MAD)", "الضمان (درهم)"), "number")}
             </div>
           )}
-          {stage === 5 && blob && <FinalPdf blob={blob} locale={locale} />}
+          {stage === 5 && (
+            <FinalPdf key={a.color} getPdf={getPdf} locale={locale} />
+          )}
           {error && (
             <p className="error" role="alert">
               {error}
@@ -918,15 +989,11 @@ export function Wizard({ locale }: { locale: Locale }) {
                 className="button"
                 type="button"
                 disabled={busy || logoBusy}
-                onClick={() =>
-                  stage === 4 ? void exportPdf(false) : go(stage + 1)
-                }
+                onClick={() => go(stage + 1, true)}
               >
-                {busy
-                  ? t("Création…", "جارٍ الإنشاء…")
-                  : stage === 4
-                    ? t("Créer le PDF", "إنشاء PDF")
-                    : t("Suivant", "التالي")}
+                {stage === 4
+                  ? t("Voir le PDF", "عرض PDF")
+                  : t("Suivant", "التالي")}
                 <Next size={18} aria-hidden />
               </button>
             )}

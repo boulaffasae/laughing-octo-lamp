@@ -12,14 +12,16 @@ async function PrivateFiles({ locale }: { locale: Locale }) {
   if (!(await ownerId())) redirect(`/${locale}`);
   return (
     <>
-      <Header locale={locale} path="/espace" />
+      <Header locale={locale} path="/dashboard" />
       <Dashboard locale={locale} />
-      <Footer locale={locale} />
+      <Footer locale={locale} dashboard />
     </>
   );
 }
 
-export default async function Page({ params }: PageProps<"/[locale]/espace">) {
+export default async function Page({
+  params,
+}: PageProps<"/[locale]/dashboard">) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   return (
