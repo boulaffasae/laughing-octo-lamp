@@ -1,0 +1,331 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import {
+  ArrowDownToLine,
+  CalendarDays,
+  FileText,
+  Upload,
+  X,
+} from "lucide-react";
+import { DayPicker, type DateRange } from "react-day-picker";
+import { arMA, fr } from "react-day-picker/locale";
+import "react-day-picker/style.css";
+import { words } from "@/lib/contract/agreement";
+import { MAX_FILE_BYTES } from "@/lib/upload-policy";
+import type { Locale } from "@/i18n/locales";
+
+type DocumentSummary = { id: string; created_at: string };
+type Result = { documents: DocumentSummary[]; more: boolean };
+const empty: Result = { documents: [], more: false };
+
+function dateKey(date: Date) {
+  return [date.getFullYear(), date.getMonth() + 1, date.getDate()]
+    .map((part, i) => String(part).padStart(i ? 2 : 4, "0"))
+    .join("-");
+}
+
+export function Dashboard({ locale }: { locale: Locale }) {
+  const t = words(locale);
+  const arabic = locale === "ar";
+  const date = new Intl.DateTimeFormat(arabic ? "ar-MA" : "fr-FR", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    timeZone: "Africa/Casablanca",
+  });
+  const filterDate = new Intl.DateTimeFormat(arabic ? "ar-MA" : "fr-FR", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+  const calendar = useRef<HTMLDialogElement>(null);
+  const [filter, setFilter] = useState<DateRange>();
+  const [selected, setSelected] = useState<DateRange>();
+  const [page, setPage] = useState(1);
+  const [reload, setReload] = useState(0);
+  const [result, setResult] = useState<Result>(empty);
+  const [loadState, setLoadState] = useState({ loading: true, error: "" });
+  const [uploadState, setUploadState] = useState({
+    busy: false,
+    error: false,
+    message: "",
+  });
+  const uploadPending = useRef(false);
+
+  useEffect(() => {
+    const signal = new AbortController();
+    const params = new URLSearchParams({ page: String(page) });
+    if (filter?.from) params.set("start", dateKey(filter.from));
+    if (filter?.to) params.set("end", dateKey(filter.to));
+    fetch(`/api/documents?${params}`, { signal: signal.signal })
+      .then(async (response) => {
+        if (!response.ok) {
+          const body = await response.json().catch(() => null);
+          throw Error(body?.error ?? "storage");
+        }
+        const data = (await response.json()) as Result;
+        if (signal.signal.aborted) return;
+        setResult(data);
+        setLoadState({ loading: false, error: "" });
+      })
+      .catch((error: unknown) => {
+        if (signal.signal.aborted) return;
+        setResult(empty);
+        setLoadState({
+          loading: false,
+          error: error instanceof Error ? error.message : "storage",
+        });
+      });
+    return () => signal.abort();
+  }, [filter, page, reload]);
+
+  function refresh() {
+    setLoadState({ loading: true, error: "" });
+    setPage(1);
+    setReload((n) => n + 1);
+  }
+
+  async function upload(file: File) {
+    if (uploadPending.current) return;
+    if (
+      file.type !== "application/pdf" ||
+      file.size === 0 ||
+      file.size > MAX_FILE_BYTES
+    ) {
+      setUploadState({
+        busy: false,
+        error: true,
+        message: t(
+          "Choisissez un PDF de 4 Mo maximum.",
+          "اختر ملف PDF بحجم لا يتجاوز 4 ميغابايت.",
+        ),
+      });
+      return;
+    }
+    uploadPending.current = true;
+    setUploadState({
+      busy: true,
+      error: false,
+      message: t("Import en cours…", "جارٍ الرفع…"),
+    });
+    try {
+      const body = new FormData();
+      body.set("file", file);
+      body.set("kind", "upload");
+      const response = await fetch("/api/documents", { method: "POST", body });
+      if (!response.ok) throw Error();
+      setFilter(undefined);
+      refresh();
+      setUploadState({
+        busy: false,
+        error: false,
+        message: t("PDF importé.", "تم رفع الملف."),
+      });
+    } catch {
+      setUploadState({
+        busy: false,
+        error: true,
+        message: t(
+          "Import indisponible. Réessayez.",
+          "الرفع غير متاح. حاول مرة أخرى.",
+        ),
+      });
+    } finally {
+      uploadPending.current = false;
+    }
+  }
+
+  const changePage = (next: number) => {
+    setLoadState({ loading: true, error: "" });
+    setPage(next);
+  };
+  const filterLabel =
+    filter?.from && filter.to
+      ? filterDate.formatRange(filter.from, filter.to)
+      : t("Choisir une période", "اختر فترة");
+
+  return (
+    <main>
+      <section
+        className="upload-hero"
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={(event) => {
+          event.preventDefault();
+          const file = event.dataTransfer.files[0];
+          if (file) void upload(file);
+        }}
+      >
+        <span className="upload-symbol">
+          <Upload size={28} aria-hidden />
+        </span>
+        <h1>{t("Importez vos PDF", "ارفع ملفات PDF")}</h1>
+        <label className="button upload-control">
+          {t("Importer un PDF", "رفع ملف PDF")}
+          <input
+            type="file"
+            accept="application/pdf,.pdf"
+            disabled={uploadState.busy}
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              event.target.value = "";
+              if (file) void upload(file);
+            }}
+          />
+        </label>
+        <p
+          className={uploadState.error ? "error status" : "status"}
+          aria-live="polite"
+        >
+          {uploadState.message}
+        </p>
+      </section>
+      <section className="shell files">
+        <div className="files-heading">
+          <h2>{t("Mes fichiers", "ملفاتي")}</h2>
+          <button
+            className="date-filter"
+            type="button"
+            aria-haspopup="dialog"
+            onClick={() => {
+              setSelected(filter);
+              calendar.current?.showModal();
+            }}
+          >
+            <CalendarDays size={20} aria-hidden />
+            <span>{filterLabel}</span>
+          </button>
+        </div>
+        <dialog
+          ref={calendar}
+          className="calendar"
+          aria-labelledby="calendar-title"
+        >
+          <div className="calendar-header">
+            <h3 id="calendar-title">{t("Date d’ajout", "تاريخ الإضافة")}</h3>
+            <button
+              className="icon-button"
+              type="button"
+              aria-label={t("Fermer", "إغلاق")}
+              onClick={() => calendar.current?.close()}
+            >
+              <X size={18} />
+            </button>
+          </div>
+          <DayPicker
+            mode="range"
+            locale={arabic ? arMA : fr}
+            dir={arabic ? "rtl" : "ltr"}
+            selected={selected}
+            onSelect={setSelected}
+            resetOnSelect
+            defaultMonth={filter?.from}
+            numberOfMonths={2}
+            disabled={{ after: new Date() }}
+            autoFocus
+          />
+          <button
+            className="button"
+            type="button"
+            onClick={() => {
+              const range = selected?.from
+                ? { from: selected.from, to: selected.to ?? selected.from }
+                : undefined;
+              setFilter(range);
+              refresh();
+              calendar.current?.close();
+            }}
+          >
+            {t("Appliquer", "تطبيق")}
+          </button>
+        </dialog>
+        {loadState.loading ? (
+          <p role="status">{t("Chargement…", "جارٍ التحميل…")}</p>
+        ) : loadState.error ? (
+          <div className="files-empty" role="status">
+            <p>
+              {loadState.error === "configuration"
+                ? t(
+                    "Le stockage privé n’est pas encore configuré.",
+                    "التخزين الخاص غير مهيأ بعد.",
+                  )
+                : t("Impossible de charger les PDF.", "تعذر تحميل الملفات.")}
+            </p>
+            <button
+              className="button secondary"
+              type="button"
+              onClick={refresh}
+            >
+              {t("Réessayer", "إعادة المحاولة")}
+            </button>
+          </div>
+        ) : result.documents.length === 0 ? (
+          <div className="files-empty">
+            <FileText size={32} aria-hidden />
+            <p>
+              {filter
+                ? t(
+                    "Aucun PDF sur cette période.",
+                    "لا توجد ملفات في هذه الفترة.",
+                  )
+                : t("Aucun PDF pour le moment.", "لا توجد ملفات بعد.")}
+            </p>
+          </div>
+        ) : (
+          <ul className="file-grid">
+            {result.documents.map(({ id, created_at }) => (
+              <li className="file-card" key={id}>
+                <div className="file-thumb" aria-hidden>
+                  <div className="paper">
+                    <FileText size={28} />
+                    <i />
+                    <i />
+                    <i />
+                  </div>
+                </div>
+                <div className="file-meta">
+                  <time dateTime={created_at}>
+                    {date.format(new Date(created_at))}
+                  </time>
+                  <a
+                    className="icon-button"
+                    title={t("Télécharger le PDF", "تنزيل PDF")}
+                    aria-label={
+                      t("Télécharger le PDF", "تنزيل PDF") +
+                      " · " +
+                      date.format(new Date(created_at))
+                    }
+                    href={`/api/documents/${id}`}
+                    download
+                  >
+                    <ArrowDownToLine size={19} aria-hidden />
+                  </a>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        {!loadState.loading && (page > 1 || result.more) && (
+          <nav className="pagination" aria-label={t("Pages", "الصفحات")}>
+            <button
+              className="button secondary"
+              type="button"
+              disabled={page < 2}
+              onClick={() => changePage(page - 1)}
+            >
+              {t("Précédent", "السابق")}
+            </button>
+            <button
+              className="button secondary"
+              type="button"
+              disabled={!result.more}
+              onClick={() => changePage(page + 1)}
+            >
+              {t("Suivant", "التالي")}
+            </button>
+          </nav>
+        )}
+      </section>
+    </main>
+  );
+}

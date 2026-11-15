@@ -1,25 +1,21 @@
-import { InstallBanner } from "@/app/components/install/install-banner";
+import { AccountContext } from "@/app/components/louma/account";
+import { ClerkProvider } from "@clerk/nextjs";
+import { arSA, frFR } from "@clerk/localizations";
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { isLocale, locales } from "@/i18n/locales";
 import { siteUrl } from "@/lib/site-url";
 import "../globals.css";
-import { hasLocale, NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
-import { notFound } from "next/navigation";
-import { routing } from "../../i18n/routing";
 
 export const metadata: Metadata = {
   metadataBase: siteUrl ? new URL(siteUrl) : undefined,
-  title: "Louma — La location, tout simplement",
+  title: "Louma — Contrats de location",
   description:
-    "Créez vos contrats de location de véhicules au Maroc. Trois documents, un scan intelligent et un PDF prêt à signer.",
-  appleWebApp: {
-    title: "Louma",
-    capable: true,
-  },
+    "Créez, téléchargez et retrouvez vos contrats de location de voiture.",
 };
 
 export function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }));
+  return locales.map((locale) => ({ locale }));
 }
 
 export default async function RootLayout({
@@ -27,19 +23,21 @@ export default async function RootLayout({
   params,
 }: LayoutProps<"/[locale]">) {
   const { locale } = await params;
-  if (!hasLocale(routing.locales, locale)) notFound();
-  const messages = await getMessages();
+  if (!isLocale(locale)) notFound();
+  const key = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
   return (
-    <html
-      lang={locale}
-      dir={locale === "ar" ? "rtl" : "ltr"}
-      className="h-full antialiased"
-    >
-      <body className="min-h-full flex flex-col">
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          {children}
-          <InstallBanner />
-        </NextIntlClientProvider>
+    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
+      <body>
+        {key ? (
+          <ClerkProvider
+            publishableKey={key}
+            localization={locale === "ar" ? arSA : frFR}
+          >
+            <AccountContext>{children}</AccountContext>
+          </ClerkProvider>
+        ) : (
+          children
+        )}
       </body>
     </html>
   );

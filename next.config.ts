@@ -1,5 +1,4 @@
 import { withSentryConfig } from "@sentry/nextjs/config";
-import { newsRedirects } from "./lib/news-routing";
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
@@ -8,7 +7,10 @@ const withNextIntl = createNextIntlPlugin();
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   async redirects() {
-    return newsRedirects();
+    return [
+      { source: "/en", destination: "/fr", permanent: true },
+      { source: "/en/new", destination: "/fr#contrat", permanent: true },
+    ];
   },
   async headers() {
     return [

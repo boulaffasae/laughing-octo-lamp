@@ -1,80 +1,27 @@
 # Louma
 
-Mobile-first Moroccan vehicle rental agreement builder, using Next.js 16, React 19, Datalab Extract and React-PDF.
+Louma aide les agences à préparer des contrats de location de voiture en français ou en arabe. Le PDF se génère dans le navigateur. L’agence peut le télécharger, le partager comme pièce jointe ou l’ouvrir pour l’imprimer. Le fichier téléchargé reste lisible hors ligne.
 
-## Run
+## Démarrage local
 
-Install with `pnpm install`, then run `pnpm dev` and open http://localhost:3000.
+Avec Node.js 24, lancez `npm ci` puis `npm run dev`. Ouvrez `http://localhost:3000/fr` ou `/ar`. Les dossiers privés se trouvent sous `/{locale}/mes-fichiers`.
 
-- `/fr`, `/en`, `/ar`: French, English and Arabic marketing site.
-- `/fr/new`, `/en/new`, `/ar/new`: three-document checklist, mobile camera or file upload, animated extraction, editable review and PDF download.
+Copiez `.env.example` vers `.env.local` et renseignez les services utilisés.
 
-Copy `.env.example` to `.env.local` and set `DATALAB_API_KEY` to enable real OCR. The key stays on the server. Without a key, use the explicitly labelled sample mode. Real uploads are transmitted to Datalab after consent. Louma processes uploads in memory locally; Datalab processing follows your team's region and retention settings. Checkpoint saving is disabled and cache reuse skipped; these settings do not guarantee deletion. Review hosting and Datalab retention settings before production use.
+- **Clerk** : configurez la clé publique et la clé secrète pour les fenêtres d’inscription et de connexion. Sur Vercel, fournissez les valeurs de l’instance Clerk associée au domaine.
+- **Neon** : configurez `DATABASE_URL` et appliquez [db/001_documents.sql](db/001_documents.sql) à la base cible, par exemple avec `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/001_documents.sql`.
+- **Vercel Blob** : créez ou rattachez un espace d’accès **privé** au projet et configurez `BLOB_READ_WRITE_TOKEN`. Les objets existants d’un espace public doivent rester séparés du dossier Louma.
+- **Datalab** : configurez `DATALAB_API_KEY` pour le préremplissage. Le formulaire indique à l’utilisateur que l’import OCR transmet le PDF à Datalab. Les réglages de région et de rétention sont gérés dans le compte fournisseur.
+- **Liens publics** : configurez `NEXT_PUBLIC_APP_STORE_URL` et `NEXT_PUBLIC_CONTACT_EMAIL` si disponibles. Les liens sociaux provisoires se trouvent dans `app/components/louma/site.tsx`. Complétez les informations sur l’exploitant du site dans les mentions légales avant publication.
 
-The generated contract template is French in every interface language. Agency, rental dates, daily rate and deposit must be completed before download. Sample data produces a watermarked example. The contract is a starter template: agency terms, insurance, vehicle condition annex and signatures must be completed and reviewed before operational use. OCR transcribes information; it does not verify identity or document authenticity.
+Le formulaire manuel et le téléchargement local fonctionnent sans compte. L’enregistrement et l’import dans le tableau de bord exigent un compte et les services privés configurés. Le navigateur conserve le brouillon en mémoire pendant la connexion dans la fenêtre Clerk.
 
-`pnpm build` creates a production build. `pnpm exec tsc --noEmit` checks types.
+## Données et vérification
 
-## Translations
+Les API vérifient le compte Clerk et la propriété des fichiers. Neon stocke les métadonnées techniques et la référence privée. Les uploads PDF sont limités à 4 Mio, validés par signature et téléchargés en pièce jointe depuis le serveur. Les réponses du dossier privé ne sont pas mises en cache. Le filtre utilise la date d’ajout dans le fuseau `Africa/Casablanca`.
 
-Internationalization uses `next-intl`. Routing is centralized in `i18n/routing.ts`; all pages have a locale prefix (`fr`, `en`, `ar`). `proxy.ts` redirects `/` and `/new` to the preferred locale using the locale cookie or browser language, with French as fallback. API routes and static assets are excluded.
+L’OCR conserve sa validation des uploads, ses délais et sa limite concurrente par instance. Pour imposer un quota sur plusieurs instances Vercel, configurez une règle de limitation sur `POST /api/ocr`. Le test OCR live facultatif envoie un document synthétique facturable avec `node --env-file=.env.local scripts/smoke-ocr.mjs`.
 
-UI dictionaries live in `app/translations/fr.json`, `en.json`, and `ar.json` (Arabic, with Moroccan phrasing). Only the current dictionary is passed to the client via `NextIntlClientProvider`. `useCopy()` preserves typed lists and form labels; keep the same keys and shapes in each dictionary. Localized links use `i18n/navigation.ts`. The language selector preserves the current page, query and fragment. The URL determines the locale; there is no localStorage language state. Arabic receives `lang="ar"` and right-to-left layout from the server. The generated contract template remains in French.
+Lancez `npm run check` et `npm run build` avant de pousser. Pour le test d’intégration en environnement configuré, créez un PDF en FR et en AR, vérifiez le téléchargement hors ligne, puis enregistrez-le et vérifiez que l’URL de téléchargement renvoie une erreur pour un second compte. Testez aussi l’import et une période dont le premier et le dernier jour contiennent chacun un PDF.
 
-## Security
-
-The OCR credential stays in server environment variables; never give it a `NEXT_PUBLIC_` prefix, put it in `public/`, or commit a real `.env` file. Client errors deliberately omit provider and configuration details. Provider branding is removed from marketing; consent and data processing information still identify the external processor.
-
-There is no custom URL blacklist or repeated URL decoding. Production hosting must serve only the Next.js application and its public assets, never the repository directory; secrets must never be placed in `public/`.
-
-OCR rejects cross-site browser requests, malformed multipart uploads and oversized bodies, and disables response caching. Files are limited to 4 MiB, with 64 KiB reserved for multipart overhead, below the [Vercel Functions 4.5 MB request limit](https://vercel.com/docs/functions/limitations#request-body-size). The byte limit is enforced while reading, even when `Content-Length` is missing. Upload reading has a 30-second deadline and is cancelled on disconnect. Binary signatures are checked with `file-type` and must match an allowed declared MIME type; signature detection is not malware scanning or proof that a document is well formed. At most two requests may upload/process documents per server instance; excess requests receive 503 with `Retry-After: 5`, and slots are released on success or failure. Datalab upload and extraction share a 60-second timeout and are cancelled on client disconnect. These checks do not authenticate clients or stop direct scripts. Browser origin checks follow the defense-in-depth approach documented in the [OWASP CSRF Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html). Security response headers are configured through Next.js `headers()`.
-
-Bot challenges and hosting/firewall configuration are intentionally deferred. The local concurrency limit is backpressure, not rate limiting: Vercel can start additional instances and requests can continue sequentially. Shared quotas and a provider spending cap remain necessary to bound paid OCR usage. If a credential has previously leaked, revoke and replace it; hiding its name does not invalidate a stolen key.
-
-## Security checks
-
-Use Node.js 22.18+ or 24+ and run `npm test` for upload boundary, deadline, disconnect, concurrency and signature-validation tests. Tests make no external OCR requests.
-
-## Actualités / editorial workflow
-
-The journal lives at `/{fr,en,ar}/actus`, with 20 articles per page and crawlable `/actus/page/2` pagination. The home menu links to it; articles do not appear on the home page. Articles live in `content/actus/{locale}/{slug}.md`. Use the same slug in all three languages so language switching and hreflang point to matching translations. All published files are shown; add all three translations together.
-
-Each file begins with `---`, a YAML metadata object (JSON flow syntax is also accepted), and `---`, followed by Markdown. Required fields: `title`, `description`, `category`, `author`, `date` (ISO date). Use `##` for sections (automatic table of contents), `###` for subsections, GFM tables and `- [ ]` for checklists. Local article links can use the sibling slug. HTML and executable MDX are not enabled. Dates and author names must reflect real editorial publication.
-
-Supported fenced blocks (language after the opening triple backticks):
-
-- `warning`: `{"title":"Attention","text":"Do not sign a blank cheque."}`
-- `agencies`: `{"title":"Contacts vérifiés","items":[{"name":"Agency name","city":"City","phone":"Verified phone"}]}`. Publish only verified numbers with permission where needed.
-- `tiktok`: `{"id":"NUMERIC_VIDEO_ID","title":"Descriptive video title"}`. Lazy iframe; third-party content loads only on articles using this block.
-- `chart`: `{"title":"Chart title","labels":["A","B"],"values":[12,8],"source":"Source, date and methodology"}`. Chart.js loads only for charts; an HTML data table remains available. Do not present sample data as rental or market statistics.
-- `cars`: `{"items":[{"brand":"Opel","model":"Corsa","transmission":"Manuelle","image":"/images/licensed-car-image.jpg","alt":"Descriptive alternative text"}]}`. Images and logos must be supplied with publication rights; standard Markdown images are also supported.
-
-On Vercel, `NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL` automatically supplies the production domain (the application adds `https://`), including in preview deployments. No manually managed URL variable is needed. Optionally set `NEXT_PUBLIC_SITE_URL` to override it or configure another hosting provider. The shared origin enables absolute canonicals, language alternates, sitemap entries, social image URLs and the sitemap reference in robots.txt. Without either variable, no production domain is invented. Metadata includes article author/date, Open Graph, Twitter cards, a shared social preview, BlogPosting JSON-LD and breadcrumbs (when the origin is configured).
-
-The initial prices are editorial budget examples, not live agency quotes. Two years of driving experience is described as a condition to verify, not a universal law. Deposit and agreement articles link to Moroccan rental companies’ published terms; review facts and sources before updating legal or financial claims.
-
-## Error monitoring (Sentry)
-
-Sentry captures browser exceptions, server/Edge exceptions and handled OCR service failures. The supplied public DSN is configured in `lib/sentry-options.ts`; `NEXT_PUBLIC_SENTRY_DSN` can override it at build time. Deploy this change to enable monitoring in production.
-
-OCR responses include a `requestId` (also `X-Request-ID`), shown beside failed scans. Search Sentry by `request_id` to find the report. Its `ocr` context contains the processing stage, elapsed time, provider HTTP status and provider request ID when available. Structured server logs include request outcomes and matching IDs. Invalid user uploads remain request logs rather than Sentry issues. Raw provider bodies, uploaded documents and extracted fields are never deliberately logged; Sentry request bodies, cookies, headers and user details are removed. Session replay and performance sampling are disabled.
-
-For readable production source maps, configure `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` and `SENTRY_PROJECT` in the build environment. The auth token must remain server-only. Error ingestion works with the DSN alone; source-map uploads are disabled without a token.
-
-To verify delivery after deploying, reproduce a failing OCR request and search its reference ID in Sentry. Local checks do not deliberately send test events to the production project.
-
-## OCR implementation
-
-Datalab is the only active provider. URL parameters, previous `ocr_provider` cookies, and `OCR_AB_TEST` no longer affect routing. No provider cookie is written. LlamaCloud is retained in `lib/ocr/llamacloud.ts` with mocked tests, but is not imported or called by the application or smoke test.
-
-OCR code is grouped in `lib/ocr/`: `datalab.ts` handles requests and polling, `schema.ts` defines extraction fields, and `upload-security.ts` validates upload boundaries and file signatures. `app/api/ocr/route.ts` composes the workflow; `request.ts` validates uploads and `response.ts` handles responses and safe error reporting. The shared client/server upload limits remain in `lib/upload-policy.ts`.
-
-Datalab uses accurate parsing and balanced extraction with a shared 60-second deadline. Signed regional results are downloaded without forwarding the API key to storage. Cancellation stops local polling but may not stop remote processing or billing. Responses expose `X-OCR-Provider: datalab`; structured logs record status and duration without document fields.
-
-Run a live synthetic-document smoke test with `node --env-file=.env.local scripts/smoke-ocr.mjs`. It makes one billable Datalab extraction request and verifies name, identity number and address.
-
-## Development conventions
-
-See [Code organization](docs/code-organization.md) for the feature folders, naming conventions, server/client boundaries, and error handling rules. The home page renders on the server; FAQ, navigation, scanning, dates, and installation prompts keep their interactive behavior in client components and hooks.
-
-Run `npm run check` for ESLint, TypeScript, and tests. ESLint enforces separate variable declarations and type-only imports. Use Prettier on changed files. Contract, OCR upload, and news widget tests cover boundary validation and failure cases; the live smoke test uses a synthetic document.
+Voir [l’organisation du code](docs/code-organization.md).

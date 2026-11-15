@@ -1,10 +1,6 @@
-import { ContractBuilder } from "@/app/components/contract/contract-builder";
-import { SiteShell } from "@/app/components/layout/site-shell";
+import { redirect } from "next/navigation";
 
-export default function Page() {
-  return (
-    <SiteShell>
-      <ContractBuilder />
-    </SiteShell>
-  );
+export default async function Page({ params }: PageProps<"/[locale]/new">) {
+  const { locale } = await params;
+  redirect(`/${locale}#contrat`);
 }

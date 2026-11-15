@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   createRequestLimiter,
@@ -12,6 +11,11 @@ import {
   MAX_BODY_BYTES,
   MAX_FILE_BYTES,
 } from "../lib/upload-policy.ts";
+
+const png = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l1sAAAAASUVORK5CYII=",
+  "base64",
+);
 
 const upload = (body, signal) =>
   new Request("https://example.test/api/ocr", {
@@ -93,9 +97,8 @@ test("limits active requests and releases slots idempotently", () => {
 });
 
 test("accepts a real PNG with matching MIME type", async () => {
-  const bytes = await readFile(new URL("../app/icon1.png", import.meta.url));
   assert.equal(
-    await validateUploadType(bytes, "image/png", ALLOWED_UPLOAD_TYPES),
+    await validateUploadType(png, "image/png", ALLOWED_UPLOAD_TYPES),
     "image/png",
   );
 });
@@ -112,9 +115,8 @@ test("accepts a PDF signature", async () => {
 });
 
 test("rejects a real image labelled as PDF", async () => {
-  const bytes = await readFile(new URL("../app/icon1.png", import.meta.url));
   await assert.rejects(
-    validateUploadType(bytes, "application/pdf", ALLOWED_UPLOAD_TYPES),
+    validateUploadType(png, "application/pdf", ALLOWED_UPLOAD_TYPES),
     statusIs(400),
   );
 });
