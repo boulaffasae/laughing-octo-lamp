@@ -1,7 +1,7 @@
 import { createEmptyDocuments, type DocumentFields } from "./documents";
 import type { Locale } from "@/i18n/locales";
 
-export type BlockId = "agency" | "renter" | "vehicle" | "rental" | "terms";
+export type BlockId = "renter" | "vehicle" | "rental";
 export type Agreement = {
   locale: Locale;
   title: string;
@@ -24,7 +24,8 @@ export type Agreement = {
   termsFr: string;
   termsAr: string;
   headings: Record<BlockId, string>;
-  order: Exclude<BlockId, "agency" | "terms">[];
+  termsTitles: Record<Locale, string>;
+  labels: Record<string, string>;
 };
 
 export const words = (locale: Locale) => (fr: string, ar: string) =>
@@ -71,9 +72,6 @@ const rentalTerms = [
   ],
 ] as const;
 
-export const frontPageOrder = (a: Agreement) =>
-  [a.order[0], "agency", ...a.order.slice(1)] as const;
-
 export function initialAgreement(locale: Locale): Agreement {
   const t = words(locale);
   return {
@@ -98,59 +96,92 @@ export function initialAgreement(locale: Locale): Agreement {
     termsFr: rentalTerms.map(([fr]) => fr).join("\n\n"),
     termsAr: rentalTerms.map(([, ar]) => ar).join("\n\n"),
     headings: {
-      agency: t("Agence", "الوكالة"),
       renter: t("Locataire", "المستأجر"),
       vehicle: t("Véhicule", "السيارة"),
       rental: t("Départ / Retour", "التسليم / الإرجاع"),
-      terms: t("Conditions de location", "شروط الكراء"),
     },
-    order: ["renter", "vehicle", "rental"],
+    termsTitles: { fr: "Conditions de location", ar: "شروط الكراء" },
+    labels: {},
   };
 }
 
-export function blockRows(a: Agreement, id: BlockId): [string, string][] {
-  const t = words(a.locale);
-  const [renter, licence, vehicle] = a.documents;
-  const date = (day: string = "") =>
-    /^\d{4}-\d{2}-\d{2}$/.test(day) ? day.split("-").reverse().join("/") : day;
-  const dateTime = (day: string, time: string) =>
-    [date(day), time].filter(Boolean).join(" · ");
-  switch (id) {
-    case "agency":
-      return [
-        [t("Nom de l’agence", "اسم الوكالة"), a.agency],
-        [t("Raison sociale", "اسم الشركة"), a.company],
-        [t("Adresse", "العنوان"), a.agencyAddress],
-        ["RC / ICE", a.registration],
-        [t("Téléphone", "الهاتف"), a.phone],
-      ];
-    case "renter":
-      return [
-        [t("Nom et prénom", "الاسم الكامل"), renter.name],
-        [t("CNIE", "رقم البطاقة الوطنية"), renter.identity],
-        [t("CNIE délivrée le", "تاريخ إصدار البطاقة"), date(renter.issued)],
-        [
-          t("Adresse", "العنوان"),
-          [renter.address, renter.city].filter(Boolean).join(", "),
-        ],
-        [t("Permis", "رخصة السياقة"), licence.licence],
-        [t("Permis délivré le", "تاريخ إصدار الرخصة"), date(licence.issued)],
-      ];
-    case "vehicle":
-      return [
-        [t("Marque / Modèle", "الماركة / الطراز"), vehicle.brand],
-        [t("Immatriculation", "رقم التسجيل"), vehicle.plate],
-        [t("Carburant", "الوقود"), vehicle.fuel ?? ""],
-        [t("État au départ", "حالة السيارة عند التسليم"), a.condition],
-      ];
-    case "rental":
-      return [
-        [t("Départ", "التسليم"), dateTime(a.start, a.startTime)],
-        [t("Retour", "الإرجاع"), dateTime(a.end, a.endTime)],
-        [t("Total (MAD)", "المجموع (درهم)"), a.price],
-        [t("Caution (MAD)", "الضمان (درهم)"), a.deposit],
-      ];
-    case "terms":
-      return [];
-  }
+type AgreementField = Exclude<
+  keyof Agreement,
+  "locale" | "documents" | "headings" | "termsTitles" | "labels"
+>;
+export type FieldKey = AgreementField | readonly [number, string];
+type ContractField = {
+  key: FieldKey;
+  label: string;
+  type?: "date" | "time" | "tel";
+};
+
+export function fieldValue(a: Agreement, key: FieldKey) {
+  return typeof key === "string" ? a[key] : (a.documents[key[0]][key[1]] ?? "");
 }
+
+export function fieldId(key: FieldKey) {
+  return typeof key === "string" ? key : key.join("-");
+}
+
+export function contractFields(
+  locale: Locale,
+): Record<BlockId | "footer", ContractField[]> {
+  const t = words(locale);
+  return {
+    footer: [
+      { key: "company", label: t("Raison sociale", "اسم الشركة") },
+      { key: "registration", label: "RC / ICE" },
+      { key: "agencyAddress", label: t("Adresse", "العنوان") },
+      { key: "phone", label: t("Téléphone", "الهاتف"), type: "tel" },
+    ],
+    renter: [
+      { key: [0, "name"], label: t("Nom et prénom", "الاسم الكامل") },
+      { key: [0, "identity"], label: t("CNIE", "رقم البطاقة الوطنية") },
+      {
+        key: [0, "issued"],
+        label: t("CNIE délivrée le", "تاريخ إصدار البطاقة"),
+        type: "date",
+      },
+      { key: [0, "address"], label: t("Adresse", "العنوان") },
+      { key: [0, "city"], label: t("Ville", "المدينة") },
+      { key: [1, "licence"], label: t("Permis", "رخصة السياقة") },
+      {
+        key: [1, "issued"],
+        label: t("Permis délivré le", "تاريخ إصدار الرخصة"),
+        type: "date",
+      },
+    ],
+    vehicle: [
+      { key: [2, "brand"], label: t("Marque / Modèle", "الماركة / الطراز") },
+      { key: [2, "plate"], label: t("Immatriculation", "رقم التسجيل") },
+      { key: [2, "fuel"], label: t("Carburant", "الوقود") },
+      {
+        key: "condition",
+        label: t("État au départ", "حالة السيارة عند التسليم"),
+      },
+    ],
+    rental: [
+      {
+        key: "start",
+        label: t("Date de départ", "تاريخ التسليم"),
+        type: "date",
+      },
+      {
+        key: "startTime",
+        label: t("Heure de départ", "وقت التسليم"),
+        type: "time",
+      },
+      { key: "end", label: t("Date de retour", "تاريخ الإرجاع"), type: "date" },
+      {
+        key: "endTime",
+        label: t("Heure de retour", "وقت الإرجاع"),
+        type: "time",
+      },
+      { key: "price", label: t("Total (MAD)", "المجموع (درهم)") },
+      { key: "deposit", label: t("Caution (MAD)", "الضمان (درهم)") },
+    ],
+  };
+}
+
+export const blank = "……………………";

@@ -2,7 +2,7 @@ import { isLocale } from "@/i18n/locales";
 import { notFound } from "next/navigation";
 import { words } from "@/lib/contract/agreement";
 import { Header, Footer, AppBanner } from "@/app/components/louma/site";
-import { Wizard } from "@/app/components/louma/wizard";
+import { ContractEditor } from "@/app/components/louma/contract-editor";
 
 export default async function Page({ params }: PageProps<"/[locale]">) {
   const { locale } = await params;
@@ -17,7 +17,7 @@ export default async function Page({ params }: PageProps<"/[locale]">) {
             <h1>{t("Contrat de location", "عقد كراء السيارة")}</h1>
           </div>
         </section>
-        <Wizard locale={locale} />
+        <ContractEditor locale={locale} />
         <AppBanner locale={locale} />
       </main>
       <Footer locale={locale} />

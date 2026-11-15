@@ -1,7 +1,9 @@
 import {
-  blockRows,
+  blank,
+  contractFields,
+  fieldId,
+  fieldValue,
   headingInk,
-  frontPageOrder,
   words,
   type Agreement,
   type BlockId,
@@ -24,6 +26,7 @@ const font = "Louma Sans";
 const styles = StyleSheet.create({
   page: {
     padding: 37,
+    paddingBottom: 118,
     color: "#152821",
     fontFamily: font,
     fontSize: 9,
@@ -31,9 +34,26 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 19, marginTop: 13, marginBottom: 12 },
   logo: { width: 75, height: 33, objectFit: "contain" },
+  brand: { flexDirection: "row", alignItems: "center", gap: 9 },
+  agency: { flex: 1, fontSize: 14 },
+  front: {
+    flexDirection: "row",
+    gap: 9,
+    marginBottom: 14,
+    alignItems: "stretch",
+  },
+  column: { flex: 1, minWidth: 0, gap: 9 },
+  footer: {
+    position: "absolute",
+    bottom: 30,
+    left: 37,
+    right: 37,
+    borderTopWidth: 1,
+    paddingTop: 6,
+  },
   header: { borderBottomWidth: 2, marginBottom: 10 },
   pair: { flexDirection: "row", gap: 9, marginBottom: 9 },
-  section: { flex: 1, minWidth: 0, borderWidth: 1, borderColor: "#dae4de" },
+  section: { minWidth: 0, borderWidth: 1, borderColor: "#dae4de" },
   heading: { fontSize: 10, padding: 4, paddingHorizontal: 8, color: "#fff" },
   rows: {
     flexDirection: "row",
@@ -46,7 +66,7 @@ const styles = StyleSheet.create({
   signatures: { flexDirection: "row", gap: 9, marginTop: 8 },
   signature: {
     width: "50%",
-    height: 59,
+    minHeight: 125,
     padding: 8,
     borderWidth: 1,
     borderColor: "#dae4de",
@@ -72,8 +92,35 @@ export async function buildContractPdf(a: Agreement) {
     textAlign: rtl ? ("right" as const) : ("left" as const),
     direction: rtl ? ("rtl" as const) : ("ltr" as const),
   };
-  const block = (id: BlockId) => (
-    <View key={id} style={styles.section} wrap={false}>
+  const fields = contractFields(a.locale);
+  const rows = (id: BlockId | "footer") => (
+    <View style={[styles.rows, { flexDirection: rtl ? "row-reverse" : "row" }]}>
+      {fields[id].map(({ key, label, type }) => {
+        const id = fieldId(key);
+        const raw = fieldValue(a, key).trim();
+        const value =
+          type === "date" && raw ? raw.split("-").reverse().join("/") : raw;
+        const leftToRight = rtl && value && !/\p{Script=Arabic}/u.test(value);
+        return (
+          <View key={id} style={styles.row}>
+            <Text style={[styles.label, alignment]}>
+              {a.labels[id] ?? label}
+            </Text>
+            <Text
+              style={[
+                alignment,
+                { direction: leftToRight ? "ltr" : alignment.direction },
+              ]}
+            >
+              {value ? (leftToRight ? "\u200e" + value : value) : blank}
+            </Text>
+          </View>
+        );
+      })}
+    </View>
+  );
+  const block = (id: BlockId, stretch = false) => (
+    <View style={[styles.section, stretch ? { flex: 1 } : {}]} wrap={false}>
       <Text
         style={[
           styles.heading,
@@ -83,29 +130,14 @@ export async function buildContractPdf(a: Agreement) {
       >
         {a.headings[id]}
       </Text>
-      <View
-        style={[styles.rows, { flexDirection: rtl ? "row-reverse" : "row" }]}
-      >
-        {blockRows(a, id).map(([label, value]) => {
-          const leftToRight = rtl && value && !/\p{Script=Arabic}/u.test(value);
-          return (
-            <View key={label} style={styles.row}>
-              <Text style={[styles.label, alignment]}>{label}</Text>
-              <Text
-                style={[
-                  alignment,
-                  { direction: leftToRight ? "ltr" : alignment.direction },
-                ]}
-              >
-                {value ? (leftToRight ? "\u200e" + value : value) : "……………………"}
-              </Text>
-            </View>
-          );
-        })}
-      </View>
+      {rows(id)}
     </View>
   );
-  const order = frontPageOrder(a);
+  const footer = () => (
+    <View style={[styles.footer, { borderTopColor: a.color }]} fixed>
+      {rows("footer")}
+    </View>
+  );
   const clauses = (value: string, direction: "ltr" | "rtl") => {
     const align = {
       direction,
@@ -117,7 +149,10 @@ export async function buildContractPdf(a: Agreement) {
         const [title, ...body] = clause.split("\n");
         return (
           <View key={index} style={styles.clause}>
-            <Text style={[align, styles.clauseTitle]} minPresenceAhead={12}>
+            <Text
+              style={[align, styles.clauseTitle, { color: a.color }]}
+              minPresenceAhead={12}
+            >
               {title}
             </Text>
             {body.length > 0 && <Text style={align}>{body.join("\n")}</Text>}
@@ -129,7 +164,12 @@ export async function buildContractPdf(a: Agreement) {
     <Document title={a.title} creator="Louma" language={a.locale}>
       <Page size="A4" style={styles.page}>
         <View style={[styles.header, { borderBottomColor: a.color }]}>
-          <View style={{ alignSelf: rtl ? "flex-end" : "flex-start" }}>
+          <View
+            style={[
+              styles.brand,
+              { flexDirection: rtl ? "row-reverse" : "row" },
+            ]}
+          >
             {a.logo ? (
               // React-PDF Image does not support the HTML alt property.
               // eslint-disable-next-line jsx-a11y/alt-text
@@ -143,24 +183,23 @@ export async function buildContractPdf(a: Agreement) {
                 />
               </Svg>
             )}
+            {a.agency && (
+              <Text style={[styles.agency, alignment]}>{a.agency}</Text>
+            )}
           </View>
           <Text style={[styles.title, alignment]}>{a.title}</Text>
         </View>
-        {[order.slice(0, 2), order.slice(2)].map((pair, index) => (
-          <View
-            key={index}
-            style={[
-              styles.pair,
-              { flexDirection: rtl ? "row-reverse" : "row" },
-            ]}
-            wrap={false}
-          >
-            {pair.map(block)}
+        <View style={styles.front} wrap={false}>
+          {block("renter", true)}
+          <View style={styles.column}>
+            {block("vehicle")}
+            {block("rental")}
           </View>
-        ))}
+        </View>
         <View wrap={false}>
           <Text style={alignment}>
-            {t("Fait à / le", "حرر في / بتاريخ")} : {a.place || "……………………"}
+            {a.labels.place ?? t("Fait à / le", "حرر في / بتاريخ")} :{" "}
+            {a.place || blank}
           </Text>
           <View
             style={[
@@ -169,19 +208,22 @@ export async function buildContractPdf(a: Agreement) {
             ]}
           >
             <Text style={[styles.signature, alignment]}>
-              {t("Cachet et signature de l’agence", "ختم وتوقيع الوكالة")}
+              {a.labels.stamp ??
+                t("Cachet et signature de l’agence", "ختم وتوقيع الوكالة")}
             </Text>
             <Text style={[styles.signature, alignment]}>
-              {t("Signature du locataire", "توقيع المستأجر")}
+              {a.labels.signature ??
+                t("Signature du locataire", "توقيع المستأجر")}
             </Text>
           </View>
         </View>
+        {footer()}
       </Page>
       <Page size="A4" style={styles.page}>
         <View style={[styles.header, { borderBottomColor: a.color }]}>
           <View style={styles.pair}>
             <Text style={[styles.title, styles.termsColumn]}>
-              {rtl ? "Conditions de location" : a.headings.terms}
+              {a.termsTitles.fr}
             </Text>
             <Text
               style={[
@@ -190,7 +232,7 @@ export async function buildContractPdf(a: Agreement) {
                 { textAlign: "right", direction: "rtl" },
               ]}
             >
-              {rtl ? a.headings.terms : "شروط الكراء"}
+              {a.termsTitles.ar}
             </Text>
           </View>
         </View>
@@ -198,6 +240,25 @@ export async function buildContractPdf(a: Agreement) {
           <View style={styles.termsColumn}>{clauses(a.termsFr, "ltr")}</View>
           <View style={styles.termsColumn}>{clauses(a.termsAr, "rtl")}</View>
         </View>
+        {footer()}
+      </Page>
+    </Document>,
+  ).toBlob();
+}
+
+export function buildPhotoPdf(src: string, width: number, height: number) {
+  const scale = Math.min(521 / width, 767 / height);
+  return pdf(
+    <Document>
+      <Page
+        size="A4"
+        style={{ alignItems: "center", justifyContent: "center" }}
+      >
+        {/* eslint-disable-next-line jsx-a11y/alt-text -- React PDF Image has no alt property. */}
+        <Image
+          src={src}
+          style={{ width: width * scale, height: height * scale }}
+        />
       </Page>
     </Document>,
   ).toBlob();

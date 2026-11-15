@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   ArrowDownToLine,
   CalendarDays,
+  Camera,
   FileText,
   Upload,
   X,
@@ -11,6 +12,7 @@ import {
 import { DayPicker, type DateRange } from "react-day-picker";
 import { arMA, fr } from "react-day-picker/locale";
 import "react-day-picker/style.css";
+import { prepareImage } from "@/lib/contract/prepare-image";
 import { words } from "@/lib/contract/agreement";
 import { MAX_FILE_BYTES } from "@/lib/upload-policy";
 import type { Locale } from "@/i18n/locales";
@@ -86,20 +88,25 @@ export function Dashboard({ locale }: { locale: Locale }) {
     setReload((n) => n + 1);
   }
 
-  async function upload(file: File) {
+  async function upload(file: File, photo = false) {
     if (uploadPending.current) return;
     if (
-      file.type !== "application/pdf" ||
+      (!photo && file.type !== "application/pdf") ||
       file.size === 0 ||
       file.size > MAX_FILE_BYTES
     ) {
       setUploadState({
         busy: false,
         error: true,
-        message: t(
-          "Choisissez un PDF de 4 Mo maximum.",
-          "اختر ملف PDF بحجم لا يتجاوز 4 ميغابايت.",
-        ),
+        message: photo
+          ? t(
+              "Choisissez une photo de 4 Mo maximum.",
+              "اختر صورة بحجم لا يتجاوز 4 ميغابايت.",
+            )
+          : t(
+              "Choisissez un PDF de 4 Mo maximum.",
+              "اختر ملف PDF بحجم لا يتجاوز 4 ميغابايت.",
+            ),
       });
       return;
     }
@@ -110,8 +117,19 @@ export function Dashboard({ locale }: { locale: Locale }) {
       message: t("Import en cours…", "جارٍ الرفع…"),
     });
     try {
+      let document = file;
+      if (photo) {
+        const { src, width, height } = await prepareImage(file, {
+          maxSide: 2000,
+          output: "image/jpeg",
+        });
+        const { buildPhotoPdf } = await import("../contract/contract-pdf");
+        const blob = await buildPhotoPdf(src, width, height);
+        if (blob.size > MAX_FILE_BYTES) throw Error();
+        document = new File([blob], "photo.pdf", { type: "application/pdf" });
+      }
       const body = new FormData();
-      body.set("file", file);
+      body.set("file", document);
       body.set("kind", "upload");
       const response = await fetch("/api/documents", { method: "POST", body });
       if (!response.ok) throw Error();
@@ -160,19 +178,36 @@ export function Dashboard({ locale }: { locale: Locale }) {
           <Upload size={28} aria-hidden />
         </span>
         <h1>{t("Importez vos PDF", "ارفع ملفات PDF")}</h1>
-        <label className="button upload-control">
-          {t("Importer un PDF", "رفع ملف PDF")}
-          <input
-            type="file"
-            accept="application/pdf,.pdf"
-            disabled={uploadState.busy}
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              event.target.value = "";
-              if (file) void upload(file);
-            }}
-          />
-        </label>
+        <div className="storage-sources">
+          <label className="button upload-control">
+            {t("Importer un PDF", "رفع ملف PDF")}
+            <input
+              type="file"
+              accept="application/pdf,.pdf"
+              disabled={uploadState.busy}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+                if (file) void upload(file);
+              }}
+            />
+          </label>
+          <label className="button secondary upload-control">
+            <Camera size={17} aria-hidden />
+            {t("Photographier en PDF", "التقاط صورة كملف PDF")}
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              capture="environment"
+              disabled={uploadState.busy}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+                if (file) void upload(file, true);
+              }}
+            />
+          </label>
+        </div>
         <p
           className={uploadState.error ? "error status" : "status"}
           aria-live="polite"
