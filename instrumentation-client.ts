@@ -35,8 +35,12 @@ if (posthogKey) {
           ? path
           : "/";
       return {
-        ...event,
+        event: event.event,
+        uuid: event.uuid,
+        timestamp: event.timestamp,
         properties: {
+          token: original.token,
+          $process_person_profile: false,
           distinct_id: original.distinct_id,
           $pathname: pathname,
           $current_url: window.location.origin + pathname,
