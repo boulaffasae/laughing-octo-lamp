@@ -19,6 +19,7 @@ import {
 import {
   blockRows,
   headingInk,
+  frontPageOrder,
   initialAgreement,
   words,
   type Agreement,
@@ -41,12 +42,14 @@ function Field({
   change,
   type = "text",
   wide = false,
+  placeholder,
 }: {
   label: string;
   value: string;
   change: (value: string) => void;
   type?: string;
   wide?: boolean;
+  placeholder?: string;
 }) {
   return (
     <label className={wide ? "field field-wide" : "field"}>
@@ -54,6 +57,7 @@ function Field({
       <input
         type={type}
         value={value}
+        placeholder={placeholder}
         onChange={(e) => change(e.target.value)}
         maxLength={type === "text" || type === "tel" ? 140 : undefined}
         min={type === "number" ? 0 : undefined}
@@ -161,6 +165,19 @@ function ScanFields({
     <Field
       label={label}
       value={a.documents[index][key] ?? ""}
+      placeholder={
+        type === "date"
+          ? undefined
+          : (
+              {
+                name: t("Ex. Amal Benali", "مثال: أمل بنعلي"),
+                identity: "AB123456",
+                licence: "12/345678",
+                brand: "Ex. Dacia Sandero",
+                plate: "12345-A-6",
+              } as Record<string, string>
+            )[key]
+      }
       change={(value) => update(index, { [key]: value })}
       type={type}
       wide={wide}
@@ -269,10 +286,12 @@ function ContractPreview({
   a,
   change,
   edit,
+  activeBlock,
 }: {
   a: Agreement;
   change: Patch;
   edit: boolean;
+  activeBlock?: BlockId;
 }) {
   const t = words(a.locale);
   const [dragging, setDragging] = useState<FrontBlock | null>(null);
@@ -311,6 +330,7 @@ function ContractPreview({
       <section
         key={id}
         className="paper-block"
+        data-active={activeBlock === id || undefined}
         data-drop={over === id && dragging !== id ? "" : undefined}
         onDragOver={
           movable
@@ -355,7 +375,13 @@ function ContractPreview({
           {blockRows(a, id).map(([label, value], index) => (
             <div key={label}>
               <dt>{label}</dt>
-              <dd>
+              <dd
+                dir={
+                  value && !(edit && id === "vehicle" && index === 3)
+                    ? "auto"
+                    : undefined
+                }
+              >
                 {edit && id === "vehicle" && index === 3 ? (
                   <input
                     aria-label={label}
@@ -437,8 +463,7 @@ function ContractPreview({
               )}
             </h2>
           </header>
-          {section("agency")}
-          {a.order.map(section)}
+          <div className="paper-sections">{frontPageOrder(a).map(section)}</div>
           <div className="paper-place">
             {t("Fait à / le", "حرر في / بتاريخ")} :{" "}
             {edit ? (
@@ -462,21 +487,54 @@ function ContractPreview({
             </span>
             <span>{t("Signature du locataire", "توقيع المستأجر")}</span>
           </div>
-          <footer>LOUMA / {t("RECTO", "الوجه الأول")} · 1</footer>
         </article>
         <article className="paper">
-          <header className="paper-header">{heading("terms")}</header>
-          {edit ? (
-            <textarea
-              aria-label={t("Conditions de location", "شروط الكراء")}
-              maxLength={3500}
-              value={a.terms}
-              onChange={(e) => change({ terms: e.target.value })}
-            />
-          ) : (
-            <p className="paper-terms">{a.terms || "……………………"}</p>
-          )}
-          <footer>LOUMA / {t("VERSO", "الوجه الثاني")} · 2</footer>
+          <div className="paper-terms-grid" dir="ltr">
+            {(["fr", "ar"] as const).map((lang) => {
+              const key = lang === "fr" ? "termsFr" : "termsAr";
+              const label =
+                lang === "fr" ? "Conditions de location" : "شروط الكراء";
+              return (
+                <section
+                  key={lang}
+                  lang={lang}
+                  dir={lang === "ar" ? "rtl" : "ltr"}
+                >
+                  <header className="paper-header">
+                    {a.locale === lang ? heading("terms") : <h3>{label}</h3>}
+                  </header>
+                  {edit ? (
+                    <textarea
+                      aria-label={label}
+                      maxLength={3500}
+                      value={a[key]}
+                      placeholder={label}
+                      onChange={(e) => change({ [key]: e.target.value })}
+                    />
+                  ) : (
+                    <div className="paper-terms">
+                      {(a[key].trim() || "……………………")
+                        .split(/\n\s*\n/)
+                        .map((clause, index) => {
+                          const [title, ...body] = clause.split("\n");
+                          return (
+                            <p key={index}>
+                              <strong>{title}</strong>
+                              {body.length > 0 && (
+                                <>
+                                  <br />
+                                  {body.join("\n")}
+                                </>
+                              )}
+                            </p>
+                          );
+                        })}
+                    </div>
+                  )}
+                </section>
+              );
+            })}
+          </div>
         </article>
       </div>
       <p className="sr-only" aria-live="polite">
@@ -664,6 +722,21 @@ export function Wizard({ locale }: { locale: Locale }) {
       setBusy(false);
     }
   }
+  const placeholders: Partial<Record<keyof Agreement, string>> = {
+    agency: t("Ex. Atlas Location", "مثال: أطلس للكراء"),
+    company: t("Ex. Atlas Location SARL", "مثال: أطلس للكراء ش.ذ.م.م"),
+    agencyAddress: t(
+      "Ex. 12, rue Atlas, Casablanca",
+      "مثال: 12 شارع الأطلس، الدار البيضاء",
+    ),
+    registration: "123456 / 001234567000012",
+    phone: "+212 6 XX XX XX XX",
+    price: "1 200",
+    deposit: "3 000",
+  };
+  const activeBlock = (
+    ["agency", "renter", "vehicle", "rental", "rental"] as const
+  )[stage];
   const field = (
     key: Exclude<
       keyof Agreement,
@@ -676,6 +749,7 @@ export function Wizard({ locale }: { locale: Locale }) {
     <Field
       label={label}
       value={a[key]}
+      placeholder={placeholders[key]}
       change={(value) => change({ [key]: value })}
       type={type}
       wide={wide}
@@ -707,7 +781,7 @@ export function Wizard({ locale }: { locale: Locale }) {
           </li>
         ))}
       </ol>
-      <div className="work-grid">
+      <div className="work-grid" data-exported={stage === 5 || undefined}>
         <div className="work-form" key={stage}>
           {stage === 0 && (
             <>
@@ -827,38 +901,43 @@ export function Wizard({ locale }: { locale: Locale }) {
               {error}
             </p>
           )}
+          <div className="work-dock">
+            {stage > 0 && (
+              <button
+                className="button secondary"
+                type="button"
+                disabled={busy}
+                onClick={() => go(stage - 1)}
+                aria-label={t("Précédent", "السابق")}
+              >
+                <Back size={18} />
+              </button>
+            )}
+            {stage < 5 && (
+              <button
+                className="button"
+                type="button"
+                disabled={busy || logoBusy}
+                onClick={() =>
+                  stage === 4 ? void exportPdf(false) : go(stage + 1)
+                }
+              >
+                {busy
+                  ? t("Création…", "جارٍ الإنشاء…")
+                  : stage === 4
+                    ? t("Créer le PDF", "إنشاء PDF")
+                    : t("Suivant", "التالي")}
+                <Next size={18} aria-hidden />
+              </button>
+            )}
+          </div>
         </div>
-        <ContractPreview a={a} change={change} edit={stage === 0} />
-      </div>
-      <div className="work-dock">
-        {stage > 0 && (
-          <button
-            className="button secondary"
-            type="button"
-            disabled={busy}
-            onClick={() => go(stage - 1)}
-            aria-label={t("Précédent", "السابق")}
-          >
-            <Back size={18} />
-          </button>
-        )}
-        {stage < 5 && (
-          <button
-            className="button"
-            type="button"
-            disabled={busy || logoBusy}
-            onClick={() =>
-              stage === 4 ? void exportPdf(false) : go(stage + 1)
-            }
-          >
-            {busy
-              ? t("Création…", "جارٍ الإنشاء…")
-              : stage === 4
-                ? t("Créer le PDF", "إنشاء PDF")
-                : t("Suivant", "التالي")}
-            <Next size={18} aria-hidden />
-          </button>
-        )}
+        <ContractPreview
+          a={a}
+          change={change}
+          edit={stage === 0}
+          activeBlock={activeBlock}
+        />
       </div>
     </section>
   );

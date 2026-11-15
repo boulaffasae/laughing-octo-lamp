@@ -21,7 +21,8 @@ export type Agreement = {
   place: string;
   price: string;
   deposit: string;
-  terms: string;
+  termsFr: string;
+  termsAr: string;
   headings: Record<BlockId, string>;
   order: Exclude<BlockId, "agency" | "terms">[];
 };
@@ -38,6 +39,40 @@ export function headingInk(color: string) {
   );
   return r * 0.2126 + g * 0.7152 + b * 0.0722 > 0.179 ? "#000" : "#fff";
 }
+
+const rentalTerms = [
+  [
+    "1. Conducteurs autorisés\nSeuls les conducteurs inscrits au contrat et titulaires d’un permis valide peuvent conduire.\nConducteur supplémentaire / n° de permis : …",
+    "١. السائقون المصرح لهم\nلا يجوز قيادة السيارة إلا للسائقين المسجلين في العقد والحاملين لرخصة سياقة سارية.\nالسائق الإضافي / رقم الرخصة: …",
+  ],
+  [
+    "2. Utilisation du véhicule\nLe locataire respecte le code de la route et les limites d’utilisation convenues.\nZone autorisée / restrictions : …",
+    "٢. استعمال السيارة\nيلتزم المستأجر بقواعد السير والقيود المتفق عليها لاستعمال السيارة.\nنطاق السير المسموح / القيود: …",
+  ],
+  [
+    "3. Départ et état des lieux\nLes parties relèvent ensemble l’état, les accessoires, le compteur et le niveau de carburant au départ et au retour.\nCompteur et carburant au départ / au retour : …",
+    "٣. التسليم ومعاينة الحالة\nيسجل الطرفان حالة السيارة وملحقاتها وقراءة العداد ومستوى الوقود عند التسليم والإرجاع.\nالعداد والوقود عند التسليم / الإرجاع: …",
+  ],
+  [
+    "4. Kilométrage et carburant\nForfait kilométrique : … km. Prix du km supplémentaire : … MAD.\nNiveau de carburant attendu au retour / frais convenus : …",
+    "٤. المسافة والوقود\nالمسافة المشمولة: … كم. سعر الكيلومتر الإضافي: … درهم.\nمستوى الوقود المطلوب عند الإرجاع / الرسوم المتفق عليها: …",
+  ],
+  [
+    "5. Prix et dépôt de garantie\nLe prix et le dépôt figurent au recto. Les retenues éventuelles sont détaillées et justifiées.\nMode de paiement / délai de restitution du dépôt : …",
+    "٥. السعر ومبلغ الضمان\nيُبيّن السعر ومبلغ الضمان في الصفحة الأولى. تُفصّل وتُبرّر أي اقتطاعات.\nطريقة الدفع / أجل رد مبلغ الضمان: …",
+  ],
+  [
+    "6. Assurance et sinistre\nEn cas de panne, de vol ou d’accident, prévenir rapidement l’agence et lui transmettre les justificatifs disponibles.\nGaranties / franchise / exclusions : …\nContact d’assistance : …",
+    "٦. التأمين والحوادث\nعند العطل أو السرقة أو الحادث، يجب إبلاغ الوكالة سريعًا وإرسال الوثائق المتاحة إليها.\nالتغطية / مبلغ التحمل / الاستثناءات: …\nرقم المساعدة: …",
+  ],
+  [
+    "7. Restitution et prolongation\nRestituer le véhicule, ses clés, ses documents et ses accessoires à la date et au lieu convenus. Toute prolongation requiert l’accord de l’agence.\nLieu de retour / frais de retard convenus : …",
+    "٧. الإرجاع والتمديد\nتُعاد السيارة ومفاتيحها ووثائقها وملحقاتها في الموعد والمكان المتفق عليهما. يتطلب التمديد موافقة الوكالة.\nمكان الإرجاع / رسوم التأخير المتفق عليها: …",
+  ],
+] as const;
+
+export const frontPageOrder = (a: Agreement) =>
+  [a.order[0], "agency", ...a.order.slice(1)] as const;
 
 export function initialAgreement(locale: Locale): Agreement {
   const t = words(locale);
@@ -60,10 +95,8 @@ export function initialAgreement(locale: Locale): Agreement {
     place: "",
     price: "",
     deposit: "",
-    terms: t(
-      "01 · Véhicule et conducteurs\nLe véhicule décrit au recto est remis au locataire. Conducteurs autorisés : …\n\n02 · Utilisation\nZone de circulation : …\nUsage et restrictions convenus : …\n\n03 · Kilométrage et carburant\nKilométrage au départ : …  ·  Plafond convenu : …\nNiveau de carburant au départ : …  ·  Niveau attendu au retour : …\n\n04 · Assurance et assistance\nGaranties, franchise et exclusions : …\nEn cas de panne, vol ou accident, prévenir l’agence. Contact et procédure : …\n\n05 · Restitution\nLieu de retour : …\nL’état du véhicule est relevé à la restitution. Modalités convenues en cas de prolongation ou de retard : …",
-      "01 · السيارة والسائقون\nتُسلّم السيارة المبيّنة في الوجه الأول للمستأجر. السائقون المرخّص لهم: …\n\n02 · الاستعمال\nنطاق السير: …\nالاستعمال والقيود المتفق عليها: …\n\n03 · المسافة والوقود\nعداد المسافة عند التسليم: … · الحد المتفق عليه: …\nمستوى الوقود عند التسليم: … · المستوى المطلوب عند الإرجاع: …\n\n04 · التأمين والمساعدة\nالضمانات والتحمل والاستثناءات: …\nعند العطل أو السرقة أو الحادث، يُبلّغ مكتب الكراء. الاتصال والإجراءات: …\n\n05 · الإرجاع\nمكان الإرجاع: …\nتُسجّل حالة السيارة عند الإرجاع. الشروط المتفق عليها عند التمديد أو التأخير: …",
-    ),
+    termsFr: rentalTerms.map(([fr]) => fr).join("\n\n"),
+    termsAr: rentalTerms.map(([, ar]) => ar).join("\n\n"),
     headings: {
       agency: t("Agence", "الوكالة"),
       renter: t("Locataire", "المستأجر"),

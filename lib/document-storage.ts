@@ -7,8 +7,43 @@ export const authConfigured = () =>
     process.env.CLERK_SECRET_KEY &&
     process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
   );
-export const storageConfigured = () =>
-  Boolean(process.env.DATABASE_URL && process.env.BLOB_READ_WRITE_TOKEN);
+type StorageOperation = "list" | "save" | "download";
+
+export function storageConfigured(operation: StorageOperation) {
+  const missing = [];
+  if (!process.env.DATABASE_URL?.trim()) missing.push("DATABASE_URL");
+  // With OIDC, the Blob SDK reads Vercel's request-scoped token automatically.
+  if (
+    !process.env.BLOB_STORE_ID?.trim() &&
+    !process.env.BLOB_READ_WRITE_TOKEN?.trim()
+  )
+    missing.push("BLOB_STORE_ID or BLOB_READ_WRITE_TOKEN");
+  if (missing.length)
+    console.error("[documents] storage configuration missing", {
+      operation,
+      missing,
+    });
+  return missing.length === 0;
+}
+
+export function logStorageFailure(operation: StorageOperation, error: unknown) {
+  // Provider messages can contain URLs or database details. Log only safe codes.
+  const code =
+    error && typeof error === "object" && "code" in error
+      ? error.code
+      : undefined;
+  const name = error instanceof Error ? error.constructor.name : "";
+  console.error("[documents] storage request failed", {
+    operation,
+    provider: name.startsWith("Blob")
+      ? "blob"
+      : name === "NeonDbError"
+        ? "neon"
+        : "unknown",
+    code:
+      typeof code === "string" && /^[A-Z0-9]{5}$/.test(code) ? code : undefined,
+  });
+}
 
 export async function ownerId() {
   return authConfigured() ? (await auth()).userId : null;

@@ -49,14 +49,16 @@ export function Header({
               lang="fr"
               aria-current={locale === "fr" ? "page" : undefined}
             >
-              FR
+              <span aria-hidden="true">🇫🇷</span>
+              <span className="sr-only">Français</span>
             </a>
             <a
               href={`/ar${path}`}
               lang="ar"
               aria-current={locale === "ar" ? "page" : undefined}
             >
-              العربية
+              <span aria-hidden="true">🇲🇦</span>
+              <span className="sr-only">العربية</span>
             </a>
           </nav>
           <AccountButtons locale={locale} />
@@ -72,7 +74,7 @@ export function AppBanner({ locale }: { locale: Locale }) {
     <section className="app-banner">
       <div className="shell app-grid">
         <div className="app-copy">
-          <h2>{t("Louma sur mobile", "لوما على الهاتف")}</h2>
+          <h2>{t("Bientôt sur mobile", "قريبًا على الهاتف")}</h2>
           <div className="store-badges">
             {(["App Store", "Google Play"] as const).map((store) => (
               <Image
@@ -85,7 +87,6 @@ export function AppBanner({ locale }: { locale: Locale }) {
               />
             ))}
           </div>
-          <p className="store-status">{t("Bientôt", "قريبًا")}</p>
         </div>
         <div className="app-device">
           <Image src="/louma-phone.svg" alt="" width={300} height={340} />

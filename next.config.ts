@@ -8,6 +8,12 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   async redirects() {
     return [
+      { source: "/mes-fichiers", destination: "/espace", permanent: true },
+      {
+        source: "/:locale(fr|ar)/mes-fichiers",
+        destination: "/:locale/espace",
+        permanent: true,
+      },
       { source: "/en", destination: "/fr", permanent: true },
       { source: "/en/new", destination: "/fr#contrat", permanent: true },
     ];

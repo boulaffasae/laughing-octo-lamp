@@ -2,6 +2,7 @@ import { get } from "@vercel/blob";
 import {
   failure,
   ownerId,
+  logStorageFailure,
   privateHeaders,
   repository,
   storageConfigured,
@@ -13,7 +14,7 @@ export async function GET(
 ) {
   const owner = await ownerId();
   if (!owner) return failure("auth", 401);
-  if (!storageConfigured()) return failure("configuration", 503);
+  if (!storageConfigured("download")) return failure("configuration", 503);
   const { id } = await params;
   if (!/^[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}$/i.test(id))
     return failure("missing", 404);
@@ -33,7 +34,8 @@ export async function GET(
         "X-Content-Type-Options": "nosniff",
       },
     });
-  } catch {
+  } catch (error) {
+    logStorageFailure("download", error);
     return failure("storage", 503);
   }
 }

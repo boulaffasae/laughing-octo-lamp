@@ -182,7 +182,7 @@ export function Dashboard({ locale }: { locale: Locale }) {
       </section>
       <section className="shell files">
         <div className="files-heading">
-          <h2>{t("Mes fichiers", "ملفاتي")}</h2>
+          <h2>{t("Mon espace", "مساحتي")}</h2>
           <button
             className="date-filter"
             type="button"
@@ -240,7 +240,22 @@ export function Dashboard({ locale }: { locale: Locale }) {
           </button>
         </dialog>
         {loadState.loading ? (
-          <p role="status">{t("Chargement…", "جارٍ التحميل…")}</p>
+          <div role="status">
+            <span className="sr-only">{t("Chargement…", "جارٍ التحميل…")}</span>
+            <ul className="file-grid file-skeletons" aria-hidden="true">
+              {Array.from({ length: 3 }, (_, index) => (
+                <li className="file-card" key={index}>
+                  <div className="file-thumb">
+                    <div className="paper" />
+                  </div>
+                  <div className="file-meta">
+                    <span />
+                    <span />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
         ) : loadState.error ? (
           <div className="files-empty" role="status">
             <p>

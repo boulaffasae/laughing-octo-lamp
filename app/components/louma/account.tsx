@@ -51,8 +51,8 @@ export function AccountButtons({
   if (account.signedIn)
     return (
       <div className="account-actions">
-        <a className="button secondary" href={`/${locale}/mes-fichiers`}>
-          {t("Mes fichiers", "ملفاتي")}
+        <a className="button secondary" href={`/${locale}/espace`}>
+          {t("Mon espace", "مساحتي")}
         </a>
         {!signup && <UserButton />}
       </div>

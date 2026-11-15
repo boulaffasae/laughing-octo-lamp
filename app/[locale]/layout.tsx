@@ -2,16 +2,12 @@ import { AccountContext } from "@/app/components/louma/account";
 import { ClerkProvider } from "@clerk/nextjs";
 import { arSA, frFR } from "@clerk/localizations";
 import type { Metadata } from "next";
-import { Cairo } from "next/font/google";
 import { notFound } from "next/navigation";
 import { isLocale, locales } from "@/i18n/locales";
 import { siteUrl } from "@/lib/site-url";
+import "@fontsource-variable/cairo";
+import "@fontsource-variable/inter";
 import "../globals.css";
-
-const cairo = Cairo({
-  subsets: ["arabic", "latin"],
-  variable: "--font-cairo",
-});
 
 export const metadata: Metadata = {
   metadataBase: siteUrl ? new URL(siteUrl) : undefined,
@@ -32,11 +28,7 @@ export default async function RootLayout({
   if (!isLocale(locale)) notFound();
   const key = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
   return (
-    <html
-      lang={locale}
-      dir={locale === "ar" ? "rtl" : "ltr"}
-      className={cairo.variable}
-    >
+    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
       <body>
         {key ? (
           <ClerkProvider

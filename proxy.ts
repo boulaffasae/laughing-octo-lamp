@@ -12,7 +12,7 @@ const route = (request: NextRequest) => {
 };
 
 function privateLocale(request: NextRequest) {
-  return /^\/(fr|ar)\/mes-fichiers\/?$/.exec(request.nextUrl.pathname)?.[1];
+  return /^\/(fr|ar)\/espace\/?$/.exec(request.nextUrl.pathname)?.[1];
 }
 
 export default process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&

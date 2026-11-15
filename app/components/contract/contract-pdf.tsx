@@ -1,6 +1,7 @@
 import {
   blockRows,
   headingInk,
+  frontPageOrder,
   words,
   type Agreement,
   type BlockId,
@@ -23,7 +24,6 @@ const font = "Louma Sans";
 const styles = StyleSheet.create({
   page: {
     padding: 37,
-    paddingBottom: 48,
     color: "#152821",
     fontFamily: font,
     fontSize: 9,
@@ -32,7 +32,8 @@ const styles = StyleSheet.create({
   title: { fontSize: 19, marginTop: 13, marginBottom: 12 },
   logo: { width: 75, height: 33, objectFit: "contain" },
   header: { borderBottomWidth: 2, marginBottom: 10 },
-  section: { borderWidth: 1, borderColor: "#dae4de", marginBottom: 7 },
+  pair: { flexDirection: "row", gap: 9, marginBottom: 9 },
+  section: { flex: 1, minWidth: 0, borderWidth: 1, borderColor: "#dae4de" },
   heading: { fontSize: 10, padding: 4, paddingHorizontal: 8, color: "#fff" },
   rows: {
     flexDirection: "row",
@@ -50,14 +51,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#dae4de",
   },
-  terms: { fontSize: 10, lineHeight: 1.6 },
-  footer: {
-    position: "absolute",
-    bottom: 23,
-    left: 37,
-    right: 37,
-    color: "#4c5e55",
-  },
+  termsColumn: { flex: 1, minWidth: 0 },
+  clause: { marginBottom: 8, fontSize: 9, lineHeight: 1.45 },
+  clauseTitle: { color: "#235346", marginBottom: 2 },
 });
 
 let registered = false;
@@ -76,11 +72,6 @@ export async function buildContractPdf(a: Agreement) {
     textAlign: rtl ? ("right" as const) : ("left" as const),
     direction: rtl ? ("rtl" as const) : ("ltr" as const),
   };
-  const footer = (side: string) => (
-    <Text fixed style={[styles.footer, alignment]}>
-      LOUMA / {side}
-    </Text>
-  );
   const block = (id: BlockId) => (
     <View key={id} style={styles.section} wrap={false}>
       <Text
@@ -95,15 +86,45 @@ export async function buildContractPdf(a: Agreement) {
       <View
         style={[styles.rows, { flexDirection: rtl ? "row-reverse" : "row" }]}
       >
-        {blockRows(a, id).map(([label, value]) => (
-          <View key={label} style={styles.row}>
-            <Text style={[styles.label, alignment]}>{label}</Text>
-            <Text style={alignment}>{value || "……………………"}</Text>
-          </View>
-        ))}
+        {blockRows(a, id).map(([label, value]) => {
+          const leftToRight = rtl && value && !/\p{Script=Arabic}/u.test(value);
+          return (
+            <View key={label} style={styles.row}>
+              <Text style={[styles.label, alignment]}>{label}</Text>
+              <Text
+                style={[
+                  alignment,
+                  { direction: leftToRight ? "ltr" : alignment.direction },
+                ]}
+              >
+                {value ? (leftToRight ? "\u200e" + value : value) : "……………………"}
+              </Text>
+            </View>
+          );
+        })}
       </View>
     </View>
   );
+  const order = frontPageOrder(a);
+  const clauses = (value: string, direction: "ltr" | "rtl") => {
+    const align = {
+      direction,
+      textAlign: direction === "rtl" ? ("right" as const) : ("left" as const),
+    };
+    return (value.trim() || "……………………")
+      .split(/\n\s*\n/)
+      .map((clause, index) => {
+        const [title, ...body] = clause.split("\n");
+        return (
+          <View key={index} style={styles.clause}>
+            <Text style={[align, styles.clauseTitle]} minPresenceAhead={12}>
+              {title}
+            </Text>
+            {body.length > 0 && <Text style={align}>{body.join("\n")}</Text>}
+          </View>
+        );
+      });
+  };
   return pdf(
     <Document title={a.title} creator="Louma" language={a.locale}>
       <Page size="A4" style={styles.page}>
@@ -125,8 +146,18 @@ export async function buildContractPdf(a: Agreement) {
           </View>
           <Text style={[styles.title, alignment]}>{a.title}</Text>
         </View>
-        {block("agency")}
-        {a.order.map(block)}
+        {[order.slice(0, 2), order.slice(2)].map((pair, index) => (
+          <View
+            key={index}
+            style={[
+              styles.pair,
+              { flexDirection: rtl ? "row-reverse" : "row" },
+            ]}
+            wrap={false}
+          >
+            {pair.map(block)}
+          </View>
+        ))}
         <View wrap={false}>
           <Text style={alignment}>
             {t("Fait à / le", "حرر في / بتاريخ")} : {a.place || "……………………"}
@@ -145,14 +176,28 @@ export async function buildContractPdf(a: Agreement) {
             </Text>
           </View>
         </View>
-        {footer(t("RECTO", "الوجه الأول"))}
       </Page>
       <Page size="A4" style={styles.page}>
         <View style={[styles.header, { borderBottomColor: a.color }]}>
-          <Text style={[styles.title, alignment]}>{a.headings.terms}</Text>
+          <View style={styles.pair}>
+            <Text style={[styles.title, styles.termsColumn]}>
+              {rtl ? "Conditions de location" : a.headings.terms}
+            </Text>
+            <Text
+              style={[
+                styles.title,
+                styles.termsColumn,
+                { textAlign: "right", direction: "rtl" },
+              ]}
+            >
+              {rtl ? a.headings.terms : "شروط الكراء"}
+            </Text>
+          </View>
         </View>
-        <Text style={[styles.terms, alignment]}>{a.terms || "……………………"}</Text>
-        {footer(t("VERSO", "الوجه الثاني"))}
+        <View style={styles.pair}>
+          <View style={styles.termsColumn}>{clauses(a.termsFr, "ltr")}</View>
+          <View style={styles.termsColumn}>{clauses(a.termsAr, "rtl")}</View>
+        </View>
       </Page>
     </Document>,
   ).toBlob();

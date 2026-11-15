@@ -10,7 +10,7 @@ Copiez `.env.example` vers `.env.local` et renseignez les services utilisés.
 
 - **Clerk** : configurez la clé publique et la clé secrète pour les fenêtres d’inscription et de connexion. Sur Vercel, fournissez les valeurs de l’instance Clerk associée au domaine.
 - **Neon** : configurez `DATABASE_URL` et appliquez [db/001_documents.sql](db/001_documents.sql) à la base cible, par exemple avec `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/001_documents.sql`.
-- **Vercel Blob** : créez ou rattachez un espace d’accès **privé** au projet et configurez `BLOB_READ_WRITE_TOKEN`. Les objets existants d’un espace public doivent rester séparés du dossier Louma.
+- **Vercel Blob** : créez ou rattachez un espace d’accès **privé** au projet pour utiliser `BLOB_STORE_ID` avec OIDC. Pour un environnement sans OIDC, configurez `BLOB_READ_WRITE_TOKEN`. Les objets existants d’un espace public doivent rester séparés du dossier Louma.
 - **Datalab** : configurez `DATALAB_API_KEY` pour le préremplissage. Le formulaire indique à l’utilisateur que l’import OCR transmet le PDF à Datalab. Les réglages de région et de rétention sont gérés dans le compte fournisseur.
 - **Liens publics** : configurez `NEXT_PUBLIC_CONTACT_EMAIL` si disponible. Les badges des boutiques et les réseaux sans compte sont affichés sans lien ; seul TikTok est actif. Complétez les informations sur l’exploitant du site dans les mentions légales avant publication.
 

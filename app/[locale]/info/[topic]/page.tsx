@@ -45,6 +45,14 @@ export default async function Page({
       <main className="shell info-page">
         <h1>{siteLabels(locale)[index]}</h1>
         {(topic !== "contact" || !email) && <p>{content[index]}</p>}
+        {topic === "confidentialite" && process.env.NEXT_PUBLIC_POSTHOG_KEY && (
+          <p>
+            {t(
+              "PostHog mesure les visites sur Louma. Les données des contrats, les champs saisis et les enregistrements de session sont exclus de cette mesure.",
+              "يقيس PostHog زيارات لوما. تُستثنى بيانات العقود والحقول المدخلة وتسجيلات الجلسات من هذا القياس.",
+            )}
+          </p>
+        )}
         {topic === "contact" && (
           <a
             href={

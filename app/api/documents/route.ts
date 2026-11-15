@@ -3,6 +3,7 @@ import { del, put } from "@vercel/blob";
 import {
   failure,
   ownerId,
+  logStorageFailure,
   privateHeaders,
   repository,
   storageConfigured,
@@ -19,7 +20,7 @@ import { MAX_BODY_BYTES, MAX_FILE_BYTES } from "@/lib/upload-policy";
 export async function GET(request: Request) {
   const owner = await ownerId();
   if (!owner) return failure("auth", 401);
-  if (!storageConfigured()) return failure("configuration", 503);
+  if (!storageConfigured("list")) return failure("configuration", 503);
 
   const params = new URL(request.url).searchParams;
   const start = params.get("start");
@@ -48,7 +49,8 @@ export async function GET(request: Request) {
       { documents: documents.slice(0, 24), more: documents.length > 24 },
       { headers: privateHeaders },
     );
-  } catch {
+  } catch (error) {
+    logStorageFailure("list", error);
     return failure("storage", 503);
   }
 }
@@ -56,7 +58,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const owner = await ownerId();
   if (!owner) return failure("auth", 401);
-  if (!storageConfigured()) return failure("configuration", 503);
+  if (!storageConfigured("save")) return failure("configuration", 503);
 
   try {
     validateOcrRequestHeaders(request);
@@ -116,8 +118,8 @@ export async function POST(request: Request) {
       await sql`SELECT id FROM documents WHERE owner_id = ${owner} AND kind = ${kind} AND content_hash = ${hash}`;
     return Response.json({ id: winner[0].id }, { headers: privateHeaders });
   } catch (error) {
-    return error instanceof UploadError
-      ? failure("file", error.status)
-      : failure("storage", 503);
+    if (error instanceof UploadError) return failure("file", error.status);
+    logStorageFailure("save", error);
+    return failure("storage", 503);
   }
 }
