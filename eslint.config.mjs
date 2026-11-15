@@ -18,6 +18,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "videos/louma-tiktok/assets/**",
+    "videos/louma-tiktok/.hyperframes/**",
   ]),
 ]);
 

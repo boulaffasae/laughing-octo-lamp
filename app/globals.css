@@ -22,7 +22,7 @@ body {
   color: var(--navy);
   background: var(--white);
   font-family:
-    Inter,
+    var(--font-cairo, system-ui),
     system-ui,
     -apple-system,
     sans-serif;

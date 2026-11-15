@@ -11,7 +11,10 @@
     "format:check": "prettier --check .",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "typecheck": "next typegen && tsc --noEmit",
-    "check": "npm run lint && npm run typecheck && npm test"
+    "check": "npm run lint && npm run typecheck && npm test",
+    "video:preview": "node videos/louma-tiktok/prepare.mjs && hyperframes preview videos/louma-tiktok",
+    "video:render": "node videos/louma-tiktok/prepare.mjs && hyperframes render videos/louma-tiktok --output output/video/louma-tiktok-ar.mp4",
+    "video:voice": "node videos/louma-tiktok/voiceover.mts"
   },
   "dependencies": {
     "@clerk/localizations": "^4.24.8",
@@ -30,12 +33,16 @@
     "react-dom": "19.3.0"
   },
   "devDependencies": {
+    "@fontsource-variable/cairo": "5.3.0",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.3",
+    "gsap": "3.15.1",
+    "hyperframes": "0.9.53",
+    "node-edge-tts": "1.2.12",
     "prettier": "3.9.10",
     "tailwindcss": "^4",
     "typescript": "^5"

@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Louma · عقد كراء السيارة</title>
+    <link rel="stylesheet" href="assets/cairo.css" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="assets/gsap.min.js"></script>
+  </head>
+  <body>
+    <main
+      id="louma-tiktok"
+      data-composition-id="louma-tiktok"
+      data-width="1080"
+      data-height="1920"
+      data-duration="16"
+      data-fps="30"
+    >
+      <audio
+        id="voice-intro"
+        class="clip"
+        src="voice/intro.mp3"
+        data-start="0.08"
+        data-duration="4.848"
+        data-track-index="1"
+      ></audio>
+      <audio
+        id="voice-customize"
+        class="clip"
+        src="voice/customize.mp3"
+        data-start="5.15"
+        data-duration="5.376"
+        data-track-index="1"
+      ></audio>
+      <audio
+        id="voice-download"
+        class="clip"
+        src="voice/download.mp3"
+        data-start="11.5"
+        data-duration="3.72"
+        data-track-index="1"
+      ></audio>
+      <div class="backdrop"></div>
+      <header class="brand" dir="ltr">
+        <img src="assets/louma.svg" alt="" />louma
+      </header>
+
+      <section
+        id="agreement-intro"
+        class="clip scene intro"
+        data-start="0"
+        data-duration="5"
+        data-track-index="0"
+      >
+        <div class="intro-copy">
+          <h1>عقد كراء السيارة<br /><em>على طريقتك</em></h1>
+          <p>نموذج جاهز بوجهين</p>
+        </div>
+        <div class="spread">
+          <div class="sheet rear">
+            <img src="assets/ar-2.png" alt="شروط الكراء في الوجه الثاني" />
+            <span class="page-tag">الوجه الثاني</span>
+          </div>
+          <div class="sheet front">
+            <img src="assets/ar-1.png" alt="الوجه الأول لعقد كراء السيارة" />
+            <span class="page-tag">الوجه الأول</span>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="customize-agreement"
+        class="clip scene customize"
+        data-start="5"
+        data-duration="6"
+        data-track-index="0"
+      >
+        <div class="scene-copy">
+          <h2>خصّص عقدك</h2>
+          <p>أضف شعار وكالتك وغيّر لون العقد</p>
+        </div>
+        <div class="editor">
+          <div class="editor-top">
+            <span class="active-step">النموذج</span><span>الهوية</span
+            ><span>السيارة</span><span>التواريخ</span>
+          </div>
+          <div class="form">
+            <div class="controls">
+              <span class="logo-button"
+                >الشعار <span class="default-logo"></span
+                ><span class="agency-icon">أ</span></span
+              >
+              <div class="colors" aria-label="لون العقد">
+                <i class="swatch green"></i><i class="swatch violet"></i
+                ><i class="swatch sand"></i>
+              </div>
+            </div>
+            <div class="field">
+              <span>اسم الوكالة</span
+              ><strong class="typed">وكالة الأطلس</strong>
+            </div>
+          </div>
+          <div class="preview">
+            <div class="preview-head">
+              <span>معاينة</span><span dir="ltr">A4 · PDF</span>
+            </div>
+            <div class="preview-paper">
+              <div class="preview-logo">
+                <span class="default-logo"></span
+                ><span class="agency-icon">أ</span>
+              </div>
+              <h3>عقد كراء السيارة</h3>
+              <div class="preview-band">الوكالة</div>
+              <div class="preview-row">
+                <span
+                  >اسم الوكالة<strong class="typed">وكالة الأطلس</strong></span
+                ><span>العنوان<strong>مراكش</strong></span>
+              </div>
+              <div class="preview-band">المستأجر</div>
+              <div class="preview-row">
+                <span>الاسم الكامل<strong>…………</strong></span
+                ><span>رقم البطاقة الوطنية<strong>…………</strong></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="download-agreement"
+        class="clip scene download"
+        data-start="11"
+        data-duration="5"
+        data-track-index="0"
+      >
+        <div class="scene-copy">
+          <h2>حمّل العقد<em dir="ltr">PDF</em></h2>
+          <p>جاهز للطباعة أو المشاركة</p>
+        </div>
+        <div class="final-sheet sheet">
+          <div class="export-content"></div>
+          <div class="export-extra">
+            <div class="preview-band">السيارة</div>
+            <div class="preview-row">
+              <span>الماركة / الطراز<strong>Dacia Duster</strong></span
+              ><span>الوقود<strong>ديزل</strong></span>
+            </div>
+            <div class="preview-band">التسليم / الإرجاع</div>
+            <div class="preview-row">
+              <span>التسليم<strong dir="ltr">10/07/2026 · 10:00</strong></span
+              ><span>الإرجاع<strong dir="ltr">20/07/2026 · 10:00</strong></span>
+            </div>
+            <div class="signatures">
+              <span>توقيع الوكالة</span><span>توقيع المستأجر</span>
+            </div>
+          </div>
+        </div>
+        <div class="download-cta">
+          <svg
+            width="42"
+            height="42"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 3v12m-5-5 5 5 5-5M5 16v4h14v-4" />
+          </svg>
+          تنزيل العقد
+        </div>
+        <p class="handle" dir="ltr">@louma.site</p>
+      </section>
+    </main>
+    <script>
+      // The exported sheet carries the same example values and branding.
+      document
+        .querySelector(".export-content")
+        .append(document.querySelector(".preview-paper").cloneNode(true));
+      const timeline = gsap.timeline({ paused: true });
+      window.__timelines = { "louma-tiktok": timeline };
+      const enter = (target, time, y = 32) =>
+        timeline.from(
+          target,
+          {
+            y,
+            opacity: 0,
+            duration: 0.65,
+            ease: "power3.out",
+            immediateRender: false,
+          },
+          time,
+        );
+
+      enter(".brand", 0, -16);
+      enter(".intro-copy", 0.06);
+      timeline.from(
+        ".rear",
+        { y: 100, opacity: 0, rotation: 4, duration: 0.82, ease: "power3.out" },
+        0.34,
+      );
+      timeline.from(
+        ".front",
+        {
+          y: 120,
+          opacity: 0,
+          rotation: -3,
+          duration: 0.85,
+          ease: "power3.out",
+        },
+        0.5,
+      );
+      timeline.to(
+        ".front",
+        { y: -22, duration: 3.18, ease: "sine.inOut" },
+        1.4,
+      );
+      timeline.to(".intro", { y: -25, opacity: 0, duration: 0.3 }, 4.7);
+
+      enter(".customize .scene-copy", 5);
+      enter(".editor", 5.09, 60);
+      timeline.fromTo(
+        ".editor .typed",
+        { clipPath: "inset(0 100% 0 0)" },
+        {
+          clipPath: "inset(0 0% 0 0)",
+          duration: 0.65,
+          ease: "steps(11)",
+        },
+        6.05,
+      );
+      timeline.to(
+        ".editor .default-logo",
+        { opacity: 0, scale: 0.65, duration: 0.17 },
+        7.03,
+      );
+      timeline.fromTo(
+        ".editor .agency-icon",
+        { opacity: 0, scale: 0.55 },
+        {
+          opacity: 1,
+          scale: 1,
+          duration: 0.48,
+          ease: "back.out(1.5)",
+        },
+        7.13,
+      );
+      timeline.to(".editor", { "--accent": "#443977", duration: 0.35 }, 8.15);
+      timeline.to(
+        ".violet",
+        {
+          scale: 1.23,
+          outlineColor: "#443977",
+          duration: 0.24,
+          yoyo: true,
+          repeat: 1,
+        },
+        8.15,
+      );
+      timeline.to(
+        ".green",
+        { outlineColor: "transparent", duration: 0.2 },
+        8.15,
+      );
+      timeline.to(".customize", { y: -25, opacity: 0, duration: 0.3 }, 10.7);
+
+      enter(".download .scene-copy", 11);
+      enter(".final-sheet", 11.15, 75);
+      enter(".download-cta", 11.55);
+      timeline.to(
+        ".download-cta",
+        { scale: 0.96, yoyo: true, repeat: 1, duration: 0.15 },
+        12.45,
+      );
+      enter(".handle", 12.8, 10);
+      timeline.to(
+        ".final-sheet",
+        { y: -22, duration: 3.4, ease: "sine.inOut" },
+        12.6,
+      );
+    </script>
+  </body>
+</html>

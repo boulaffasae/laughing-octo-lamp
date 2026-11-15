@@ -43,3 +43,7 @@ next-env.d.ts
 # Local package cache
 /.pnpm-store/
 !.env.example
+
+# Rendered social video
+/output/video/*
+!/output/video/louma-tiktok-ar.mp4

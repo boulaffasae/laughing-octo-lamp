@@ -1,0 +1,350 @@
+:root {
+  --ink: #152821;
+  --green: #235346;
+  --lime: #caff74;
+  --muted: #51655c;
+  --line: #d9e5dd;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: #f7f9f5;
+  color: var(--ink);
+}
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+#louma-tiktok {
+  position: relative;
+  isolation: isolate;
+  width: 1080px;
+  height: 1920px;
+  overflow: hidden;
+  font:
+    34px/1.45 "Cairo Variable",
+    Arial,
+    sans-serif;
+}
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 78% 56%, #dff0da 0%, transparent 55%), #f7f9f5;
+}
+.brand {
+  position: absolute;
+  z-index: 5;
+  top: 144px;
+  inset-inline: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  font:
+    750 48px/1 "Cairo Variable",
+    sans-serif;
+  letter-spacing: -2px;
+}
+.brand img {
+  width: 62px;
+  height: 62px;
+}
+.scene {
+  position: absolute;
+  inset: 0;
+  text-align: center;
+}
+.intro-copy,
+.scene-copy {
+  position: absolute;
+  top: 272px;
+  inset-inline: 94px;
+}
+h1,
+h2 {
+  font-weight: 700;
+  line-height: 1.36;
+}
+h1 {
+  font-size: 88px;
+}
+h2 {
+  font-size: 92px;
+}
+em {
+  font-style: normal;
+  color: var(--green);
+}
+.scene p {
+  margin-top: 20px;
+  font-size: 40px;
+  color: var(--muted);
+}
+.sheet {
+  position: absolute;
+  overflow: hidden;
+  background: #fff;
+  border: 2px solid var(--line);
+  border-radius: 17px;
+  box-shadow: 0 26px 55px #15282129;
+}
+.sheet img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.rear {
+  top: 697px;
+  left: 139px;
+  width: 552px;
+  transform: rotate(-8deg);
+}
+.front {
+  top: 785px;
+  right: 146px;
+  width: 544px;
+  transform: rotate(6deg);
+}
+.page-tag {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  border-radius: 18px;
+  background: #ecf5e9;
+  padding: 8px 16px;
+  font-size: 25px;
+  color: var(--green);
+}
+.editor {
+  --accent: #235346;
+  position: absolute;
+  top: 570px;
+  left: 150px;
+  width: 780px;
+  border: 2px solid var(--line);
+  border-radius: 42px;
+  padding: 26px;
+  background: #fff;
+  box-shadow: 0 30px 70px #15282124;
+  text-align: start;
+}
+.editor-top {
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 8px 22px;
+  color: var(--muted);
+  font-size: 27px;
+}
+.active-step {
+  padding: 10px 18px;
+  border-radius: 90px;
+  background: var(--lime);
+  color: var(--ink);
+}
+.form {
+  padding: 20px;
+  border: 2px solid var(--line);
+  border-radius: 24px;
+}
+.controls,
+.colors {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.controls {
+  justify-content: space-between;
+}
+.logo-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 20px;
+  border: 2px solid var(--line);
+  border-radius: 90px;
+  font-size: 29px;
+}
+.default-logo,
+.agency-icon {
+  width: 43px;
+  height: 43px;
+  border-radius: 11px;
+}
+.agency-icon {
+  position: absolute;
+  inset-inline-end: 20px;
+  display: grid;
+  place-items: center;
+  color: white;
+  background: #443977;
+  opacity: 0;
+}
+.swatch {
+  display: block;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  outline: 2px solid transparent;
+  outline-offset: 5px;
+}
+.green {
+  background: #235346;
+  outline-color: #235346;
+}
+.violet {
+  background: #443977;
+}
+.sand {
+  background: #b87e53;
+}
+.field {
+  margin-top: 19px;
+  min-height: 120px;
+  display: grid;
+  gap: 4px;
+  border: 2px solid var(--line);
+  border-radius: 18px;
+  padding: 10px 18px;
+  background: #f7f9f5;
+}
+.field span {
+  color: var(--muted);
+  font-size: 23px;
+}
+.field strong {
+  font-size: 30px;
+  width: max-content;
+}
+.typed {
+  clip-path: inset(0 100% 0 0);
+}
+.preview {
+  background: #eaf0e9;
+  border-radius: 22px;
+  padding: 16px;
+  margin-top: 20px;
+}
+.preview-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 23px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.preview-paper {
+  padding: 24px;
+  background: #fff;
+  border-radius: 5px;
+}
+.preview-logo {
+  position: relative;
+  height: 48px;
+}
+.default-logo {
+  display: block;
+  background: url("assets/louma.svg") center/contain no-repeat;
+}
+.preview-logo .agency-icon {
+  inset-inline: 0 auto;
+  inset-block-start: 0;
+  font-size: 27px;
+}
+.preview-paper h3 {
+  font-size: 38px;
+  margin-bottom: 12px;
+}
+.preview-band {
+  margin-top: 7px;
+  padding: 4px 14px;
+  color: #fff;
+  background: var(--accent);
+  font-size: 24px;
+}
+.preview-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 7px 12px;
+  gap: 18px;
+  font-size: 22px;
+}
+.preview-row strong {
+  display: block;
+  width: max-content;
+  min-height: 31px;
+}
+.download h2 em {
+  display: block;
+  font:
+    800 100px/1.1 "Cairo Variable",
+    sans-serif;
+  letter-spacing: -4px;
+}
+.final-sheet {
+  --accent: #443977;
+  top: 655px;
+  left: 258px;
+  width: 560px;
+  min-height: 790px;
+  padding: 24px;
+  transform: rotate(-4deg);
+  text-align: start;
+}
+.final-sheet .preview-paper {
+  padding: 0;
+}
+.final-sheet .default-logo {
+  display: none;
+}
+.final-sheet .agency-icon {
+  opacity: 1;
+}
+.final-sheet .typed {
+  clip-path: none;
+}
+.signatures {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 20px;
+  font-size: 20px;
+}
+.signatures span {
+  min-height: 80px;
+  border: 1px solid var(--line);
+  padding: 9px;
+}
+.download-cta {
+  position: absolute;
+  z-index: 2;
+  top: 1402px;
+  left: 50%;
+  translate: -50% 0;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width: max-content;
+  padding: 19px 44px;
+  border-radius: 100px;
+  background: var(--lime);
+  box-shadow: 0 18px 44px #15282127;
+  font-weight: 700;
+  font-size: 42px;
+}
+.scene .handle {
+  position: absolute;
+  top: 1536px;
+  width: 100%;
+  margin: 0;
+  color: var(--green);
+  font:
+    700 34px/1 "Cairo Variable",
+    sans-serif;
+}
