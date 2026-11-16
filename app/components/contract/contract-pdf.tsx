@@ -10,6 +10,7 @@ import {
   type Agreement,
   type BlockId,
 } from "@/lib/contract/agreement";
+import { templateForColor } from "@/lib/contract/templates";
 import {
   Document,
   Font,
@@ -25,6 +26,7 @@ import {
 } from "@react-pdf/renderer";
 
 const font = "Louma Sans";
+const arabicFont = ["Tajawal", font];
 const styles = StyleSheet.create({
   page: {
     padding: 37,
@@ -38,13 +40,9 @@ const styles = StyleSheet.create({
   logo: { width: 75, height: 33, objectFit: "contain" },
   brand: { flexDirection: "row", alignItems: "center", gap: 9 },
   agency: { flex: 1, fontSize: 14 },
-  front: {
-    flexDirection: "row",
-    gap: 9,
-    marginBottom: 9,
-    alignItems: "stretch",
-  },
-  column: { flex: 1, minWidth: 0, gap: 9 },
+  front: { gap: 8, marginBottom: 9 },
+  sectionRow: { flexDirection: "row", alignItems: "stretch", gap: 8 },
+  column: { flexBasis: 0, minWidth: 0, gap: 8 },
   footer: {
     position: "absolute",
     bottom: 30,
@@ -90,12 +88,65 @@ const styles = StyleSheet.create({
   clauseTitle: { color: "#235346", marginBottom: 2 },
 });
 
+const blue = StyleSheet.create({
+  header: { backgroundColor: "#eef4fc", padding: 6, paddingHorizontal: 8 },
+  section: { borderColor: "#b9cce6" },
+  rows: { padding: 0 },
+  cell: {
+    padding: 3,
+    paddingHorizontal: 5,
+    borderBottomWidth: 0.7,
+    borderRightWidth: 0.7,
+    borderColor: "#d5e2f3",
+  },
+});
+const violet = StyleSheet.create({
+  section: { borderColor: "#dcd1e9", borderRadius: 7 },
+  heading: { margin: 3, borderRadius: 5, backgroundColor: "#efe8f6" },
+  amounts: { backgroundColor: "#efe8f6", borderRadius: 6 },
+});
+const burgundy = StyleSheet.create({
+  section: { borderWidth: 0, borderTopWidth: 1 },
+  heading: {
+    backgroundColor: "#fff",
+    borderBottomWidth: 0.7,
+    borderBottomColor: "#e4c9cd",
+  },
+  amounts: {
+    borderTopWidth: 0.7,
+    borderBottomWidth: 0.7,
+    borderColor: "#e4c9cd",
+  },
+  centerBrand: { justifyContent: "center" },
+  centerAgency: { fontSize: 14, flexShrink: 1, textAlign: "center" },
+});
+const slate = StyleSheet.create({
+  header: { padding: 8, paddingHorizontal: 10 },
+  heading: { backgroundColor: "#edf0f3" },
+  amounts: { backgroundColor: "#edf0f3" },
+  signature: { minHeight: 100 },
+});
+
 let registered = false;
 export async function buildContractPdf(a: Agreement) {
   if (!registered) {
     Font.register({
       family: font,
       src: new URL("/fonts/DejaVuSans.ttf", window.location.origin).href,
+    });
+    Font.register({
+      family: "Tajawal",
+      fonts: [
+        {
+          src: new URL("/fonts/Tajawal-Regular.ttf", window.location.origin)
+            .href,
+          fontWeight: 400,
+        },
+        {
+          src: new URL("/fonts/Tajawal-Bold.ttf", window.location.origin).href,
+          fontWeight: 700,
+        },
+      ],
     });
     Font.registerHyphenationCallback((word) => [word]);
     registered = true;
@@ -107,31 +158,78 @@ export async function buildContractPdf(a: Agreement) {
     direction: rtl ? ("rtl" as const) : ("ltr" as const),
   };
   const fields = contractFields(a.locale);
+  const template = templateForColor(a.color);
+  const isGrid = template.id === "grid";
+  const isPanels = template.id === "panels";
+  const isSignature = template.id === "signature";
+  const isRegister = template.id === "register";
+  const paperFont = rtl ? { fontFamily: arabicFont } : {};
+  const valueFont = (value: string) =>
+    /\p{Script=Arabic}/u.test(value) ? { fontFamily: arabicFont } : {};
+  const headerStyle = [
+    styles.header,
+    { borderBottomColor: a.color },
+    isGrid ? blue.header : {},
+  ];
+  const frontInk = isRegister ? { color: headingInk(a.color) } : {};
+  const sectionStyle = [
+    styles.section,
+    isGrid ? blue.section : {},
+    isPanels ? violet.section : {},
+    isSignature ? { ...burgundy.section, borderColor: a.color } : {},
+  ];
+  const signatureStyle = [
+    styles.signature,
+    isGrid ? blue.section : {},
+    isPanels ? violet.section : {},
+    isSignature ? { ...burgundy.section, borderColor: a.color } : {},
+    isRegister ? slate.signature : {},
+  ];
+  const amountsStyle = [
+    styles.amounts,
+    isPanels ? violet.amounts : {},
+    isSignature ? burgundy.amounts : {},
+    isRegister ? slate.amounts : {},
+  ];
   const rows = (id: keyof typeof fields) => (
     <View
       style={[
         styles.rows,
         { flexDirection: rtl ? "row-reverse" : "row" },
-        ...(id === "amounts" ? [styles.amounts] : []),
+        isGrid ? blue.rows : {},
+        ...(id === "amounts" ? amountsStyle : []),
       ]}
     >
       {fields[id].map(({ key, label, type, fullWidth }) => {
-        const id = fieldId(key);
+        const wide = id !== "amounts" && template.wideFields?.includes(id);
+        const keyId = fieldId(key);
         const raw = fieldValue(a, key).trim();
         const value =
           type === "date" && raw ? raw.split("-").reverse().join("/") : raw;
         const leftToRight = rtl && value && !/\p{Script=Arabic}/u.test(value);
         return (
           <View
-            key={id}
-            style={fullWidth ? [styles.row, { width: "100%" }] : styles.row}
+            key={keyId}
+            style={[
+              styles.row,
+              isGrid ? blue.cell : {},
+              rtl && isGrid
+                ? { borderRightWidth: 0, borderLeftWidth: 0.7 }
+                : {},
+              fullWidth
+                ? { width: wide ? "50%" : "100%" }
+                : wide
+                  ? { width: "25%" }
+                  : {},
+            ]}
           >
             <Text style={[styles.label, alignment]}>
-              {a.labels[id] ?? label}
+              {a.labels[keyId] ?? label}
             </Text>
             <Text
               style={[
                 alignment,
+                valueFont(value),
                 { direction: leftToRight ? "ltr" : alignment.direction },
               ]}
             >
@@ -148,13 +246,22 @@ export async function buildContractPdf(a: Agreement) {
         styles.heading,
         alignment,
         { backgroundColor: a.color, color: headingInk(a.color) },
+        isPanels ? violet.heading : {},
+        isSignature ? burgundy.heading : {},
+        isRegister ? slate.heading : {},
+        isPanels || isSignature || isRegister ? { color: a.color } : {},
+        rtl ? { fontWeight: 700 } : {},
       ]}
     >
       {a.headings[id]}
     </Text>
   );
   const block = (id: Exclude<BlockId, "condition">, stretch = false) => (
-    <View style={[styles.section, stretch ? { flex: 1 } : {}]} wrap={false}>
+    <View
+      key={id}
+      style={[...sectionStyle, stretch ? { flexGrow: 1 } : {}]}
+      wrap={false}
+    >
       {heading(id)}
       {rows(id)}
     </View>
@@ -162,7 +269,10 @@ export async function buildContractPdf(a: Agreement) {
   const notes = (group: readonly number[]) => (
     <View style={styles.notes}>
       {group.map((index) => (
-        <Text key={index} style={[styles.note, alignment]}>
+        <Text
+          key={index}
+          style={[styles.note, alignment, valueFont(a.conditionNotes[index])]}
+        >
           {a.conditionNotes[index] || " "}
         </Text>
       ))}
@@ -170,13 +280,14 @@ export async function buildContractPdf(a: Agreement) {
   );
   const footer = () => (
     <View style={[styles.footer, { borderTopColor: a.color }]} fixed>
-      <Text style={alignment}>{a.footerText}</Text>
+      <Text style={[alignment, valueFont(a.footerText)]}>{a.footerText}</Text>
     </View>
   );
   const clauses = (value: string, direction: "ltr" | "rtl") => {
     const align = {
       direction,
       textAlign: direction === "rtl" ? ("right" as const) : ("left" as const),
+      fontFamily: direction === "rtl" ? arabicFont : font,
     };
     return (value.trim() || "……………………")
       .split(/\n\s*\n/)
@@ -185,7 +296,12 @@ export async function buildContractPdf(a: Agreement) {
         return (
           <View key={index} style={styles.clause}>
             <Text
-              style={[align, styles.clauseTitle, { color: a.color }]}
+              style={[
+                align,
+                styles.clauseTitle,
+                { color: a.color },
+                direction === "rtl" ? { fontWeight: 700 } : {},
+              ]}
               minPresenceAhead={12}
             >
               {title}
@@ -197,12 +313,18 @@ export async function buildContractPdf(a: Agreement) {
   };
   return pdf(
     <Document title={a.title} creator="Louma" language={a.locale}>
-      <Page size="A4" style={styles.page}>
-        <View style={[styles.header, { borderBottomColor: a.color }]}>
+      <Page size="A4" style={[styles.page, paperFont]}>
+        <View
+          style={[
+            ...headerStyle,
+            isRegister ? { ...slate.header, backgroundColor: a.color } : {},
+          ]}
+        >
           <View
             style={[
               styles.brand,
               { flexDirection: rtl ? "row-reverse" : "row" },
+              isSignature ? burgundy.centerBrand : {},
             ]}
           >
             {a.logo ? (
@@ -219,20 +341,49 @@ export async function buildContractPdf(a: Agreement) {
               </Svg>
             )}
             {a.agency && (
-              <Text style={[styles.agency, alignment]}>{a.agency}</Text>
+              <Text
+                style={[
+                  alignment,
+                  isSignature ? burgundy.centerAgency : styles.agency,
+                  valueFont(a.agency),
+                  frontInk,
+                ]}
+              >
+                {a.agency}
+              </Text>
             )}
           </View>
-          <Text style={[styles.title, alignment]}>{a.title}</Text>
+          <Text
+            style={[
+              styles.title,
+              alignment,
+              valueFont(a.title),
+              frontInk,
+              rtl ? { fontWeight: 700 } : {},
+              isSignature ? { textAlign: "center" } : {},
+            ]}
+          >
+            {a.title}
+          </Text>
         </View>
         <View style={styles.front} wrap={false}>
-          {block("renter", true)}
-          <View style={styles.column}>
-            {block("vehicle")}
-            {block("rental")}
-          </View>
+          {template.rows.map((row) => (
+            <View style={styles.sectionRow} key={row[0].blocks[0]}>
+              {row.map(({ blocks, weight }) => (
+                <View
+                  style={[styles.column, { flexGrow: weight }]}
+                  key={blocks[0]}
+                >
+                  {blocks.map((id) =>
+                    block(id, row.length > 1 && blocks.length === 1),
+                  )}
+                </View>
+              ))}
+            </View>
+          ))}
         </View>
         <View wrap={false}>
-          <View style={styles.section}>
+          <View style={sectionStyle}>
             {heading("condition")}
             <View style={styles.inspection}>
               {notes(conditionNoteGroups[0])}
@@ -255,11 +406,11 @@ export async function buildContractPdf(a: Agreement) {
               { flexDirection: rtl ? "row-reverse" : "row" },
             ]}
           >
-            <Text style={[styles.signature, alignment]}>
+            <Text style={[...signatureStyle, alignment]}>
               {a.labels.stamp ??
                 t("Cachet et signature de l’agence", "ختم وتوقيع الوكالة")}
             </Text>
-            <Text style={[styles.signature, alignment]}>
+            <Text style={[...signatureStyle, alignment]}>
               {a.labels.signature ??
                 t("Signature du locataire", "توقيع المستأجر")}
             </Text>
@@ -268,16 +419,27 @@ export async function buildContractPdf(a: Agreement) {
         {footer()}
       </Page>
       <Page size="A4" style={styles.page}>
-        <View style={[styles.header, { borderBottomColor: a.color }]}>
+        <View
+          style={[
+            ...headerStyle,
+            isRegister ? { ...slate.header, backgroundColor: a.color } : {},
+          ]}
+        >
           <View style={styles.pair}>
-            <Text style={[styles.title, styles.termsColumn]}>
+            <Text style={[styles.title, styles.termsColumn, frontInk]}>
               {a.termsTitles.fr}
             </Text>
             <Text
               style={[
                 styles.title,
                 styles.termsColumn,
-                { textAlign: "right", direction: "rtl" },
+                {
+                  textAlign: "right",
+                  direction: "rtl",
+                  fontFamily: arabicFont,
+                  fontWeight: 700,
+                },
+                frontInk,
               ]}
             >
               {a.termsTitles.ar}

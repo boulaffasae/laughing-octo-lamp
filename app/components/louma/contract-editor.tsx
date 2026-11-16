@@ -17,20 +17,13 @@ import {
   type BlockId,
   type FieldKey,
 } from "@/lib/contract/agreement";
+import { contractTemplates, templateForColor } from "@/lib/contract/templates";
 import { prepareImage } from "@/lib/contract/prepare-image";
 import type { Locale } from "@/i18n/locales";
 import type { SavedDraft } from "@/lib/contract/saved-contract";
 import { useAccount } from "./account";
 import { contractPdfName, downloadPdf } from "./pdf-file";
 import { useContractSave } from "./use-contract-save";
-
-const themes = [
-  ["#235346", "Vert", "أخضر"],
-  ["#254e9a", "Bleu", "أزرق"],
-  ["#543b75", "Violet", "بنفسجي"],
-  ["#903d43", "Bordeaux", "عنابي"],
-  ["#25323e", "Ardoise", "رمادي داكن"],
-] as const;
 
 function Inline({
   label,
@@ -107,6 +100,7 @@ export function ContractEditor({
     null,
   );
   const fields = contractFields(a.locale);
+  const template = templateForColor(a.color);
 
   function change(patch: Partial<Agreement>) {
     setAgreement((current) => ({ ...current, ...patch }));
@@ -208,7 +202,15 @@ export function ContractEditor({
   const block = (id: Exclude<BlockId, "condition">) => (
     <section className={`paper-block paper-${id}`} dir={dir}>
       {band(id)}
-      <div className="paper-rows">{rows(id)}</div>
+      <div
+        className={
+          template.wideFields?.includes(id)
+            ? "paper-rows paper-rows-wide"
+            : "paper-rows"
+        }
+      >
+        {rows(id)}
+      </div>
     </section>
   );
 
@@ -266,6 +268,7 @@ export function ContractEditor({
     >
       <div
         className="editor-canvas"
+        data-template={template.id}
         style={
           {
             "--paper-color": a.color,
@@ -369,9 +372,23 @@ export function ContractEditor({
               <h2>{input("title", t("Titre du contrat", "عنوان العقد"))}</h2>
             </header>
             <div className="paper-sections">
-              {block("renter")}
-              {block("vehicle")}
-              {block("rental")}
+              {template.rows.map((row) => (
+                <div className="paper-section-row" key={row[0].blocks[0]}>
+                  {row.map(({ blocks, weight }) => (
+                    <div
+                      className="paper-section-column"
+                      key={blocks[0]}
+                      style={{ flexGrow: weight }}
+                    >
+                      {blocks.map((id) => (
+                        <div className="paper-section-slot" key={id}>
+                          {block(id)}
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              ))}
             </div>
             <section className="paper-block paper-condition" dir={dir}>
               {band("condition")}
@@ -461,7 +478,7 @@ export function ContractEditor({
           )}
           dir="ltr"
         >
-          {themes.map(([color, fr, ar]) => (
+          {contractTemplates.map(({ color, fr, ar }) => (
             <button
               key={color}
               type="button"
@@ -469,10 +486,10 @@ export function ContractEditor({
               style={{ "--swatch": color } as CSSProperties}
               aria-label={t(fr, ar)}
               title={t(fr, ar)}
-              aria-pressed={a.color === color}
+              aria-pressed={template.color === color}
               onClick={() => change({ color })}
             >
-              {a.color === color && <Check size={16} aria-hidden />}
+              {template.color === color && <Check size={16} aria-hidden />}
             </button>
           ))}
           <span className="toolbar-divider" aria-hidden />

@@ -5,7 +5,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale, locales } from "@/i18n/locales";
 import { siteUrl } from "@/lib/site-url";
-import "@fontsource-variable/cairo";
 import "@fontsource-variable/inter";
 import "../globals.css";
 
