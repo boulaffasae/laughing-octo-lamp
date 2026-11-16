@@ -1,23 +1,31 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { DayPicker, TZDate, type DateRange } from "react-day-picker";
+import { arMA, fr } from "react-day-picker/locale";
+import "react-day-picker/style.css";
 import {
-  Button,
-  Card,
-  DateField,
-  DateRangePicker,
-  Label,
-  RangeCalendar,
-  Skeleton,
-} from "@heroui/react";
-import { type CalendarDate, today } from "@internationalized/date";
-import { I18nProvider } from "react-aria-components";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+  CalendarDays,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { words } from "@/lib/contract/agreement";
 import type { Locale } from "@/i18n/locales";
 
 export const libraryTimeZone = "Africa/Casablanca";
-type Period = { start: CalendarDate; end: CalendarDate };
+type Period = { start: string; end: string };
+
+function dateKey(date: Date) {
+  return new Intl.DateTimeFormat("sv-SE", { timeZone: libraryTimeZone }).format(
+    date,
+  );
+}
+
+function calendarDate(key: string) {
+  const [year, month, day] = key.split("-").map(Number);
+  return new TZDate(year, month - 1, day, libraryTimeZone);
+}
 type PageResult<K extends string, Item> = { more: boolean } & Record<K, Item[]>;
 
 export function useLibraryList<K extends "contracts" | "documents", Item>(
@@ -36,8 +44,8 @@ export function useLibraryList<K extends "contracts" | "documents", Item>(
     const controller = new AbortController();
     const params = new URLSearchParams({ page: String(page) });
     if (period) {
-      params.set("start", period.start.toString());
-      params.set("end", period.end.toString());
+      params.set("start", period.start);
+      params.set("end", period.end);
     }
     fetch(`/api/${kind}?${params}`, { signal: controller.signal })
       .then(async (response) => {
@@ -62,8 +70,8 @@ export function useLibraryList<K extends "contracts" | "documents", Item>(
     if (
       next &&
       period &&
-      next.start.compare(period.start) === 0 &&
-      next.end.compare(period.end) === 0
+      next.start === period.start &&
+      next.end === period.end
     )
       return;
     if (!next && !period) return;
@@ -110,65 +118,136 @@ export function PeriodFilter({
 }) {
   const t = words(locale);
   const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState<DateRange>();
+  const [today, setToday] = useState<Date>();
+  const wrapper = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const dateFormat = new Intl.DateTimeFormat(
+    locale === "ar" ? "ar-MA" : "fr-FR",
+    {
+      dateStyle: "medium",
+      timeZone: libraryTimeZone,
+    },
+  );
+
+  useEffect(() => {
+    if (!open) return;
+    function closeOutside(event: Event) {
+      if (
+        event.target instanceof Node &&
+        !wrapper.current?.contains(event.target)
+      )
+        setOpen(false);
+    }
+    document.addEventListener("pointerdown", closeOutside);
+    document.addEventListener("focusin", closeOutside);
+    return () => {
+      document.removeEventListener("pointerdown", closeOutside);
+      document.removeEventListener("focusin", closeOutside);
+    };
+  }, [open]);
+
+  function commit(range: Period | null) {
+    onChange(range);
+    setOpen(false);
+    trigger.current?.focus();
+  }
+
   return (
-    <I18nProvider locale={locale === "ar" ? "ar-MA-u-ca-gregory" : "fr-FR"}>
-      <div className="library-filter">
-        <DateRangePicker<CalendarDate>
-          value={value}
-          onChange={onChange}
-          isOpen={open}
-          onOpenChange={setOpen}
-          maxValue={today(libraryTimeZone)}
-        >
-          <Label>{label}</Label>
-          <DateField.Group>
-            <DateField.InputContainer>
-              <DateField.Input slot="start">
-                {(segment) => <DateField.Segment segment={segment} />}
-              </DateField.Input>
-              <DateRangePicker.RangeSeparator />
-              <DateField.Input slot="end">
-                {(segment) => <DateField.Segment segment={segment} />}
-              </DateField.Input>
-            </DateField.InputContainer>
-            <DateField.Suffix>
-              <DateRangePicker.Trigger
-                aria-label={t("Choisir une période", "اختر فترة")}
-              >
-                <DateRangePicker.TriggerIndicator />
-              </DateRangePicker.Trigger>
-            </DateField.Suffix>
-          </DateField.Group>
-          <DateRangePicker.Popover
-            placement="bottom start"
-            className="library-calendar"
-          >
-            <RangeCalendar aria-label={label}>
-              <RangeCalendar.Header>
-                <RangeCalendar.Heading />
-                <RangeCalendar.NavButton slot="previous" />
-                <RangeCalendar.NavButton slot="next" />
-              </RangeCalendar.Header>
-              <RangeCalendar.Grid>
-                <RangeCalendar.GridHeader>
-                  {(day) => (
-                    <RangeCalendar.HeaderCell>{day}</RangeCalendar.HeaderCell>
-                  )}
-                </RangeCalendar.GridHeader>
-                <RangeCalendar.GridBody>
-                  {(date) => <RangeCalendar.Cell date={date} />}
-                </RangeCalendar.GridBody>
-              </RangeCalendar.Grid>
-            </RangeCalendar>
-          </DateRangePicker.Popover>
-        </DateRangePicker>
-        {value && (
-          <Button size="sm" variant="ghost" onPress={() => onChange(null)}>
-            {t("Effacer", "مسح")}
-          </Button>
-        )}
-      </div>
-    </I18nProvider>
+    <div
+      className="library-filter"
+      ref={wrapper}
+      onKeyDown={(event) => {
+        if (open && event.key === "Escape") {
+          event.stopPropagation();
+          setOpen(false);
+          trigger.current?.focus();
+        }
+      }}
+    >
+      <span className="library-filter-label">{label}</span>
+      <button
+        type="button"
+        className="button secondary date-filter"
+        aria-expanded={open}
+        ref={trigger}
+        onClick={() => {
+          if (!open) {
+            setToday(new TZDate(Date.now(), libraryTimeZone));
+            setSelected(
+              value
+                ? {
+                    from: calendarDate(value.start),
+                    to: calendarDate(value.end),
+                  }
+                : undefined,
+            );
+          }
+          setOpen(!open);
+        }}
+      >
+        <CalendarDays size={17} aria-hidden />
+        {value
+          ? dateFormat.formatRange(
+              calendarDate(value.start),
+              calendarDate(value.end),
+            )
+          : t("Choisir une période", "اختر فترة")}
+        <ChevronDown size={15} aria-hidden />
+      </button>
+      {open && (
+        <div className="library-calendar" aria-label={label} role="region">
+          <div className="library-date-summary">
+            <span>
+              {t("Début", "البداية")}{" "}
+              <strong>
+                {selected?.from ? dateFormat.format(selected.from) : "—"}
+              </strong>
+            </span>
+            <span>
+              {t("Fin", "النهاية")}{" "}
+              <strong>
+                {selected?.to ? dateFormat.format(selected.to) : "—"}
+              </strong>
+            </span>
+          </div>
+          <DayPicker
+            mode="range"
+            timeZone={libraryTimeZone}
+            locale={locale === "ar" ? arMA : fr}
+            dir={locale === "ar" ? "rtl" : "ltr"}
+            selected={selected}
+            onSelect={setSelected}
+            defaultMonth={selected?.from}
+            disabled={today && { after: today }}
+            resetOnSelect
+          />
+          <div className="library-calendar-actions">
+            <button
+              type="button"
+              className="button secondary"
+              onClick={() => commit(null)}
+            >
+              {t("Effacer", "مسح")}
+            </button>
+            <button
+              type="button"
+              className="button"
+              disabled={!selected?.from}
+              onClick={() => {
+                if (selected?.from)
+                  commit({
+                    start: dateKey(selected.from),
+                    end: dateKey(selected.to ?? selected.from),
+                  });
+              }}
+            >
+              {t("Appliquer", "تطبيق")}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -204,7 +283,7 @@ export function LibraryResults({
         <span className="sr-only">{t("Chargement…", "جارٍ التحميل…")}</span>
         <div className="library-grid" aria-hidden>
           {[1, 2, 3].map((id) => (
-            <Skeleton key={id} className="library-card-skeleton" />
+            <div key={id} className="library-card-skeleton" />
           ))}
         </div>
       </div>
@@ -212,7 +291,7 @@ export function LibraryResults({
   }
   if (status === "error") {
     return (
-      <Card variant="secondary" className="library-empty">
+      <div className="library-empty">
         <p role="alert">
           {error === "configuration"
             ? t(
@@ -221,10 +300,10 @@ export function LibraryResults({
               )
             : t("Impossible de charger la liste.", "تعذر تحميل القائمة.")}
         </p>
-        <Button variant="secondary" onPress={onRetry}>
+        <button type="button" className="button secondary" onClick={onRetry}>
           {t("Réessayer", "إعادة المحاولة")}
-        </Button>
-      </Card>
+        </button>
+      </div>
     );
   }
 
@@ -233,28 +312,30 @@ export function LibraryResults({
       {hasItems ? (
         children
       ) : (
-        <Card variant="secondary" className="library-empty">
+        <div className="library-empty">
           <p role="status">{empty}</p>
-        </Card>
+        </div>
       )}
       {(page > 1 || more) && (
         <nav className="library-pagination" aria-label={t("Pages", "الصفحات")}>
-          <Button
-            variant="secondary"
-            isDisabled={page === 1}
-            onPress={() => onPage(page - 1)}
+          <button
+            type="button"
+            className="button secondary"
+            disabled={page === 1}
+            onClick={() => onPage(page - 1)}
           >
             <Previous size={16} />
             {t("Précédent", "السابق")}
-          </Button>
-          <Button
-            variant="secondary"
-            isDisabled={!more}
-            onPress={() => onPage(page + 1)}
+          </button>
+          <button
+            type="button"
+            className="button secondary"
+            disabled={!more}
+            onClick={() => onPage(page + 1)}
           >
             {t("Suivant", "التالي")}
             <Next size={16} />
-          </Button>
+          </button>
         </nav>
       )}
     </>

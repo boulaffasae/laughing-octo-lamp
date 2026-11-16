@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Button, Card } from "@heroui/react";
 import { Camera, FileText, Upload } from "lucide-react";
 import { prepareImage } from "@/lib/contract/prepare-image";
 import { words } from "@/lib/contract/agreement";
@@ -99,10 +98,9 @@ export function DocumentLibrary({ locale }: { locale: Locale }) {
   }
 
   return (
-    <main className="shell library-page">
-      <Card
+    <main className="library-page">
+      <section
         className="library-banner"
-        variant="secondary"
         onDragOver={(event) => event.preventDefault()}
         onDrop={(event) => {
           event.preventDefault();
@@ -110,83 +108,91 @@ export function DocumentLibrary({ locale }: { locale: Locale }) {
           if (file) void upload(file);
         }}
       >
-        <div className="library-banner-copy">
-          <span className="library-mark">
-            <FileText size={25} aria-hidden />
-          </span>
-          <h1>{t("Mes documents", "مستنداتي")}</h1>
+        <div className="shell library-banner-inner">
+          <div className="library-banner-copy">
+            <span className="library-mark">
+              <FileText size={25} aria-hidden />
+            </span>
+            <h1>{t("Mes documents", "مستنداتي")}</h1>
+          </div>
+          <div className="library-banner-actions">
+            <button
+              type="button"
+              className="button"
+              disabled={uploadState.busy}
+              onClick={() => fileInput.current?.click()}
+            >
+              <Upload size={17} aria-hidden />
+              {t("Importer un PDF", "رفع ملف PDF")}
+            </button>
+            <button
+              type="button"
+              className="button secondary"
+              disabled={uploadState.busy}
+              onClick={() => cameraInput.current?.click()}
+            >
+              <Camera size={17} aria-hidden />
+              {t("Photographier en PDF", "التقاط صورة كملف PDF")}
+            </button>
+            <input
+              ref={fileInput}
+              type="file"
+              hidden
+              accept="application/pdf,.pdf"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+                if (file) void upload(file);
+              }}
+            />
+            <input
+              ref={cameraInput}
+              type="file"
+              hidden
+              accept="image/png,image/jpeg,image/webp"
+              capture="environment"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+                if (file) void upload(file, true);
+              }}
+            />
+          </div>
+          {uploadState.message && (
+            <p role="status" className={uploadState.error ? "error" : ""}>
+              {uploadState.message}
+            </p>
+          )}
         </div>
-        <div className="library-banner-actions">
-          <Button
-            isPending={uploadState.busy}
-            onPress={() => fileInput.current?.click()}
-          >
-            <Upload size={17} aria-hidden />
-            {t("Importer un PDF", "رفع ملف PDF")}
-          </Button>
-          <Button
-            variant="outline"
-            isDisabled={uploadState.busy}
-            onPress={() => cameraInput.current?.click()}
-          >
-            <Camera size={17} aria-hidden />
-            {t("Photographier en PDF", "التقاط صورة كملف PDF")}
-          </Button>
-          <input
-            ref={fileInput}
-            type="file"
-            hidden
-            accept="application/pdf,.pdf"
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              event.target.value = "";
-              if (file) void upload(file);
-            }}
-          />
-          <input
-            ref={cameraInput}
-            type="file"
-            hidden
-            accept="image/png,image/jpeg,image/webp"
-            capture="environment"
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              event.target.value = "";
-              if (file) void upload(file, true);
-            }}
+      </section>
+      <section className="shell library-content">
+        <div className="library-heading">
+          <h2>{t("Documents PDF", "مستندات PDF")}</h2>
+          <PeriodFilter
+            locale={locale}
+            label={t("Date d’ajout", "تاريخ الإضافة")}
+            value={list.period}
+            onChange={list.changePeriod}
           />
         </div>
-        {uploadState.message && (
-          <p role="status" className={uploadState.error ? "error" : ""}>
-            {uploadState.message}
-          </p>
-        )}
-      </Card>
-      <div className="library-heading">
-        <h2>{t("Documents PDF", "مستندات PDF")}</h2>
-        <PeriodFilter
+        <LibraryResults
           locale={locale}
-          label={t("Date d’ajout", "تاريخ الإضافة")}
-          value={list.period}
-          onChange={list.changePeriod}
-        />
-      </div>
-      <LibraryResults
-        locale={locale}
-        {...list}
-        hasItems={list.items.length > 0}
-        empty={
-          list.period
-            ? t("Aucun PDF sur cette période.", "لا توجد ملفات في هذه الفترة.")
-            : t("Aucun PDF pour le moment.", "لا توجد ملفات بعد.")
-        }
-        onPage={list.changePage}
-        onRetry={() => list.refresh()}
-      >
-        <ul className="library-grid">
-          {list.items.map(({ id, created_at }) => (
-            <li key={id}>
-              <Card className="library-item">
+          {...list}
+          hasItems={list.items.length > 0}
+          empty={
+            list.period
+              ? t(
+                  "Aucun PDF sur cette période.",
+                  "لا توجد ملفات في هذه الفترة.",
+                )
+              : t("Aucun PDF pour le moment.", "لا توجد ملفات بعد.")
+          }
+          onPage={list.changePage}
+          onRetry={() => list.refresh()}
+        >
+          <ul className="library-grid">
+            {list.items.map(({ id, created_at }) => (
+              <li key={id} className="library-item">
                 <span className="library-item-mark">
                   <FileText size={21} aria-hidden /> PDF
                 </span>
@@ -203,11 +209,11 @@ export function DocumentLibrary({ locale }: { locale: Locale }) {
                     return response.blob();
                   }}
                 />
-              </Card>
-            </li>
-          ))}
-        </ul>
-      </LibraryResults>
+              </li>
+            ))}
+          </ul>
+        </LibraryResults>
+      </section>
     </main>
   );
 }

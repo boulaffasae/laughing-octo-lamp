@@ -1,8 +1,13 @@
 "use client";
 
-import { createContext, useContext, useState, type ReactNode } from "react";
-import { Button, Dropdown, Separator } from "@heroui/react";
-import { LibraryModal } from "./library-modal";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { ChevronDown, FileText, FolderOpen, LogOut } from "lucide-react";
 import { useAuth, useClerk, useUser } from "@clerk/nextjs";
 import { words } from "@/lib/contract/agreement";
@@ -57,9 +62,27 @@ function AccountMenu({
   signOut: Account["signOut"];
 }) {
   const t = words(locale);
-  const [open, setOpen] = useState(false);
+  const menu = useRef<HTMLDetailsElement>(null);
+  const dialog = useRef<HTMLDialogElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    function dismiss(event: Event) {
+      if (
+        menu.current?.open &&
+        event.target instanceof Node &&
+        !menu.current.contains(event.target)
+      )
+        menu.current.open = false;
+    }
+    document.addEventListener("pointerdown", dismiss);
+    document.addEventListener("focusin", dismiss);
+    return () => {
+      document.removeEventListener("pointerdown", dismiss);
+      document.removeEventListener("focusin", dismiss);
+    };
+  }, []);
 
   async function confirmSignOut() {
     if (!signOut || busy) return;
@@ -67,7 +90,7 @@ function AccountMenu({
     setError(false);
     try {
       await signOut(`/${locale}`);
-      setOpen(false);
+      dialog.current?.close();
     } catch {
       setError(true);
     } finally {
@@ -77,64 +100,74 @@ function AccountMenu({
 
   return (
     <>
-      <Dropdown>
-        <Button variant="outline" className="account-link">
+      <details
+        ref={menu}
+        className="account-menu"
+        onKeyDown={(event) => {
+          if (event.key === "Escape" && event.currentTarget.open) {
+            event.currentTarget.open = false;
+            event.currentTarget.querySelector("summary")?.focus();
+          }
+        }}
+      >
+        <summary className="button secondary account-link">
           {avatar}
           {t("Mon compte", "حسابي")}
-          <ChevronDown size={15} aria-hidden />
-        </Button>
-        <Dropdown.Popover placement="bottom end">
-          <Dropdown.Menu aria-label={t("Mon compte", "حسابي")}>
-            <Dropdown.Item id="contracts" href={`/${locale}/contracts`}>
-              <FolderOpen size={17} aria-hidden />
-              {t("Mes contrats", "عقودي")}
-            </Dropdown.Item>
-            <Dropdown.Item id="documents" href={`/${locale}/documents`}>
-              <FileText size={17} aria-hidden />
-              {t("Mes documents", "مستنداتي")}
-            </Dropdown.Item>
-            <Separator />
-            <Dropdown.Item
-              id="logout"
-              variant="danger"
-              onAction={() => {
-                setError(false);
-                setOpen(true);
-              }}
-            >
-              <LogOut size={17} aria-hidden />
-              {t("Se déconnecter", "تسجيل الخروج")}
-            </Dropdown.Item>
-          </Dropdown.Menu>
-        </Dropdown.Popover>
-      </Dropdown>
-      <LibraryModal
-        title={t("Se déconnecter ?", "تسجيل الخروج؟")}
-        open={open}
-        busy={busy}
-        onClose={() => setOpen(false)}
-        actions={
-          <>
-            <Button
-              variant="secondary"
-              autoFocus
-              isDisabled={busy}
-              onPress={() => setOpen(false)}
-            >
-              {t("Annuler", "إلغاء")}
-            </Button>
-            <Button
-              variant="danger"
-              isPending={busy}
-              onPress={() => void confirmSignOut()}
-            >
-              {busy
-                ? t("Déconnexion…", "جارٍ تسجيل الخروج…")
-                : t("Se déconnecter", "تسجيل الخروج")}
-            </Button>
-          </>
-        }
+          <ChevronDown size={16} aria-hidden />
+        </summary>
+        <div className="account-menu-panel">
+          <a href={`/${locale}/contracts`}>
+            <FolderOpen size={17} aria-hidden />
+            {t("Mes contrats", "عقودي")}
+          </a>
+          <a href={`/${locale}/documents`}>
+            <FileText size={17} aria-hidden />
+            {t("Mes documents", "مستنداتي")}
+          </a>
+          <button
+            type="button"
+            onClick={() => {
+              if (menu.current) menu.current.open = false;
+              setError(false);
+              dialog.current?.showModal();
+            }}
+          >
+            <LogOut size={17} aria-hidden />
+            {t("Se déconnecter", "تسجيل الخروج")}
+          </button>
+        </div>
+      </details>
+      <dialog
+        ref={dialog}
+        className="workspace-dialog"
+        aria-labelledby="sign-out-title"
+        onCancel={(event) => {
+          if (busy) event.preventDefault();
+        }}
+        onClose={() => menu.current?.querySelector("summary")?.focus()}
       >
+        <h2 id="sign-out-title">{t("Se déconnecter ?", "تسجيل الخروج؟")}</h2>
+        <div className="dialog-actions">
+          <button
+            className="button secondary"
+            type="button"
+            autoFocus
+            disabled={busy}
+            onClick={() => dialog.current?.close()}
+          >
+            {t("Annuler", "إلغاء")}
+          </button>
+          <button
+            className="button"
+            type="button"
+            disabled={busy}
+            onClick={() => void confirmSignOut()}
+          >
+            {busy
+              ? t("Déconnexion…", "جارٍ تسجيل الخروج…")
+              : t("Se déconnecter", "تسجيل الخروج")}
+          </button>
+        </div>
         {error && (
           <p className="error" role="alert">
             {t(
@@ -143,7 +176,7 @@ function AccountMenu({
             )}
           </p>
         )}
-      </LibraryModal>
+      </dialog>
     </>
   );
 }
@@ -174,7 +207,7 @@ export function AccountButtons({
   }
   return (
     <button
-      className="site-button secondary"
+      className="button secondary"
       type="button"
       disabled={!account.available || !account.ready}
       onClick={signup ? account.signUp : account.signIn}

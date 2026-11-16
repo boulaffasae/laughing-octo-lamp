@@ -1,46 +1,57 @@
 "use client";
 
-import { Modal } from "@heroui/react";
-import type { ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
+import { X } from "lucide-react";
 
 export function LibraryModal({
   title,
+  closeLabel,
   open,
   onClose,
   children,
   actions,
-  busy = false,
   wide = false,
 }: {
   title: string;
+  closeLabel: string;
   open: boolean;
   onClose: () => void;
   children?: ReactNode;
   actions?: ReactNode;
-  busy?: boolean;
   wide?: boolean;
 }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
+  useEffect(() => {
+    const element = dialog.current;
+    if (open && element && !element.open) element.showModal();
+    if (!open && element?.open) element.close();
+  }, [open]);
+
   return (
-    <Modal>
-      <Modal.Backdrop
-        isOpen={open}
-        onOpenChange={(next) => {
-          if (!next && !busy) onClose();
-        }}
-        isDismissable={!busy}
-        isKeyboardDismissDisabled={busy}
-      >
-        <Modal.Container size={wide ? "lg" : "sm"} scroll="inside">
-          <Modal.Dialog>
-            {!busy && <Modal.CloseTrigger />}
-            <Modal.Header>
-              <Modal.Heading>{title}</Modal.Heading>
-            </Modal.Header>
-            {children && <Modal.Body>{children}</Modal.Body>}
-            {actions && <Modal.Footer>{actions}</Modal.Footer>}
-          </Modal.Dialog>
-        </Modal.Container>
-      </Modal.Backdrop>
-    </Modal>
+    <dialog
+      ref={dialog}
+      className={
+        wide ? "workspace-dialog library-dialog-wide" : "workspace-dialog"
+      }
+      aria-labelledby={titleId}
+      onClose={() => {
+        if (open) onClose();
+      }}
+    >
+      <div className="dialog-header">
+        <h2 id={titleId}>{title}</h2>
+        <button
+          className="icon-button"
+          type="button"
+          aria-label={closeLabel}
+          onClick={() => dialog.current?.close()}
+        >
+          <X size={18} aria-hidden />
+        </button>
+      </div>
+      {children}
+      {actions && <div className="dialog-actions">{actions}</div>}
+    </dialog>
   );
 }

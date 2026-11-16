@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Button, Card, Link, Spinner } from "@heroui/react";
 import { FileText, History, Plus } from "lucide-react";
 import { words, type Agreement } from "@/lib/contract/agreement";
 import type {
@@ -99,7 +98,13 @@ function ContractDetails({
   };
 
   return (
-    <LibraryModal title={title} open onClose={onClose} wide>
+    <LibraryModal
+      title={title}
+      closeLabel={t("Fermer", "إغلاق")}
+      open
+      onClose={onClose}
+      wide
+    >
       <div className="history-row">
         <span>{t("Brouillon actuel", "المسودة الحالية")}</span>
         <PdfControls
@@ -109,9 +114,12 @@ function ContractDetails({
           preview
         />
       </div>
-      <Link href={`/${locale}/contracts/${contract.id}`}>
+      <a
+        className="button secondary"
+        href={`/${locale}/contracts/${contract.id}`}
+      >
         {t("Reprendre le contrat", "متابعة تعديل العقد")}
-      </Link>
+      </a>
       <h3>{t("Historique des versions", "سجل الإصدارات")}</h3>
       {history.revisions.length > 0 && (
         <ol className="history-list">
@@ -136,7 +144,7 @@ function ContractDetails({
         </ol>
       )}
       {state === "loading" && (
-        <Spinner aria-label={t("Chargement…", "جارٍ التحميل…")} />
+        <p role="status">{t("Chargement…", "جارٍ التحميل…")}</p>
       )}
       {state === "ready" && !history.revisions.length && (
         <p>{t("Aucune version enregistrée.", "لا توجد إصدارات محفوظة.")}</p>
@@ -147,15 +155,16 @@ function ContractDetails({
         </p>
       )}
       {(state === "error" || history.more) && (
-        <Button
-          variant="secondary"
-          isPending={state === "loading"}
-          onPress={() => void older()}
+        <button
+          type="button"
+          className="button secondary"
+          disabled={state === "loading"}
+          onClick={() => void older()}
         >
           {state === "error"
             ? t("Réessayer", "إعادة المحاولة")
             : t("Versions plus anciennes", "إصدارات أقدم")}
-        </Button>
+        </button>
       )}
     </LibraryModal>
   );
@@ -172,47 +181,49 @@ export function ContractLibrary({ locale }: { locale: Locale }) {
   const [selected, setSelected] = useState<ContractSummary>();
 
   return (
-    <main className="shell library-page">
-      <Card className="library-banner" variant="secondary">
-        <div className="library-banner-copy">
-          <span className="library-mark">
-            <FileText size={25} aria-hidden />
-          </span>
-          <h1>{t("Mes contrats", "عقودي")}</h1>
+    <main className="library-page">
+      <section className="library-banner">
+        <div className="shell library-banner-inner">
+          <div className="library-banner-copy">
+            <span className="library-mark">
+              <FileText size={25} aria-hidden />
+            </span>
+            <h1>{t("Mes contrats", "عقودي")}</h1>
+          </div>
+          <a className="button" href={`/${locale}/new`}>
+            <Plus size={18} aria-hidden />
+            {t("Nouveau contrat", "عقد جديد")}
+          </a>
         </div>
-        <Link className="library-create-link" href={`/${locale}/new`}>
-          <Plus size={18} aria-hidden />
-          {t("Nouveau contrat", "عقد جديد")}
-        </Link>
-      </Card>
-      <div className="library-heading">
-        <h2>{t("Contrats enregistrés", "العقود المحفوظة")}</h2>
-        <PeriodFilter
+      </section>
+      <section className="shell library-content">
+        <div className="library-heading">
+          <h2>{t("Contrats enregistrés", "العقود المحفوظة")}</h2>
+          <PeriodFilter
+            locale={locale}
+            label={t("Dernière modification", "آخر تعديل")}
+            value={list.period}
+            onChange={list.changePeriod}
+          />
+        </div>
+        <LibraryResults
           locale={locale}
-          label={t("Dernière modification", "آخر تعديل")}
-          value={list.period}
-          onChange={list.changePeriod}
-        />
-      </div>
-      <LibraryResults
-        locale={locale}
-        {...list}
-        hasItems={list.items.length > 0}
-        empty={
-          list.period
-            ? t(
-                "Aucun contrat sur cette période.",
-                "لا توجد عقود في هذه الفترة.",
-              )
-            : t("Aucun contrat enregistré.", "لا توجد عقود محفوظة.")
-        }
-        onPage={list.changePage}
-        onRetry={() => list.refresh()}
-      >
-        <ul className="library-grid">
-          {list.items.map((contract) => (
-            <li key={contract.id}>
-              <Card className="library-item">
+          {...list}
+          hasItems={list.items.length > 0}
+          empty={
+            list.period
+              ? t(
+                  "Aucun contrat sur cette période.",
+                  "لا توجد عقود في هذه الفترة.",
+                )
+              : t("Aucun contrat enregistré.", "لا توجد عقود محفوظة.")
+          }
+          onPage={list.changePage}
+          onRetry={() => list.refresh()}
+        >
+          <ul className="library-grid">
+            {list.items.map((contract) => (
+              <li key={contract.id} className="library-item">
                 <span className="library-item-mark">
                   <FileText size={21} aria-hidden />
                 </span>
@@ -232,20 +243,20 @@ export function ContractLibrary({ locale }: { locale: Locale }) {
                     {date.format(new Date(contract.updated_at))}
                   </time>
                 </div>
-                <Button
-                  variant="secondary"
-                  size="sm"
+                <button
+                  type="button"
+                  className="button secondary"
                   aria-haspopup="dialog"
-                  onPress={() => setSelected(contract)}
+                  onClick={() => setSelected(contract)}
                 >
                   <History size={16} aria-hidden />
                   {t("Historique et PDF", "السجل وملف PDF")}
-                </Button>
-              </Card>
-            </li>
-          ))}
-        </ul>
-      </LibraryResults>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </LibraryResults>
+      </section>
       {selected && (
         <ContractDetails
           contract={selected}

@@ -31,7 +31,7 @@ async function EditContract({ params }: ContractPageProps) {
           <p role="alert">
             {t("Impossible de charger le contrat.", "تعذر تحميل العقد.")}
           </p>
-          <a className="site-button secondary" href={`/${locale}/contracts`}>
+          <a className="button secondary" href={`/${locale}/contracts`}>
             {t("Mes contrats", "عقودي")}
           </a>
         </main>

@@ -8,7 +8,7 @@ import {
   type FocusEvent,
   type FormEvent,
 } from "react";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { X } from "lucide-react";
 import { words } from "@/lib/contract/agreement";
 import type { Locale } from "@/i18n/locales";
 
@@ -32,7 +32,6 @@ export function useContractTour(locale: Locale, startOpen: boolean) {
   const edited = useRef(false);
   const shouldScroll = useRef(false);
   const shouldFocus = useRef(false);
-  const Previous = locale === "ar" ? ChevronRight : ChevronLeft;
 
   function go(next: number, focus = false) {
     edited.current = false;
@@ -92,41 +91,33 @@ export function useContractTour(locale: Locale, startOpen: boolean) {
         tabIndex={-1}
         dir={locale === "ar" ? "rtl" : "ltr"}
       >
-        <p id={id} className="contract-tour-title" role="status">
+        <div className="contract-tour-top">
           <span className="contract-tour-count">
             {number} / {steps.length}
           </span>
-          {t(fr, ar)}
-        </p>
-        <div className="contract-tour-actions">
-          {number > 1 && (
-            <button
-              type="button"
-              aria-label={t("Étape précédente", "الخطوة السابقة")}
-              onClick={() => go(number - 1, true)}
-            >
-              <Previous size={17} aria-hidden />
-            </button>
-          )}
           <button
             type="button"
-            className="contract-tour-next"
-            onClick={() => next(true)}
-          >
-            {number === steps.length
-              ? t("Terminer", "إنهاء")
-              : number === 1
-                ? t("Passer", "تخطّي")
-                : t("Suivant", "التالي")}
-          </button>
-          <button
-            type="button"
+            className="contract-tour-close"
             aria-label={t("Fermer le guide", "إغلاق الدليل")}
             onClick={() => go(0)}
           >
-            <X size={17} aria-hidden />
+            <X size={14} aria-hidden />
           </button>
         </div>
+        <p id={id} className="contract-tour-title" role="status">
+          {t(fr, ar)}
+        </p>
+        <button
+          type="button"
+          className="contract-tour-next"
+          onClick={() => next(true)}
+        >
+          {number === steps.length
+            ? t("Terminer", "إنهاء")
+            : number === 1
+              ? t("Passer", "تخطّي")
+              : t("Suivant", "التالي")}
+        </button>
       </div>
     );
   }

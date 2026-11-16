@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Button, Link, Tooltip } from "@heroui/react";
 import { LibraryModal } from "./library-modal";
 import { ArrowDownToLine, Eye, Printer, Share2 } from "lucide-react";
 import { words } from "@/lib/contract/agreement";
@@ -141,33 +140,29 @@ export function PdfControls({
       <div className="pdf-tools" aria-busy={busy}>
         {modes.map((mode) => {
           const Icon = icons[mode];
-          const control =
-            mode === "download" && href ? (
-              <Link
-                className="library-icon-link"
-                href={href}
-                download
-                aria-label={labels[mode]}
-              >
-                <Icon size={18} aria-hidden />
-              </Link>
-            ) : (
-              <Button
-                isIconOnly
-                size="sm"
-                variant="outline"
-                isDisabled={busy}
-                aria-label={labels[mode]}
-                onPress={() => void open(mode)}
-              >
-                <Icon size={18} aria-hidden />
-              </Button>
-            );
-          return (
-            <Tooltip key={mode}>
-              {control}
-              <Tooltip.Content>{labels[mode]}</Tooltip.Content>
-            </Tooltip>
+          return mode === "download" && href ? (
+            <a
+              key={mode}
+              className="icon-button"
+              href={href}
+              download
+              aria-label={labels[mode]}
+              title={labels[mode]}
+            >
+              <Icon size={18} aria-hidden />
+            </a>
+          ) : (
+            <button
+              key={mode}
+              type="button"
+              className="icon-button"
+              disabled={busy}
+              aria-label={labels[mode]}
+              title={labels[mode]}
+              onClick={() => void open(mode)}
+            >
+              <Icon size={18} aria-hidden />
+            </button>
           );
         })}
       </div>
@@ -178,6 +173,7 @@ export function PdfControls({
       )}
       <LibraryModal
         title={labels[view?.mode ?? "view"]}
+        closeLabel={t("Fermer", "إغلاق")}
         open={Boolean(view)}
         onClose={close}
         wide={view?.mode === "view"}
@@ -185,19 +181,30 @@ export function PdfControls({
           view && (
             <>
               {canShare && (
-                <Button onPress={() => void share()}>{labels.share}</Button>
+                <button
+                  type="button"
+                  className="button"
+                  onClick={() => void share()}
+                >
+                  {labels.share}
+                </button>
               )}
               {view.mode !== "share" && (
-                <Link href={view.url} target="_blank" rel="noopener">
+                <a
+                  className="button secondary"
+                  href={view.url}
+                  target="_blank"
+                  rel="noopener"
+                >
                   {t(
                     "Ouvrir dans un nouvel onglet",
                     "فتح في علامة تبويب جديدة",
                   )}
-                </Link>
+                </a>
               )}
-              <Link href={view.url} download={name}>
+              <a className="button secondary" href={view.url} download={name}>
                 {labels.download}
-              </Link>
+              </a>
             </>
           )
         }
