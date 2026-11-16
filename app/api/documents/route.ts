@@ -3,11 +3,11 @@ import { del, put } from "@vercel/blob";
 import {
   failure,
   ownerId,
+  listFilters,
   logStorageFailure,
   privateHeaders,
   repository,
   storageConfigured,
-  validDate,
 } from "@/lib/document-storage";
 import {
   readLimitedBody,
@@ -22,19 +22,9 @@ export async function GET(request: Request) {
   if (!owner) return failure("auth", 401);
   if (!storageConfigured("list")) return failure("configuration", 503);
 
-  const params = new URL(request.url).searchParams;
-  const start = params.get("start");
-  const end = params.get("end");
-  const page = Number(params.get("page") ?? "1");
-  if (
-    (start && !validDate(start)) ||
-    (end && !validDate(end)) ||
-    (start && end && start > end) ||
-    !Number.isSafeInteger(page) ||
-    page < 1 ||
-    page > 10000
-  )
-    return failure("dates", 400);
+  const filters = listFilters(request);
+  if (!filters) return failure("dates", 400);
+  const { start, end, page } = filters;
 
   try {
     const sql = repository();

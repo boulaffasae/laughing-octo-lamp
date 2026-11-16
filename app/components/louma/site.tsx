@@ -31,11 +31,9 @@ export function Logo({ locale }: { locale: Locale }) {
 export function Header({
   locale,
   path = "",
-  dashboard = path === "/dashboard",
 }: {
   locale: Locale;
   path?: string;
-  dashboard?: boolean;
 }) {
   return (
     <header className="site-header">
@@ -63,7 +61,7 @@ export function Header({
               <span className="sr-only">العربية</span>
             </a>
           </nav>
-          <AccountButtons locale={locale} dashboard={dashboard} />
+          <AccountButtons locale={locale} />
         </div>
       </div>
     </header>

@@ -26,13 +26,13 @@ async function EditContract({ params }: ContractPageProps) {
     logStorageFailure("list", error);
     return (
       <>
-        <Header locale={locale} path={`/contracts/${id}`} dashboard />
+        <Header locale={locale} path={`/contracts/${id}`} />
         <main className="shell files-empty">
           <p role="alert">
             {t("Impossible de charger le contrat.", "تعذر تحميل العقد.")}
           </p>
-          <a className="button secondary" href={`/${locale}/dashboard`}>
-            {t("Mon espace", "مساحتي")}
+          <a className="button secondary" href={`/${locale}/contracts`}>
+            {t("Mes contrats", "عقودي")}
           </a>
         </main>
         <Footer locale={locale} />
@@ -43,11 +43,13 @@ async function EditContract({ params }: ContractPageProps) {
 
   return (
     <>
-      <Header locale={locale} path={`/contracts/${id}`} dashboard />
+      <Header locale={locale} path={`/contracts/${id}`} />
       <main>
         <section className="hero">
           <div className="shell">
-            <a href={`/${locale}/dashboard`}>{t("← Mon espace", "مساحتي ←")}</a>
+            <a href={`/${locale}/contracts`}>
+              {t("← Mes contrats", "عقودي ←")}
+            </a>
             <h1>{t("Modifier le contrat", "تعديل العقد")}</h1>
           </div>
         </section>

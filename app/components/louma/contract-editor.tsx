@@ -617,8 +617,8 @@ export function ContractEditor({
                   "المزامنة غير متاحة. انقر على الأيقونة لإعادة المحاولة.",
                 )
               : t(
-                  "Ce contrat a changé ailleurs. Téléchargez vos modifications, puis rouvrez le contrat depuis Mon espace.",
-                  "تم تعديل هذا العقد في مكان آخر. نزّل تعديلاتك ثم أعد فتح العقد من مساحتي.",
+                  "Ce contrat a changé ailleurs. Téléchargez vos modifications, puis rouvrez le contrat depuis Mes contrats.",
+                  "تم تعديل هذا العقد في مكان آخر. نزّل تعديلاتك ثم أعد فتح العقد من عقودي.",
                 )}
           </p>
         )}

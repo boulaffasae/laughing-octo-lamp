@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { FileText, History, X } from "lucide-react";
+import { Button, Card, Link, Spinner } from "@heroui/react";
+import { FileText, History, Plus } from "lucide-react";
 import { words, type Agreement } from "@/lib/contract/agreement";
 import type {
   ContractRevision,
@@ -10,8 +11,14 @@ import type {
 import type { Locale } from "@/i18n/locales";
 import { PdfControls } from "./pdf-controls";
 import { contractPdfName } from "./pdf-file";
+import { LibraryModal } from "./library-modal";
+import {
+  LibraryResults,
+  PeriodFilter,
+  libraryTimeZone,
+  useLibraryList,
+} from "./library-list";
 
-type ContractPage = { contracts: ContractSummary[]; more: boolean };
 type HistoryPage = { revisions: ContractRevision[]; more: boolean };
 
 async function json<T>(url: string, signal?: AbortSignal): Promise<T> {
@@ -32,7 +39,6 @@ function ContractDetails({
   onClose: () => void;
 }) {
   const t = words(locale);
-  const dialog = useRef<HTMLDialogElement>(null);
   const [history, setHistory] = useState<HistoryPage>({
     revisions: [],
     more: false,
@@ -43,7 +49,6 @@ function ContractDetails({
   const base = `/api/contracts/${contract.id}`;
 
   useEffect(() => {
-    if (!dialog.current?.open) dialog.current?.showModal();
     const request = new AbortController();
     json<HistoryPage>(base, request.signal).then(
       (data) => {
@@ -94,23 +99,7 @@ function ContractDetails({
   };
 
   return (
-    <dialog
-      className="workspace-dialog contract-history"
-      ref={dialog}
-      aria-labelledby="contract-history-title"
-      onClose={onClose}
-    >
-      <div className="dialog-header">
-        <h2 id="contract-history-title">{title}</h2>
-        <button
-          type="button"
-          className="icon-button"
-          aria-label={t("Fermer", "إغلاق")}
-          onClick={() => dialog.current?.close()}
-        >
-          <X size={18} aria-hidden />
-        </button>
-      </div>
+    <LibraryModal title={title} open onClose={onClose} wide>
       <div className="history-row">
         <span>{t("Brouillon actuel", "المسودة الحالية")}</span>
         <PdfControls
@@ -120,9 +109,9 @@ function ContractDetails({
           preview
         />
       </div>
-      <a className="button" href={`/${locale}/contracts/${contract.id}`}>
+      <Link href={`/${locale}/contracts/${contract.id}`}>
         {t("Reprendre le contrat", "متابعة تعديل العقد")}
-      </a>
+      </Link>
       <h3>{t("Historique des versions", "سجل الإصدارات")}</h3>
       {history.revisions.length > 0 && (
         <ol className="history-list">
@@ -147,7 +136,7 @@ function ContractDetails({
         </ol>
       )}
       {state === "loading" && (
-        <p role="status">{t("Chargement…", "جارٍ التحميل…")}</p>
+        <Spinner aria-label={t("Chargement…", "جارٍ التحميل…")} />
       )}
       {state === "ready" && !history.revisions.length && (
         <p>{t("Aucune version enregistrée.", "لا توجد إصدارات محفوظة.")}</p>
@@ -158,18 +147,17 @@ function ContractDetails({
         </p>
       )}
       {(state === "error" || history.more) && (
-        <button
-          className="button secondary"
-          type="button"
-          disabled={state === "loading"}
-          onClick={() => void older()}
+        <Button
+          variant="secondary"
+          isPending={state === "loading"}
+          onPress={() => void older()}
         >
           {state === "error"
             ? t("Réessayer", "إعادة المحاولة")
             : t("Versions plus anciennes", "إصدارات أقدم")}
-        </button>
+        </Button>
       )}
-    </dialog>
+    </LibraryModal>
   );
 }
 
@@ -178,129 +166,86 @@ export function ContractLibrary({ locale }: { locale: Locale }) {
   const date = new Intl.DateTimeFormat(locale === "ar" ? "ar-MA" : "fr-FR", {
     dateStyle: "medium",
     timeStyle: "short",
+    timeZone: libraryTimeZone,
   });
-  const [page, setPage] = useState(1);
-  const [attempt, setAttempt] = useState(0);
-  const [result, setResult] = useState<ContractPage>();
-  const [status, setStatus] = useState<"loading" | "ready" | "error">(
-    "loading",
-  );
+  const list = useLibraryList<"contracts", ContractSummary>("contracts");
   const [selected, setSelected] = useState<ContractSummary>();
 
-  useEffect(() => {
-    const controller = new AbortController();
-    json<ContractPage>(`/api/contracts?page=${page}`, controller.signal).then(
-      (data) => {
-        setResult(data);
-        setStatus("ready");
-      },
-      () => {
-        if (!controller.signal.aborted) setStatus("error");
-      },
-    );
-    return () => controller.abort();
-  }, [page, attempt]);
-
-  function changePage(next: number) {
-    setStatus("loading");
-    setPage(next);
-  }
-
   return (
-    <section
-      className="contract-library"
-      aria-labelledby="saved-contracts-title"
-    >
-      <div className="files-heading">
-        <h3 id="saved-contracts-title">{t("Contrats", "العقود")}</h3>
-        <a className="button secondary" href={`/${locale}/new`}>
-          {t("Nouveau contrat", "عقد جديد")}
-        </a>
-      </div>
-      {status === "loading" && (
-        <p role="status">
-          {t("Chargement des contrats…", "جارٍ تحميل العقود…")}
-        </p>
-      )}
-      {status === "error" && (
-        <div className="files-empty" role="status">
-          <p>
-            {t("Impossible de charger les contrats.", "تعذر تحميل العقود.")}
-          </p>
-          <button
-            className="button secondary"
-            type="button"
-            onClick={() => {
-              setStatus("loading");
-              setAttempt((value) => value + 1);
-            }}
-          >
-            {t("Réessayer", "إعادة المحاولة")}
-          </button>
+    <main className="shell library-page">
+      <Card className="library-banner" variant="secondary">
+        <div className="library-banner-copy">
+          <span className="library-mark">
+            <FileText size={25} aria-hidden />
+          </span>
+          <h1>{t("Mes contrats", "عقودي")}</h1>
         </div>
-      )}
-      {status === "ready" && result && (
-        <>
-          {result.contracts.length ? (
-            <ul className="file-grid">
-              {result.contracts.map((contract) => (
-                <li key={contract.id} className="file-card">
-                  <button
-                    className="contract-card"
-                    type="button"
-                    aria-haspopup="dialog"
-                    onClick={() => setSelected(contract)}
-                  >
-                    <FileText size={23} aria-hidden />
-                    <span>
-                      <strong>
-                        {contract.title ||
-                          t("Contrat de location", "عقد كراء السيارة")}
-                      </strong>
-                      {(contract.renter || contract.plate) && (
-                        <small>
-                          {[contract.renter, contract.plate]
-                            .filter(Boolean)
-                            .join(" · ")}
-                        </small>
-                      )}
-                      <time dateTime={contract.updated_at}>
-                        {date.format(new Date(contract.updated_at))}
-                      </time>
-                    </span>
-                    <History size={18} aria-hidden />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>{t("Aucun contrat enregistré.", "لا توجد عقود محفوظة.")}</p>
-          )}
-          {(page > 1 || result.more) && (
-            <nav
-              className="pagination"
-              aria-label={t("Pages des contrats", "صفحات العقود")}
-            >
-              <button
-                className="button secondary"
-                type="button"
-                disabled={page === 1}
-                onClick={() => changePage(page - 1)}
-              >
-                {t("Précédent", "السابق")}
-              </button>
-              <button
-                className="button secondary"
-                type="button"
-                disabled={!result.more}
-                onClick={() => changePage(page + 1)}
-              >
-                {t("Suivant", "التالي")}
-              </button>
-            </nav>
-          )}
-        </>
-      )}
+        <Link className="library-create-link" href={`/${locale}/new`}>
+          <Plus size={18} aria-hidden />
+          {t("Nouveau contrat", "عقد جديد")}
+        </Link>
+      </Card>
+      <div className="library-heading">
+        <h2>{t("Contrats enregistrés", "العقود المحفوظة")}</h2>
+        <PeriodFilter
+          locale={locale}
+          label={t("Dernière modification", "آخر تعديل")}
+          value={list.period}
+          onChange={list.changePeriod}
+        />
+      </div>
+      <LibraryResults
+        locale={locale}
+        {...list}
+        hasItems={list.items.length > 0}
+        empty={
+          list.period
+            ? t(
+                "Aucun contrat sur cette période.",
+                "لا توجد عقود في هذه الفترة.",
+              )
+            : t("Aucun contrat enregistré.", "لا توجد عقود محفوظة.")
+        }
+        onPage={list.changePage}
+        onRetry={() => list.refresh()}
+      >
+        <ul className="library-grid">
+          {list.items.map((contract) => (
+            <li key={contract.id}>
+              <Card className="library-item">
+                <span className="library-item-mark">
+                  <FileText size={21} aria-hidden />
+                </span>
+                <div>
+                  <strong>
+                    {contract.title ||
+                      t("Contrat de location", "عقد كراء السيارة")}
+                  </strong>
+                  {(contract.renter || contract.plate) && (
+                    <small>
+                      {[contract.renter, contract.plate]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </small>
+                  )}
+                  <time dateTime={contract.updated_at}>
+                    {date.format(new Date(contract.updated_at))}
+                  </time>
+                </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  aria-haspopup="dialog"
+                  onPress={() => setSelected(contract)}
+                >
+                  <History size={16} aria-hidden />
+                  {t("Historique et PDF", "السجل وملف PDF")}
+                </Button>
+              </Card>
+            </li>
+          ))}
+        </ul>
+      </LibraryResults>
       {selected && (
         <ContractDetails
           contract={selected}
@@ -309,6 +254,6 @@ export function ContractLibrary({ locale }: { locale: Locale }) {
           onClose={() => setSelected(undefined)}
         />
       )}
-    </section>
+    </main>
   );
 }

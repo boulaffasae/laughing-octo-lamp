@@ -64,3 +64,20 @@ export function validDate(value: string) {
     !Number.isNaN(date.valueOf()) && date.toISOString().slice(0, 10) === value
   );
 }
+
+export function listFilters(request: Request) {
+  const params = new URL(request.url).searchParams;
+  const start = params.get("start") || null;
+  const end = params.get("end") || null;
+  const page = Number(params.get("page") ?? 1);
+  if (
+    (start && !validDate(start)) ||
+    (end && !validDate(end)) ||
+    (start && end && start > end) ||
+    !Number.isSafeInteger(page) ||
+    page < 1 ||
+    page > 10000
+  )
+    return null;
+  return { start, end, page };
+}

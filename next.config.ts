@@ -9,13 +9,19 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
-        source: "/:legacy(espace|mes-fichiers)",
-        destination: "/dashboard",
+        source: "/:legacy(dashboard|espace)",
+        destination: "/contracts",
         permanent: true,
       },
       {
-        source: "/:locale(fr|ar)/:legacy(espace|mes-fichiers)",
-        destination: "/:locale/dashboard",
+        source: "/:locale(fr|ar)/:legacy(dashboard|espace)",
+        destination: "/:locale/contracts",
+        permanent: true,
+      },
+      { source: "/mes-fichiers", destination: "/documents", permanent: true },
+      {
+        source: "/:locale(fr|ar)/mes-fichiers",
+        destination: "/:locale/documents",
         permanent: true,
       },
       { source: "/en", destination: "/fr", permanent: true },

@@ -12,7 +12,7 @@ const route = (request: NextRequest) => {
 };
 
 function privateLocale(request: NextRequest) {
-  return /^\/(fr|ar)\/(?:dashboard|contracts\/[^/]+)\/?$/.exec(
+  return /^\/(fr|ar)\/(?:documents|contracts(?:\/[^/]+)?)\/?$/.exec(
     request.nextUrl.pathname,
   )?.[1];
 }

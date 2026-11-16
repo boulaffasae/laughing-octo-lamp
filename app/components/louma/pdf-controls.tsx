@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
-import { ArrowDownToLine, Eye, Printer, Share2, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Button, Link, Tooltip } from "@heroui/react";
+import { LibraryModal } from "./library-modal";
+import { ArrowDownToLine, Eye, Printer, Share2 } from "lucide-react";
 import { words } from "@/lib/contract/agreement";
 import type { Locale } from "@/i18n/locales";
 import { downloadPdf } from "./pdf-file";
@@ -20,8 +22,7 @@ export function PdfControls({
   preview?: boolean;
 }) {
   const t = words(locale);
-  const titleId = useId();
-  const dialog = useRef<HTMLDialogElement>(null);
+  const mounted = useRef(false);
   const pdf = useRef<Promise<Blob>>(undefined);
   const urls = useRef(new Set<string>());
   const pending = useRef(false);
@@ -34,8 +35,10 @@ export function PdfControls({
   }>();
 
   useEffect(() => {
+    mounted.current = true;
     const allocated = urls.current;
     return () => {
+      mounted.current = false;
       allocated.forEach((url) => URL.revokeObjectURL(url));
       allocated.clear();
     };
@@ -63,7 +66,7 @@ export function PdfControls({
         throw error;
       });
       const blob = await pdf.current;
-      if (!dialog.current) {
+      if (!mounted.current) {
         tab?.close();
         return;
       }
@@ -81,7 +84,6 @@ export function PdfControls({
         file: new File([blob], name, { type: "application/pdf" }),
         mode,
       });
-      dialog.current.showModal();
     } catch {
       tab?.close();
       setMessage(
@@ -110,7 +112,7 @@ export function PdfControls({
     const data = { files: [view.file] };
     try {
       await navigator.share(data);
-      dialog.current?.close();
+      close();
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
       setMessage(
@@ -122,144 +124,113 @@ export function PdfControls({
     }
   }
 
+  const canShare =
+    view?.mode === "share" && navigator.canShare?.({ files: [view.file] });
+  const icons = {
+    download: ArrowDownToLine,
+    view: Eye,
+    share: Share2,
+    print: Printer,
+  };
+  const modes = preview
+    ? (["download", "view", "share", "print"] as const)
+    : (["download", "share", "print"] as const);
+
   return (
     <div className="pdf-actions">
       <div className="pdf-tools" aria-busy={busy}>
-        {href ? (
-          <a
-            className="icon-button"
-            href={href}
-            download
-            aria-label={labels.download}
-            title={labels.download}
-          >
-            <ArrowDownToLine size={18} aria-hidden />
-          </a>
-        ) : (
-          <button
-            className="icon-button"
-            type="button"
-            disabled={busy}
-            onClick={() => void open("download")}
-            aria-label={labels.download}
-            title={labels.download}
-          >
-            <ArrowDownToLine size={18} aria-hidden />
-          </button>
-        )}
-        {preview && (
-          <button
-            className="icon-button"
-            type="button"
-            disabled={busy}
-            onClick={() => void open("view")}
-            aria-label={labels.view}
-            title={labels.view}
-          >
-            <Eye size={18} aria-hidden />
-          </button>
-        )}
-        <button
-          className="icon-button"
-          type="button"
-          disabled={busy}
-          onClick={() => void open("share")}
-          aria-label={labels.share}
-          title={labels.share}
-        >
-          <Share2 size={18} aria-hidden />
-        </button>
-        <button
-          className="icon-button"
-          type="button"
-          disabled={busy}
-          onClick={() => void open("print")}
-          aria-label={labels.print}
-          title={labels.print}
-        >
-          <Printer size={18} aria-hidden />
-        </button>
+        {modes.map((mode) => {
+          const Icon = icons[mode];
+          const control =
+            mode === "download" && href ? (
+              <Link
+                className="library-icon-link"
+                href={href}
+                download
+                aria-label={labels[mode]}
+              >
+                <Icon size={18} aria-hidden />
+              </Link>
+            ) : (
+              <Button
+                isIconOnly
+                size="sm"
+                variant="outline"
+                isDisabled={busy}
+                aria-label={labels[mode]}
+                onPress={() => void open(mode)}
+              >
+                <Icon size={18} aria-hidden />
+              </Button>
+            );
+          return (
+            <Tooltip key={mode}>
+              {control}
+              <Tooltip.Content>{labels[mode]}</Tooltip.Content>
+            </Tooltip>
+          );
+        })}
       </div>
       {message && !view && (
         <p className="error" role="alert">
           {message}
         </p>
       )}
-      <dialog
-        ref={dialog}
-        className="workspace-dialog pdf-dialog"
-        aria-labelledby={titleId}
+      <LibraryModal
+        title={labels[view?.mode ?? "view"]}
+        open={Boolean(view)}
         onClose={close}
-      >
-        {view && (
-          <>
-            <div className="dialog-header">
-              <h2 id={titleId}>{labels[view.mode]}</h2>
-              <button
-                type="button"
-                className="icon-button"
-                aria-label={t("Fermer", "إغلاق")}
-                onClick={() => dialog.current?.close()}
-              >
-                <X size={18} aria-hidden />
-              </button>
-            </div>
-            {view.mode === "view" && (
-              <iframe src={view.url} title={labels.view} />
-            )}
-            {view.mode === "share" &&
-              !navigator.canShare?.({ files: [view.file] }) && (
-                <p>
-                  {t(
-                    "Téléchargez le PDF pour le joindre à votre message.",
-                    "نزّل ملف PDF لإرفاقه برسالتك.",
-                  )}
-                </p>
+        wide={view?.mode === "view"}
+        actions={
+          view && (
+            <>
+              {canShare && (
+                <Button onPress={() => void share()}>{labels.share}</Button>
               )}
-            {view.mode === "print" && (
-              <p>
-                {t(
-                  "Ouvrez le PDF, puis utilisez l’option Imprimer du navigateur.",
-                  "افتح ملف PDF ثم استخدم خيار الطباعة في المتصفح.",
-                )}
-              </p>
-            )}
-            <div className="dialog-actions">
-              {view.mode === "share" &&
-                navigator.canShare?.({ files: [view.file] }) && (
-                  <button
-                    className="button"
-                    type="button"
-                    onClick={() => void share()}
-                  >
-                    {labels.share}
-                  </button>
-                )}
               {view.mode !== "share" && (
-                <a
-                  className="button secondary"
-                  href={view.url}
-                  target="_blank"
-                  rel="noopener"
-                >
+                <Link href={view.url} target="_blank" rel="noopener">
                   {t(
                     "Ouvrir dans un nouvel onglet",
                     "فتح في علامة تبويب جديدة",
                   )}
-                </a>
+                </Link>
               )}
-              <a className="button secondary" href={view.url} download={name}>
+              <Link href={view.url} download={name}>
                 {labels.download}
-              </a>
-            </div>
-            {message && (
-              <p className="error" role="alert">
-                {message}
-              </p>
-            )}
-          </>
+              </Link>
+            </>
+          )
+        }
+      >
+        {view?.mode === "view" && (
+          <iframe
+            className="library-pdf-frame"
+            src={view.url}
+            title={labels.view}
+          />
         )}
-      </dialog>
+        {view?.mode === "share" && !canShare && (
+          <p>
+            {t(
+              "Téléchargez le PDF pour le joindre à votre message.",
+              "نزّل ملف PDF لإرفاقه برسالتك.",
+            )}
+          </p>
+        )}
+        {view?.mode === "print" && (
+          <p>
+            {t(
+              "Ouvrez le PDF, puis utilisez l’option Imprimer du navigateur.",
+              "افتح ملف PDF ثم استخدم خيار الطباعة في المتصفح.",
+            )}
+          </p>
+        )}
+        {message && (
+          <p className="error" role="alert">
+            {message}
+          </p>
+        )}
+      </LibraryModal>
     </div>
   );
 }
