@@ -1,9 +1,21 @@
 "use client";
 
 import { useRef, useState, type CSSProperties } from "react";
-import { ArrowDownToLine, Check, ImagePlus, Save, X } from "lucide-react";
+import {
+  ArrowDownToLine,
+  Check,
+  Cloud,
+  CloudCheck,
+  CloudOff,
+  ImagePlus,
+  LoaderCircle,
+  Redo2,
+  Undo2,
+  X,
+} from "lucide-react";
 import Image from "next/image";
 import {
+  addressMaxLength,
   blank,
   conditionDiagram,
   conditionNoteGroups,
@@ -23,6 +35,7 @@ import type { Locale } from "@/i18n/locales";
 import type { SavedDraft } from "@/lib/contract/saved-contract";
 import { useAccount } from "./account";
 import { contractPdfName, downloadPdf } from "./pdf-file";
+import { useAgreementHistory } from "./use-agreement-history";
 import { useContractSave } from "./use-contract-save";
 
 function Inline({
@@ -33,6 +46,7 @@ function Inline({
   maxLength = 120,
   type = "text",
   multiline = false,
+  lines = 1,
   describedBy,
 }: {
   label: string;
@@ -42,11 +56,13 @@ function Inline({
   maxLength?: number;
   type?: "text" | "date" | "time";
   multiline?: boolean;
+  lines?: number;
   describedBy?: string;
 }) {
   return (
     <span
       className={multiline ? "inline-field inline-multiline" : "inline-field"}
+      style={lines > 1 ? { minHeight: `calc(${lines}lh + 8px)` } : undefined}
     >
       <span aria-hidden className="inline-copy">
         {value || placeholder}
@@ -54,7 +70,7 @@ function Inline({
       </span>
       {multiline ? (
         <textarea
-          rows={1}
+          rows={lines}
           aria-label={label}
           aria-describedby={describedBy}
           value={value}
@@ -86,12 +102,23 @@ export function ContractEditor({
 }) {
   const t = words(locale);
   const account = useAccount();
-  const [a, setAgreement] = useState(
+  const history = useAgreementHistory(
     () => saved?.draft ?? initialAgreement(locale),
   );
+  const { agreement: a, setAgreement } = history;
   const dir = a.locale === "ar" ? "rtl" : "ltr";
   const paperText = words(a.locale);
   const persistence = useContractSave(a, account.signedIn, saved);
+  const [SyncIcon, syncLabel] = {
+    idle: [
+      Cloud,
+      t("Enregistrement automatique actif", "الحفظ التلقائي مفعّل"),
+    ],
+    saving: [LoaderCircle, t("Synchronisation…", "جارٍ المزامنة…")],
+    saved: [CloudCheck, t("Contrat synchronisé", "تمت مزامنة العقد")],
+    error: [CloudOff, t("Synchronisation indisponible", "المزامنة غير متاحة")],
+    conflict: [CloudOff, t("Conflit de synchronisation", "تعارض في المزامنة")],
+  }[persistence.status] as [typeof Cloud, string];
   const [logoBusy, setLogoBusy] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [logoError, setLogoError] = useState("");
@@ -102,8 +129,8 @@ export function ContractEditor({
   const fields = contractFields(a.locale);
   const template = templateForColor(a.color);
 
-  function change(patch: Partial<Agreement>) {
-    setAgreement((current) => ({ ...current, ...patch }));
+  function change(patch: Partial<Agreement>, group = true) {
+    setAgreement((current) => ({ ...current, ...patch }), group);
   }
 
   function update(key: FieldKey, value: string) {
@@ -112,7 +139,13 @@ export function ContractEditor({
       setAgreement((current) => ({
         ...current,
         documents: current.documents.map((doc, i) =>
-          i === key[0] ? { ...doc, [key[1]]: value } : doc,
+          i === key[0]
+            ? {
+                ...doc,
+                ...(i === 0 && key[1] === "address" ? { city: "" } : {}),
+                [key[1]]: value,
+              }
+            : doc,
         ),
       }));
     }
@@ -135,7 +168,7 @@ export function ContractEditor({
     setExportError("");
     try {
       const result = getPdf();
-      persistence.save(a, true, result);
+      persistence.save(a, result);
       const url = URL.createObjectURL(await result);
       downloadPdf(url, contractPdfName);
       window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
@@ -162,24 +195,32 @@ export function ContractEditor({
     />
   );
 
-  const input = (key: FieldKey, label: string, type?: "date" | "time") => (
+  const input = (
+    key: FieldKey,
+    label: string,
+    type?: "date" | "time",
+    lines = 1,
+  ) => (
     <Inline
       label={label}
       value={fieldValue(a, key)}
       type={type}
       multiline={!type}
+      lines={lines}
+      placeholder={Array<string>(lines).fill(blank).join("\n")}
+      maxLength={lines > 1 ? addressMaxLength : 120}
       change={(value) => update(key, value)}
     />
   );
 
   const rows = (id: keyof typeof fields) =>
-    fields[id].map(({ key, label, type, fullWidth }) => (
+    fields[id].map(({ key, label, type, fullWidth, lines }) => (
       <div
         className={fullWidth ? "paper-row paper-row-wide" : "paper-row"}
         key={fieldId(key)}
       >
         <div className="paper-row-label">{caption(fieldId(key), label)}</div>
-        {input(key, label, type)}
+        {input(key, label, type, lines)}
       </div>
     ));
 
@@ -262,6 +303,7 @@ export function ContractEditor({
 
   return (
     <section
+      onBlurCapture={history.finishEdit}
       id="contrat"
       className="shell workspace contract-editor"
       aria-label={t("Modifier le contrat", "تعديل العقد")}
@@ -303,14 +345,17 @@ export function ContractEditor({
                         setLogoBusy(true);
                         setLogoError("");
                         try {
-                          change({
-                            logo: (
-                              await prepareImage(file, {
-                                maxSide: 640,
-                                output: "image/png",
-                              })
-                            ).src,
-                          });
+                          change(
+                            {
+                              logo: (
+                                await prepareImage(file, {
+                                  maxSide: 640,
+                                  output: "image/png",
+                                })
+                              ).src,
+                            },
+                            false,
+                          );
                         } catch {
                           setLogoError(
                             t(
@@ -358,7 +403,7 @@ export function ContractEditor({
                       "استعادة شعار Louma",
                     )}
                     disabled={logoBusy}
-                    onClick={() => change({ logo: "" })}
+                    onClick={() => change({ logo: "" }, false)}
                   >
                     <X size={15} aria-hidden />
                   </button>
@@ -487,24 +532,63 @@ export function ContractEditor({
               aria-label={t(fr, ar)}
               title={t(fr, ar)}
               aria-pressed={template.color === color}
-              onClick={() => change({ color })}
+              onClick={() => {
+                if (a.color !== color) change({ color }, false);
+              }}
             >
               {template.color === color && <Check size={16} aria-hidden />}
             </button>
           ))}
           <span className="toolbar-divider" aria-hidden />
-          {account.signedIn && (
-            <button
-              type="button"
-              className="icon-button"
-              aria-label={t("Enregistrer une version", "حفظ إصدار")}
-              title={t("Enregistrer une version", "حفظ إصدار")}
-              disabled={logoBusy || persistence.status === "conflict"}
-              onClick={() => persistence.save(a, true)}
-            >
-              <Save size={19} aria-hidden />
-            </button>
-          )}
+          <button
+            type="button"
+            className="icon-button editor-tool"
+            aria-label={t("Annuler", "تراجع")}
+            title={t("Annuler", "تراجع")}
+            disabled={!history.canUndo || logoBusy}
+            onClick={history.undo}
+          >
+            <Undo2 size={18} aria-hidden />
+          </button>
+          <button
+            type="button"
+            className="icon-button editor-tool"
+            aria-label={t("Rétablir", "إعادة")}
+            title={t("Rétablir", "إعادة")}
+            disabled={!history.canRedo || logoBusy}
+            onClick={history.redo}
+          >
+            <Redo2 size={18} aria-hidden />
+          </button>
+          {account.signedIn &&
+            (persistence.status === "error" ? (
+              <button
+                type="button"
+                className="icon-button editor-tool"
+                aria-label={t(
+                  "Réessayer la synchronisation",
+                  "إعادة محاولة المزامنة",
+                )}
+                title={t(
+                  "Réessayer la synchronisation",
+                  "إعادة محاولة المزامنة",
+                )}
+                onClick={() => persistence.save(a)}
+              >
+                <CloudOff size={19} aria-hidden />
+              </button>
+            ) : (
+              <span className="editor-sync" role="status" title={syncLabel}>
+                <span className="sr-only">{syncLabel}</span>
+                <SyncIcon
+                  className={
+                    persistence.status === "saving" ? "sync-spinner" : undefined
+                  }
+                  size={19}
+                  aria-hidden
+                />
+              </span>
+            ))}
           <button
             type="button"
             className="editor-download"
@@ -523,55 +607,21 @@ export function ContractEditor({
           </p>
         )}
       </div>
-      {account.signedIn && (
-        <div className="contract-save">
-          <label>
-            <input
-              type="checkbox"
-              checked={persistence.autoSave}
-              onChange={(event) =>
-                persistence.setAutoSave(event.target.checked)
-              }
-            />
-            {t(
-              "Enregistrer automatiquement le brouillon",
-              "حفظ المسودة تلقائيًا",
-            )}
-          </label>
-          <p
-            role="status"
-            className={
-              persistence.status === "error" ||
-              persistence.status === "conflict"
-                ? "error"
-                : ""
-            }
-          >
-            {
-              {
-                idle: "",
-                saving: t("Enregistrement…", "جارٍ الحفظ…"),
-                saved: t("Brouillon enregistré.", "تم حفظ المسودة."),
-                archived: t("Version enregistrée.", "تم حفظ الإصدار."),
-                error: t(
-                  "Enregistrement indisponible. Réessayez avec le bouton d’enregistrement.",
-                  "الحفظ غير متاح. حاول مرة أخرى باستخدام زر الحفظ.",
-                ),
-                conflict: t(
+      {account.signedIn &&
+        (persistence.status === "error" ||
+          persistence.status === "conflict") && (
+          <p className="contract-save error" role="alert">
+            {persistence.status === "error"
+              ? t(
+                  "Synchronisation indisponible. Cliquez sur l’icône pour réessayer.",
+                  "المزامنة غير متاحة. انقر على الأيقونة لإعادة المحاولة.",
+                )
+              : t(
                   "Ce contrat a changé ailleurs. Téléchargez vos modifications, puis rouvrez le contrat depuis Mon espace.",
                   "تم تعديل هذا العقد في مكان آخر. نزّل تعديلاتك ثم أعد فتح العقد من مساحتي.",
-                ),
-              }[persistence.status]
-            }
-            {persistence.hasSaved && (
-              <>
-                {" "}
-                <a href={`/${locale}/dashboard`}>{t("Mon espace", "مساحتي")}</a>
-              </>
-            )}
+                )}
           </p>
-        </div>
-      )}
+        )}
     </section>
   );
 }

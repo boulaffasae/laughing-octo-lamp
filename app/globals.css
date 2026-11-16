@@ -945,14 +945,6 @@ h4 {
   text-align: center;
   font-size: 0.9rem;
 }
-.contract-save label {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-}
-.contract-save a {
-  text-decoration: underline;
-}
 @media (max-width: 420px) {
   .contract-library .file-grid {
     grid-template-columns: minmax(0, 1fr);
@@ -1506,6 +1498,47 @@ body {
   border-radius: 999px;
   background: white;
   box-shadow: 0 8px 28px #1528212b;
+}
+.editor-tool,
+.editor-sync {
+  display: grid;
+  place-items: center;
+  width: 37px;
+  height: 40px;
+  flex: 0 0 37px;
+  border: 0;
+  border-radius: 50%;
+  color: var(--paper-color);
+}
+.editor-tool:disabled {
+  opacity: 0.35;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sync-spinner {
+    animation: sync-spin 0.85s linear infinite;
+  }
+}
+@keyframes sync-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media screen and (max-width: 490px) {
+  .editor-toolbar {
+    max-width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2px;
+    border-radius: 19px;
+  }
+  .editor-toolbar .theme-swatch {
+    width: 28px;
+    height: 36px;
+  }
+  .editor-toolbar .theme-swatch::before {
+    width: 22px;
+    height: 22px;
+  }
 }
 .theme-swatch,
 .editor-download {

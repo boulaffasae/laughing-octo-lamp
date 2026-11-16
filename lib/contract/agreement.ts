@@ -118,10 +118,15 @@ type ContractField = {
   label: string;
   type?: "date" | "time";
   fullWidth?: boolean;
+  lines?: number;
 };
 
 export function fieldValue(a: Agreement, key: FieldKey) {
-  return typeof key === "string" ? a[key] : (a.documents[key[0]][key[1]] ?? "");
+  if (typeof key === "string") return a[key];
+  const document = a.documents[key[0]];
+  if (key[0] === 0 && key[1] === "address")
+    return [document.address, document.city].filter(Boolean).join("\n");
+  return document[key[1]] ?? "";
 }
 
 export function fieldId(key: FieldKey) {
@@ -142,14 +147,18 @@ export function contractFields(
         label: t("CNIE délivrée le", "تاريخ إصدار البطاقة"),
         type: "date",
       },
-      { key: [0, "address"], label: t("Adresse", "العنوان"), fullWidth: true },
+      {
+        key: [0, "address"],
+        label: t("Adresse", "العنوان"),
+        fullWidth: true,
+        lines: 2,
+      },
       { key: [1, "licence"], label: t("Permis", "رخصة السياقة") },
       {
         key: [1, "issued"],
         label: t("Permis délivré le", "تاريخ إصدار الرخصة"),
         type: "date",
       },
-      { key: [0, "city"], label: t("Ville", "المدينة") },
     ],
     vehicle: [
       { key: [2, "brand"], label: t("Marque", "الماركة") },
@@ -181,6 +190,8 @@ export function contractFields(
     ],
   };
 }
+
+export const addressMaxLength = 360;
 
 export const blank = "……………………";
 

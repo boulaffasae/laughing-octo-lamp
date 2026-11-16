@@ -4,16 +4,16 @@ import { useEffect, useEffectEvent, useRef, useState } from "react";
 import type { Agreement } from "@/lib/contract/agreement";
 import type { SavedDraft } from "@/lib/contract/saved-contract";
 
-type Status = "idle" | "saving" | "saved" | "archived" | "error" | "conflict";
+type Status = "idle" | "saving" | "saved" | "error" | "conflict";
 
 export function useContractSave(
   draft: Agreement,
   signedIn: boolean,
   saved?: SavedDraft,
 ) {
-  const [autoSave, setAutoSave] = useState(Boolean(saved));
-  const [status, setStatus] = useState<Status>("idle");
-  const [hasSaved, setHasSaved] = useState(Boolean(saved));
+  const [initialDraft] = useState(draft);
+  const [syncedDraft, setSyncedDraft] = useState(saved?.draft);
+  const [phase, setPhase] = useState<Status>(saved ? "saved" : "idle");
   const id = useRef(saved?.id);
   const version = useRef(saved?.edit_version ?? 0);
   const savedDraft = useRef(saved?.draft);
@@ -21,7 +21,7 @@ export function useContractSave(
   const queue = useRef(Promise.resolve());
   const conflict = useRef(false);
 
-  function save(snapshot: Agreement, archive: boolean, after?: Promise<Blob>) {
+  function save(snapshot: Agreement, after?: Promise<Blob>) {
     if (!signedIn || conflict.current) return;
 
     queue.current = queue.current.then(async () => {
@@ -33,21 +33,17 @@ export function useContractSave(
           return; // The download action reports PDF generation errors.
         }
       }
-      if (
-        archive
-          ? archivedDraft.current === snapshot
-          : savedDraft.current === snapshot
-      )
+      if (archivedDraft.current === snapshot && savedDraft.current === snapshot)
         return;
 
-      setStatus("saving");
+      setPhase("saving");
       try {
         id.current ??= crypto.randomUUID();
         const body = JSON.stringify({
           draft: snapshot,
           base: version.current,
           operation: crypto.randomUUID(),
-          archive,
+          archive: true,
         });
         const send = () =>
           fetch(`/api/contracts/${id.current}`, {
@@ -60,37 +56,39 @@ export function useContractSave(
         if (!response || response.status === 503) response = await send();
         if (response.status === 409) {
           conflict.current = true;
-          setStatus("conflict");
+          setPhase("conflict");
           return;
         }
         if (!response.ok) throw Error();
         version.current = (await response.json()).edit_version;
         savedDraft.current = snapshot;
-        if (archive) archivedDraft.current = snapshot;
-        setHasSaved(true);
-        setStatus(archive ? "archived" : "saved");
+        archivedDraft.current = snapshot;
+        setSyncedDraft(snapshot);
+        setPhase("saved");
       } catch {
-        setStatus("error");
+        setPhase("error");
       }
     });
   }
 
-  const saveAutomatically = useEffectEvent(() => save(draft, false));
+  const needsSync = draft !== (syncedDraft ?? initialDraft);
+  const status =
+    needsSync && (phase === "idle" || phase === "saved") ? "saving" : phase;
+  const saveAutomatically = useEffectEvent(() => save(draft));
   useEffect(() => {
-    if (!signedIn || !autoSave) return;
+    if (!signedIn || !needsSync) return;
     const timer = window.setTimeout(saveAutomatically, 900);
     return () => window.clearTimeout(timer);
-  }, [draft, signedIn, autoSave]);
+  }, [draft, signedIn, needsSync]);
 
   useEffect(() => {
-    if (!signedIn || (!autoSave && status !== "saving")) return;
+    if (!signedIn || (!needsSync && status !== "saving")) return;
     function warnIfSaving(event: BeforeUnloadEvent) {
-      if (status === "saving" || savedDraft.current !== draft)
-        event.preventDefault();
+      if (savedDraft.current !== draft) event.preventDefault();
     }
     window.addEventListener("beforeunload", warnIfSaving);
     return () => window.removeEventListener("beforeunload", warnIfSaving);
-  }, [draft, signedIn, autoSave, status]);
+  }, [draft, signedIn, needsSync, status]);
 
-  return { autoSave, setAutoSave, status, hasSaved, save };
+  return { status, save };
 }

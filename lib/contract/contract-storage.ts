@@ -1,6 +1,10 @@
 import { isLocale } from "@/i18n/locales";
 import { repository } from "@/lib/document-storage";
-import { initialAgreement, type Agreement } from "./agreement";
+import {
+  addressMaxLength,
+  initialAgreement,
+  type Agreement,
+} from "./agreement";
 import type { SavedDraft } from "./saved-contract";
 
 function record(value: unknown): value is Record<string, unknown> {
@@ -13,7 +17,12 @@ function text(value: unknown, limit: number): value is string {
   );
 }
 
-function textMap(value: unknown, size: number, length: number) {
+function textMap(
+  value: unknown,
+  size: number,
+  length: number,
+  addressLength = length,
+) {
   return (
     record(value) &&
     Object.entries(value).length <= size &&
@@ -21,7 +30,7 @@ function textMap(value: unknown, size: number, length: number) {
       ([key, item]) =>
         /^[\w-]{1,40}$/.test(key) &&
         !Object.hasOwn(Object.prototype, key) &&
-        text(item, length),
+        text(item, key === "address" ? addressLength : length),
     )
   );
 }
@@ -65,7 +74,9 @@ export function isAgreement(value: unknown): value is Agreement {
           return (
             Array.isArray(field) &&
             field.length === defaults.documents.length &&
-            field.every((document) => textMap(document, 16, 120))
+            field.every((document) =>
+              textMap(document, 16, 120, addressMaxLength),
+            )
           );
         case "labels":
           return textMap(field, 64, 65);

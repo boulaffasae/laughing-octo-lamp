@@ -200,7 +200,7 @@ export async function buildContractPdf(a: Agreement) {
         ...(id === "amounts" ? amountsStyle : []),
       ]}
     >
-      {fields[id].map(({ key, label, type, fullWidth }) => {
+      {fields[id].map(({ key, label, type, fullWidth, lines = 1 }) => {
         const wide = id !== "amounts" && template.wideFields?.includes(id);
         const keyId = fieldId(key);
         const raw = fieldValue(a, key).trim();
@@ -230,10 +230,15 @@ export async function buildContractPdf(a: Agreement) {
               style={[
                 alignment,
                 valueFont(value),
+                lines > 1 ? { minHeight: lines * 9 * 1.35 } : {},
                 { direction: leftToRight ? "ltr" : alignment.direction },
               ]}
             >
-              {value ? (leftToRight ? "\u200e" + value : value) : blank}
+              {value
+                ? leftToRight
+                  ? "\u200e" + value
+                  : value
+                : Array<string>(lines).fill(blank).join("\n")}
             </Text>
           </View>
         );
