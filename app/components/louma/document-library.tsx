@@ -12,7 +12,8 @@ import {
   libraryTimeZone,
   useLibraryList,
 } from "./library-list";
-import { PdfControls } from "./pdf-controls";
+import { PdfPreview } from "./pdf-preview";
+import { FileTeaser } from "./file-teaser";
 
 type DocumentSummary = { id: string; created_at: string };
 
@@ -23,6 +24,8 @@ export function DocumentLibrary({ locale }: { locale: Locale }) {
     dateStyle: "medium",
     timeZone: libraryTimeZone,
   });
+  const [selected, setSelected] = useState<DocumentSummary>();
+  const title = t("Document PDF", "مستند PDF");
   const fileInput = useRef<HTMLInputElement>(null);
   const cameraInput = useRef<HTMLInputElement>(null);
   const [uploadState, setUploadState] = useState({
@@ -191,29 +194,37 @@ export function DocumentLibrary({ locale }: { locale: Locale }) {
           onRetry={() => list.refresh()}
         >
           <ul className="library-grid">
-            {list.items.map(({ id, created_at }) => (
-              <li key={id} className="library-item">
-                <span className="library-item-mark">
-                  <FileText size={21} aria-hidden /> PDF
-                </span>
-                <time dateTime={created_at}>
-                  {date.format(new Date(created_at))}
-                </time>
-                <PdfControls
-                  locale={locale}
-                  name={`Document - ${date.format(new Date(created_at))}.pdf`}
-                  href={`/api/documents/${id}`}
-                  load={async () => {
-                    const response = await fetch(`/api/documents/${id}`);
-                    if (!response.ok) throw Error();
-                    return response.blob();
-                  }}
-                />
-              </li>
+            {list.items.map((document) => (
+              <FileTeaser
+                key={document.id}
+                locale={locale}
+                title={title}
+                date={document.created_at}
+                dateLabel={date.format(new Date(document.created_at))}
+                onOpen={() => setSelected(document)}
+              />
             ))}
           </ul>
         </LibraryResults>
       </section>
+      {selected && (
+        <PdfPreview
+          locale={locale}
+          title={title}
+          fileKey={selected.id}
+          file={{
+            name: `Document - ${date.format(new Date(selected.created_at))}.pdf`,
+            load: async (signal) => {
+              const response = await fetch(`/api/documents/${selected.id}`, {
+                signal,
+              });
+              if (!response.ok) throw Error();
+              return response.blob();
+            },
+          }}
+          onClose={() => setSelected(undefined)}
+        />
+      )}
     </main>
   );
 }

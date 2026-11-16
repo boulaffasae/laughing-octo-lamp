@@ -912,16 +912,30 @@ h4 {
 }
 .library-item {
   display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  width: 100%;
   gap: 10px;
   padding: 14px;
-  align-content: start;
-  justify-items: start;
-  align-items: start;
+  background: white;
+  color: var(--navy);
+  text-align: start;
   overflow-wrap: anywhere;
+}
+.library-item:hover {
+  background: #f8faff;
+  border-color: #adbfeb;
+}
+.library-item-copy {
+  display: grid;
+  gap: 4px;
+}
+.library-item-arrow {
+  color: var(--muted);
 }
 .library-item time,
 .library-item small,
-.history-row time {
+.library-revision time {
   display: block;
   color: var(--muted);
   font-size: 0.82rem;
@@ -945,30 +959,88 @@ h4 {
   background: var(--pale);
 }
 .library-dialog-wide {
-  width: min(680px, calc(100vw - 24px));
+  width: min(1100px, calc(100vw - 24px));
 }
-.library-dialog-wide > :is(a, h3, button:not(.icon-button)) {
-  margin-block-start: 12px;
+.library-dialog-wide .dialog-header h2 {
+  font-size: clamp(1.1rem, 3vw, 1.45rem);
+}
+.library-preview {
+  display: grid;
+  gap: 16px;
+}
+.library-preview-with-sidebar {
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 230px);
+}
+.library-preview-main {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-width: 0;
+}
+.library-preview-main .button {
+  min-height: 36px;
+  padding: 6px 10px;
 }
 .library-pdf-frame {
   display: block;
   width: 100%;
-  height: min(65dvh, 820px);
+  height: min(69dvh, 860px);
+  background: #f3f5f8;
   border: 1px solid var(--line);
   border-radius: 8px;
 }
+.library-preview-sidebar {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  max-height: 74dvh;
+  overflow: auto;
+  padding-inline-start: 12px;
+  border-inline-start: 1px solid var(--line);
+}
+.library-preview-sidebar h3 {
+  font-size: 1rem;
+}
+.library-preview-sidebar .button {
+  min-height: 36px;
+  padding: 6px 10px;
+}
 .history-list {
+  display: grid;
+  gap: 5px;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
-.history-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding-block: 8px;
-  border-block-end: 1px solid var(--line);
+.library-revision {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+  min-height: 39px;
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: white;
+  text-align: start;
+}
+.library-revision:is(:hover, [aria-pressed="true"]) {
+  border-color: #adbfeb;
+  background: var(--pale);
+}
+@media (max-width: 650px) {
+  .library-preview-with-sidebar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .library-preview-with-sidebar .library-pdf-frame {
+    height: 48dvh;
+  }
+  .library-preview-sidebar {
+    max-height: none;
+    padding-inline-start: 0;
+    padding-block-start: 10px;
+    border-inline-start: 0;
+    border-block-start: 1px solid var(--line);
+  }
 }
 .contract-save {
   margin-block-start: 10px;

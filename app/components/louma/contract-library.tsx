@@ -1,16 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { FileText, History, Plus } from "lucide-react";
+import { FileText, Plus } from "lucide-react";
 import { words, type Agreement } from "@/lib/contract/agreement";
 import type {
   ContractRevision,
   ContractSummary,
 } from "@/lib/contract/saved-contract";
 import type { Locale } from "@/i18n/locales";
-import { PdfControls } from "./pdf-controls";
+import { PdfPreview } from "./pdf-preview";
+import { FileTeaser } from "./file-teaser";
 import { contractPdfName } from "./pdf-file";
-import { LibraryModal } from "./library-modal";
 import {
   LibraryResults,
   PeriodFilter,
@@ -43,6 +43,7 @@ function ContractDetails({
     more: false,
   });
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
+  const [revision, setRevision] = useState(0);
   const pending = useRef(false);
   const fetched = useRef<AbortController>(null);
   const base = `/api/contracts/${contract.id}`;
@@ -89,84 +90,93 @@ function ContractDetails({
   }
 
   const title = contract.title || t("Contrat de location", "عقد كراء السيارة");
-  const pdf = (revision: number) => async () => {
+  async function load(signal: AbortSignal) {
     const { snapshot } = await json<{ snapshot: Agreement }>(
       `${base}?revision=${revision}`,
+      signal,
     );
     const { buildContractPdf } = await import("../contract/contract-pdf");
+    signal.throwIfAborted();
     return buildContractPdf(snapshot);
-  };
+  }
 
   return (
-    <LibraryModal
+    <PdfPreview
+      locale={locale}
       title={title}
-      closeLabel={t("Fermer", "إغلاق")}
-      open
+      fileKey={revision}
+      file={{
+        name: revision ? `Contrat - v${revision}.pdf` : contractPdfName,
+        load,
+      }}
       onClose={onClose}
-      wide
-    >
-      <div className="history-row">
-        <span>{t("Brouillon actuel", "المسودة الحالية")}</span>
-        <PdfControls
-          locale={locale}
-          name={contractPdfName}
-          load={pdf(0)}
-          preview
-        />
-      </div>
-      <a
-        className="button secondary"
-        href={`/${locale}/contracts/${contract.id}`}
-      >
-        {t("Reprendre le contrat", "متابعة تعديل العقد")}
-      </a>
-      <h3>{t("Historique des versions", "سجل الإصدارات")}</h3>
-      {history.revisions.length > 0 && (
-        <ol className="history-list">
-          {history.revisions.map(({ revision, created_at }) => (
-            <li className="history-row" key={revision}>
-              <div>
-                <strong>
-                  {t("Version", "الإصدار")} {revision}
-                </strong>
-                <time dateTime={created_at}>
-                  {date.format(new Date(created_at))}
-                </time>
-              </div>
-              <PdfControls
-                locale={locale}
-                name={`Contrat - v${revision}.pdf`}
-                load={pdf(revision)}
-                preview
-              />
-            </li>
-          ))}
-        </ol>
-      )}
-      {state === "loading" && (
-        <p role="status">{t("Chargement…", "جارٍ التحميل…")}</p>
-      )}
-      {state === "ready" && !history.revisions.length && (
-        <p>{t("Aucune version enregistrée.", "لا توجد إصدارات محفوظة.")}</p>
-      )}
-      {state === "error" && (
-        <p className="error" role="alert">
-          {t("Impossible de charger les versions.", "تعذر تحميل الإصدارات.")}
-        </p>
-      )}
-      {(state === "error" || history.more) && (
-        <button
-          type="button"
-          className="button secondary"
-          disabled={state === "loading"}
-          onClick={() => void older()}
-        >
-          {state === "error"
-            ? t("Réessayer", "إعادة المحاولة")
-            : t("Versions plus anciennes", "إصدارات أقدم")}
-        </button>
-      )}
-    </LibraryModal>
+      sidebar={
+        <>
+          <h3>{t("Historique des versions", "سجل الإصدارات")}</h3>
+          <button
+            type="button"
+            className="library-revision"
+            aria-pressed={revision === 0}
+            onClick={() => setRevision(0)}
+          >
+            {t("Brouillon actuel", "المسودة الحالية")}
+          </button>
+          <a
+            className="button secondary"
+            href={`/${locale}/contracts/${contract.id}`}
+          >
+            {t("Reprendre le contrat", "متابعة تعديل العقد")}
+          </a>
+          {history.revisions.length > 0 && (
+            <ol className="history-list">
+              {history.revisions.map((item) => (
+                <li key={item.revision}>
+                  <button
+                    type="button"
+                    className="library-revision"
+                    aria-pressed={revision === item.revision}
+                    onClick={() => setRevision(item.revision)}
+                  >
+                    <strong>
+                      {t("Version", "الإصدار")} {item.revision}
+                    </strong>
+                    <time dateTime={item.created_at}>
+                      {date.format(new Date(item.created_at))}
+                    </time>
+                  </button>
+                </li>
+              ))}
+            </ol>
+          )}
+          {state === "loading" && (
+            <p role="status">{t("Chargement…", "جارٍ التحميل…")}</p>
+          )}
+          {state === "ready" && !history.revisions.length && (
+            <p>{t("Aucune version enregistrée.", "لا توجد إصدارات محفوظة.")}</p>
+          )}
+          {state === "error" && (
+            <p className="error" role="alert">
+              {t(
+                "Impossible de charger les versions.",
+                "تعذر تحميل الإصدارات.",
+              )}
+            </p>
+          )}
+          {(state === "error" || history.more) && (
+            <button
+              type="button"
+              className="button secondary"
+              disabled={state === "loading"}
+              onClick={() => void older()}
+            >
+              {state === "error"
+                ? t("Réessayer", "إعادة المحاولة")
+                : t("Versions plus anciennes", "إصدارات أقدم")}
+            </button>
+          )}
+        </>
+      }
+    />
   );
 }
 
@@ -223,36 +233,19 @@ export function ContractLibrary({ locale }: { locale: Locale }) {
         >
           <ul className="library-grid">
             {list.items.map((contract) => (
-              <li key={contract.id} className="library-item">
-                <span className="library-item-mark">
-                  <FileText size={21} aria-hidden />
-                </span>
-                <div>
-                  <strong>
-                    {contract.title ||
-                      t("Contrat de location", "عقد كراء السيارة")}
-                  </strong>
-                  {(contract.renter || contract.plate) && (
-                    <small>
-                      {[contract.renter, contract.plate]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </small>
-                  )}
-                  <time dateTime={contract.updated_at}>
-                    {date.format(new Date(contract.updated_at))}
-                  </time>
-                </div>
-                <button
-                  type="button"
-                  className="button secondary"
-                  aria-haspopup="dialog"
-                  onClick={() => setSelected(contract)}
-                >
-                  <History size={16} aria-hidden />
-                  {t("Historique et PDF", "السجل وملف PDF")}
-                </button>
-              </li>
+              <FileTeaser
+                key={contract.id}
+                locale={locale}
+                title={
+                  contract.title || t("Contrat de location", "عقد كراء السيارة")
+                }
+                details={[contract.renter, contract.plate]
+                  .filter(Boolean)
+                  .join(" · ")}
+                date={contract.updated_at}
+                dateLabel={date.format(new Date(contract.updated_at))}
+                onOpen={() => setSelected(contract)}
+              />
             ))}
           </ul>
         </LibraryResults>
