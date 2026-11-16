@@ -157,13 +157,12 @@ export function FileTeaser({
           ) : (
             <span className="library-poster-paper">
               <FileSignature size={17} />
-              <span>{title}</span>
             </span>
           )}
         </span>
         <span className="library-item-copy">
           <time dateTime={date}>{dateLabel}</time>
-          <strong>{title}</strong>
+          <span className="sr-only">{title}</span>
           {details && <small>{details}</small>}
         </span>
       </button>

@@ -294,7 +294,6 @@ export function ContractLibrary({ locale }: { locale: Locale }) {
       </section>
       <section className="shell library-content">
         <div className="library-heading">
-          <h2>{t("Contrats enregistrés", "العقود المحفوظة")}</h2>
           <PeriodFilter
             locale={locale}
             label={t("Dernière modification", "آخر تعديل")}

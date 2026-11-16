@@ -199,7 +199,6 @@ export function PeriodFilter({
         <div className="library-calendar" aria-label={label} role="region">
           <DayPicker
             mode="range"
-            numberOfMonths={2}
             timeZone={libraryTimeZone}
             locale={locale === "ar" ? arMA : fr}
             dir={locale === "ar" ? "rtl" : "ltr"}
@@ -213,13 +212,6 @@ export function PeriodFilter({
           <div className="library-calendar-actions">
             <button
               type="button"
-              className="button secondary"
-              onClick={() => commit(null)}
-            >
-              {t("Effacer", "مسح")}
-            </button>
-            <button
-              type="button"
               className="button"
               disabled={!selected?.from}
               onClick={() => {
@@ -231,6 +223,13 @@ export function PeriodFilter({
               }}
             >
               {t("Appliquer", "تطبيق")}
+            </button>
+            <button
+              type="button"
+              className="button secondary"
+              onClick={() => commit(null)}
+            >
+              {t("Effacer", "مسح")}
             </button>
           </div>
         </div>

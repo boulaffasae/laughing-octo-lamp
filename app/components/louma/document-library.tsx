@@ -174,7 +174,6 @@ export function DocumentLibrary({ locale }: { locale: Locale }) {
       </section>
       <section className="shell library-content">
         <div className="library-heading">
-          <h2>{t("Documents PDF", "مستندات PDF")}</h2>
           <PeriodFilter
             locale={locale}
             label={t("Date d’ajout", "تاريخ الإضافة")}

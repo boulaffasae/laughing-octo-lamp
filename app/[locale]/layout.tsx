@@ -1,3 +1,4 @@
+import { siteTitle } from "@/app/components/louma/site";
 import { AccountContext } from "@/app/components/louma/account";
 import { ClerkProvider } from "@clerk/nextjs";
 import { arSA, frFR } from "@clerk/localizations";
@@ -10,9 +11,11 @@ import "../globals.css";
 
 export const metadata: Metadata = {
   metadataBase: siteUrl ? new URL(siteUrl) : undefined,
-  title: "Louma — Contrats de location",
+  title: siteTitle,
   description:
     "Créez, téléchargez et retrouvez vos contrats de location de voiture.",
+  openGraph: { title: siteTitle, siteName: "Louma" },
+  twitter: { title: siteTitle },
 };
 
 export function generateStaticParams() {

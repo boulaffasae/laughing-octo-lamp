@@ -345,8 +345,7 @@ h4 {
   margin-block-end: 18px;
 }
 .wizard-title,
-.wizard-actions,
-.library-heading {
+.wizard-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -764,9 +763,17 @@ h4 {
   min-height: 46vh;
   padding-block: 56px;
 }
-.info-page p {
+.info-page h2 {
+  margin-block: 24px 8px;
+  font-size: 1.125rem;
+}
+.info-page p,
+.info-page address {
   max-width: 620px;
-  margin-block: 16px;
+  margin-block: 12px;
+}
+.info-page address {
+  font-style: normal;
 }
 
 .paper {
@@ -806,12 +813,9 @@ h4 {
   padding-block: 36px 56px;
 }
 .library-heading {
-  align-items: end;
-  flex-wrap: wrap;
+  display: flex;
+  justify-content: left;
   margin-block-end: 16px;
-}
-.library-heading h2 {
-  font-size: clamp(1.25rem, 3vw, 1.6rem);
 }
 .library-filter {
   position: relative;
@@ -823,7 +827,7 @@ h4 {
   position: absolute;
   z-index: 5;
   inset-block-start: calc(100% + 8px);
-  inset-inline-end: 0;
+  left: 0;
   width: max-content;
   max-width: calc(100vw - 32px);
   padding: 12px;
@@ -836,28 +840,25 @@ h4 {
 .library-calendar .rdp-root {
   --rdp-accent-color: var(--blue);
   --rdp-accent-background-color: var(--pale);
-  --rdp-months-gap: 12px;
-  --rdp-day-width: clamp(29px, 9vw, 36px);
+  font-size: 0.875rem;
+  --rdp-day-width: clamp(27px, 8vw, 32px);
+  --rdp-nav-height: 34px;
+  --rdp-nav_button-width: 32px;
+  --rdp-nav_button-height: 32px;
   --rdp-day-height: var(--rdp-day-width);
   --rdp-day_button-width: calc(var(--rdp-day-width) - 2px);
   --rdp-day_button-height: var(--rdp-day_button-width);
 }
 .library-calendar-actions {
-  justify-content: space-between;
-  margin-block-start: 10px;
+  direction: ltr;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-block-start: 8px;
 }
-@media (max-width: 600px) {
-  .library-heading {
-    display: grid;
-    justify-content: stretch;
-  }
-  .library-calendar {
-    inset-inline-start: 0;
-    inset-inline-end: auto;
-  }
-  .library-calendar .rdp-months {
-    flex-direction: column;
-  }
+.library-calendar-actions .button {
+  min-height: 32px;
+  padding: 4px 10px;
+  font-size: 0.8125rem;
 }
 .library-grid {
   display: grid;
@@ -1005,16 +1006,6 @@ h4 {
   border-radius: 5px;
   background: white;
   box-shadow: 0 3px 9px #15282112;
-}
-.library-poster-paper > span {
-  display: -webkit-box;
-  overflow: hidden;
-  color: var(--navy);
-  font-size: 0.48rem;
-  font-weight: 650;
-  text-align: center;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
 }
 .library-poster-paper::after {
   content: "";
@@ -1262,6 +1253,13 @@ body {
   padding: 2px 6px;
   border-radius: 99px;
   color: var(--muted);
+}
+.languages .language-flag {
+  font-family:
+    "Inter Variable", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji",
+    system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1;
 }
 .languages [aria-current] {
   background: #fff;

@@ -3,6 +3,8 @@ import { words } from "@/lib/contract/agreement";
 import type { Locale } from "@/i18n/locales";
 import { AccountButtons } from "./account";
 
+export const siteTitle = "Louma — La location, tout simplement";
+
 export const topics = [
   "mentions-legales",
   "confidentialite",
@@ -49,7 +51,9 @@ export function Header({
               lang="fr"
               aria-current={locale === "fr" ? "page" : undefined}
             >
-              <span aria-hidden="true">🇫🇷</span>
+              <span className="language-flag" aria-hidden="true">
+                🇫🇷
+              </span>
               <span className="sr-only">Français</span>
             </a>
             <a
@@ -57,7 +61,9 @@ export function Header({
               lang="ar"
               aria-current={locale === "ar" ? "page" : undefined}
             >
-              <span aria-hidden="true">🇲🇦</span>
+              <span className="language-flag" aria-hidden="true">
+                🇲🇦
+              </span>
               <span className="sr-only">العربية</span>
             </a>
           </nav>
