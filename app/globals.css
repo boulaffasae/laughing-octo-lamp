@@ -1133,8 +1133,7 @@ body {
 .paper-band :is(input, textarea):focus {
   outline-color: var(--paper-ink);
 }
-.paper-rows,
-.paper-footer {
+.paper-rows {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
@@ -1221,7 +1220,12 @@ body {
 .paper-footer {
   margin-top: auto;
   border-top: 1px solid var(--paper-color);
+  padding-block-start: 6px;
   font-size: 0.88em;
+}
+.paper-footer textarea {
+  background: transparent;
+  border-block-end-color: transparent;
 }
 .paper-terms-grid section {
   min-width: 0;

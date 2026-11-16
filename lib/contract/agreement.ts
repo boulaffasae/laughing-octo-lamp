@@ -8,10 +8,7 @@ export type Agreement = {
   logo: string;
   color: string;
   agency: string;
-  company: string;
-  agencyAddress: string;
-  registration: string;
-  phone: string;
+  footerText: string;
   documents: DocumentFields[];
   start: string;
   end: string;
@@ -80,10 +77,10 @@ export function initialAgreement(locale: Locale): Agreement {
     logo: "",
     color: "#235346",
     agency: "",
-    company: "",
-    agencyAddress: "",
-    registration: "",
-    phone: "",
+    footerText: t(
+      "Raison sociale : …… - RC : …… - ICE : …… - Adresse : …… - Téléphone : ……",
+      "اسم الشركة: …… - السجل التجاري: …… - المعرّف الموحد للمقاولة: …… - العنوان: …… - الهاتف: ……",
+    ),
     documents: createEmptyDocuments(),
     start: "",
     end: "",
@@ -119,7 +116,7 @@ export type FieldKey = AgreementField | readonly [number, string];
 type ContractField = {
   key: FieldKey;
   label: string;
-  type?: "date" | "time" | "tel";
+  type?: "date" | "time";
   fullWidth?: boolean;
 };
 
@@ -133,18 +130,9 @@ export function fieldId(key: FieldKey) {
 
 export function contractFields(
   locale: Locale,
-): Record<
-  Exclude<BlockId, "condition"> | "footer" | "amounts",
-  ContractField[]
-> {
+): Record<Exclude<BlockId, "condition"> | "amounts", ContractField[]> {
   const t = words(locale);
   return {
-    footer: [
-      { key: "company", label: t("Raison sociale", "اسم الشركة") },
-      { key: "registration", label: "RC / ICE" },
-      { key: "agencyAddress", label: t("Adresse", "العنوان") },
-      { key: "phone", label: t("Téléphone", "الهاتف"), type: "tel" },
-    ],
     renter: [
       { key: [0, "lastName"], label: t("Nom", "اسم العائلة") },
       { key: [0, "firstName"], label: t("Prénom", "الاسم الشخصي") },

@@ -52,6 +52,7 @@ const styles = StyleSheet.create({
     right: 37,
     borderTopWidth: 1,
     paddingTop: 6,
+    fontSize: 8,
   },
   header: { borderBottomWidth: 2, marginBottom: 10 },
   pair: { flexDirection: "row", gap: 9, marginBottom: 9 },
@@ -169,7 +170,7 @@ export async function buildContractPdf(a: Agreement) {
   );
   const footer = () => (
     <View style={[styles.footer, { borderTopColor: a.color }]} fixed>
-      {rows("footer")}
+      <Text style={alignment}>{a.footerText}</Text>
     </View>
   );
   const clauses = (value: string, direction: "ltr" | "rtl") => {

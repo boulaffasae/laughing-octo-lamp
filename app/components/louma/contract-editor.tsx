@@ -67,7 +67,7 @@ function Inline({
   change: (value: string) => void;
   placeholder?: string;
   maxLength?: number;
-  type?: "text" | "date" | "time" | "tel";
+  type?: "text" | "date" | "time";
   multiline?: boolean;
   describedBy?: string;
 }) {
@@ -312,11 +312,7 @@ export function ContractEditor({ locale }: { locale: Locale }) {
     />
   );
 
-  const input = (
-    key: FieldKey,
-    label: string,
-    type?: "date" | "time" | "tel",
-  ) => (
+  const input = (key: FieldKey, label: string, type?: "date" | "time") => (
     <Inline
       label={label}
       value={fieldValue(a, key)}
@@ -365,7 +361,16 @@ export function ContractEditor({ locale }: { locale: Locale }) {
       className="paper-footer"
       aria-label={t("Coordonnées de l’agence", "بيانات الوكالة")}
     >
-      {rows("footer")}
+      <Inline
+        label={t("Texte du pied de page", "نص التذييل")}
+        value={a.footerText}
+        placeholder=""
+        maxLength={360}
+        multiline
+        change={(footerText) =>
+          change({ footerText: footerText.replace(/\n/g, " ") })
+        }
+      />
     </footer>
   );
 
