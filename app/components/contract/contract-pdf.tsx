@@ -72,6 +72,12 @@ const styles = StyleSheet.create({
   diagram: { width: 58, height: 82 },
   notes: { flex: 1, gap: 3 },
   note: { minHeight: 14, borderBottomWidth: 0.7, borderBottomColor: "#a5b7aa" },
+  dottedLine: {
+    height: 12.15,
+    borderBottomWidth: 0.7,
+    borderBottomStyle: "dotted",
+    borderBottomColor: "#687b72",
+  },
   label: { color: "#4c5e55", fontSize: 8 },
   signatures: { flexDirection: "row", gap: 9, marginTop: 8 },
   signature: {
@@ -224,20 +230,24 @@ export async function buildContractPdf(a: Agreement) {
             <Text style={[styles.label, alignment]}>
               {a.labels[keyId] ?? label}
             </Text>
-            <Text
-              style={[
-                alignment,
-                valueFont(value),
-                lines > 1 ? { minHeight: lines * 9 * 1.35 } : {},
-                { direction: leftToRight ? "ltr" : alignment.direction },
-              ]}
-            >
-              {value
-                ? leftToRight
-                  ? "\u200e" + value
-                  : value
-                : Array<string>(lines).fill(blank).join("\n")}
-            </Text>
+            {!value && lines > 1 ? (
+              <View>
+                {Array.from({ length: lines }, (_, index) => (
+                  <View key={index} style={styles.dottedLine} />
+                ))}
+              </View>
+            ) : (
+              <Text
+                style={[
+                  alignment,
+                  valueFont(value),
+                  lines > 1 ? { minHeight: lines * 9 * 1.35 } : {},
+                  { direction: leftToRight ? "ltr" : alignment.direction },
+                ]}
+              >
+                {value ? (leftToRight ? "\u200e" + value : value) : blank}
+              </Text>
+            )}
           </View>
         );
       })}

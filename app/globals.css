@@ -1248,8 +1248,11 @@ body {
   max-width: 75px;
 }
 .paper-logo-placeholder {
-  font-size: 0.83em;
-  padding-inline: 7px;
+  justify-content: center;
+  width: 44px;
+}
+.paper-logo-placeholder:hover {
+  background: #e8f1e9;
 }
 .paper-logo-placeholder svg {
   flex: none;
@@ -1322,6 +1325,18 @@ body {
 .inline-multiline .inline-copy {
   display: block;
   visibility: hidden;
+}
+.inline-dotted-lines {
+  display: grid;
+  grid-auto-rows: 1fr;
+  z-index: 1;
+  min-width: 0;
+  padding: 3px 4px 5px;
+  color: #687b72;
+  pointer-events: none;
+}
+.inline-dotted-lines > span {
+  border-block-end: 1px dotted currentColor;
 }
 .paper-block {
   min-width: 0;

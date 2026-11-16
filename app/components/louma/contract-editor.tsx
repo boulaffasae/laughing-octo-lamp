@@ -50,6 +50,7 @@ function Inline({
   type = "text",
   multiline = false,
   lines = 1,
+  dotted = false,
   describedBy,
 }: {
   label: string;
@@ -60,6 +61,7 @@ function Inline({
   type?: "text" | "date" | "time";
   multiline?: boolean;
   lines?: number;
+  dotted?: boolean;
   describedBy?: string;
 }) {
   return (
@@ -71,6 +73,13 @@ function Inline({
         {value || placeholder}
         {multiline ? " " : ""}
       </span>
+      {dotted && !value && (
+        <span className="inline-dotted-lines" aria-hidden>
+          {Array.from({ length: lines }, (_, index) => (
+            <span key={index} />
+          ))}
+        </span>
+      )}
       {multiline ? (
         <textarea
           rows={lines}
@@ -211,7 +220,8 @@ export function ContractEditor({
       type={type}
       multiline={!type}
       lines={lines}
-      placeholder={Array<string>(lines).fill(blank).join("\n")}
+      dotted={lines > 1}
+      placeholder={lines > 1 ? "" : blank}
       maxLength={lines > 1 ? addressMaxLength : 120}
       change={(value) => update(key, value)}
     />
@@ -355,15 +365,16 @@ export function ContractEditor({
                       /* eslint-disable-next-line @next/next/no-img-element -- The agency logo is a local data URL. */
                       <img src={a.logo} alt="" width={75} height={44} />
                     ) : (
-                      <>
-                        <ImagePlus size={19} aria-hidden />
-                        <span>{t("Importer un logo", "رفع شعار")}</span>
-                      </>
+                      <ImagePlus size={22} aria-hidden />
                     )}
                     <input
                       type="file"
                       accept="image/png,image/jpeg,image/webp"
-                      aria-label={t("Changer le logo", "تغيير الشعار")}
+                      aria-label={
+                        a.logo
+                          ? t("Changer le logo", "تغيير الشعار")
+                          : t("Importer un logo", "رفع شعار")
+                      }
                       aria-describedby={tour.describedBy(1)}
                       disabled={logoBusy}
                       onChange={async (e) => {
