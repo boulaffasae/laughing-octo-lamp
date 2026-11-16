@@ -1,14 +1,11 @@
-import { createRequire } from "node:module";
-import { dirname, join, sep } from "node:path";
-
-const require = createRequire(import.meta.url);
+import { join, sep } from "node:path";
 
 export async function renderPdfThumbnail(data: Uint8Array) {
   const [{ createCanvas }, { getDocument }] = await Promise.all([
     import("@napi-rs/canvas"),
     import("pdfjs-dist/legacy/build/pdf.mjs"),
   ]);
-  const assets = dirname(require.resolve("pdfjs-dist/package.json"));
+  const assets = join(process.cwd(), "node_modules", "pdfjs-dist");
   const loading = getDocument({
     data,
     cMapUrl: join(assets, "cmaps") + sep,
