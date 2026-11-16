@@ -5,7 +5,11 @@ import {
   privateHeaders,
   repository,
 } from "@/lib/document-storage";
-import { isAgreement, saveDraft } from "@/lib/contract/contract-storage";
+import {
+  isAgreement,
+  loadDraft,
+  saveDraft,
+} from "@/lib/contract/contract-storage";
 import { uuidPattern } from "@/lib/contract/saved-contract";
 import { readLimitedBody, UploadError } from "@/lib/ocr/upload-security";
 
@@ -34,6 +38,12 @@ export async function GET(
   }
 
   try {
+    if (search.has("draft")) {
+      const saved = await loadDraft(owner, id);
+      return saved
+        ? Response.json(saved, { headers: privateHeaders })
+        : failure("missing", 404);
+    }
     const sql = repository();
     if (search.has("revision")) {
       const [row] =

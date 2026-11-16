@@ -10,6 +10,7 @@ export function useContractSave(
   draft: Agreement,
   signedIn: boolean,
   saved?: SavedDraft,
+  onSaved?: () => void,
 ) {
   const [initialDraft] = useState(draft);
   const [syncedDraft, setSyncedDraft] = useState(saved?.draft);
@@ -20,6 +21,7 @@ export function useContractSave(
   const archivedDraft = useRef<Agreement>(undefined);
   const queue = useRef(Promise.resolve());
   const conflict = useRef(false);
+  const pendingSave = useRef<(() => void) | null>(null);
 
   function save(snapshot: Agreement, after?: Promise<Blob>) {
     if (!signedIn || conflict.current) return;
@@ -65,6 +67,7 @@ export function useContractSave(
         archivedDraft.current = snapshot;
         setSyncedDraft(snapshot);
         setPhase("saved");
+        onSaved?.();
       } catch {
         setPhase("error");
       }
@@ -75,9 +78,18 @@ export function useContractSave(
   const status =
     needsSync && (phase === "idle" || phase === "saved") ? "saving" : phase;
   const saveAutomatically = useEffectEvent(() => save(draft));
+
+  // Flush a debounced edit when the library closes the editor.
+  useEffect(() => () => pendingSave.current?.(), []);
   useEffect(() => {
+    pendingSave.current = null;
     if (!signedIn || !needsSync) return;
-    const timer = window.setTimeout(saveAutomatically, 900);
+    const flush = () => {
+      pendingSave.current = null;
+      saveAutomatically();
+    };
+    pendingSave.current = flush;
+    const timer = window.setTimeout(flush, 900);
     return () => window.clearTimeout(timer);
   }, [draft, signedIn, needsSync]);
 

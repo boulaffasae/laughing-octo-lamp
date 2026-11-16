@@ -13,6 +13,7 @@ import {
   useLibraryList,
 } from "./library-list";
 import { PdfPreview } from "./pdf-preview";
+import { fetchPdf } from "./pdf-file";
 import { FileTeaser } from "./file-teaser";
 
 type DocumentSummary = { id: string; created_at: string };
@@ -98,6 +99,14 @@ export function DocumentLibrary({ locale }: { locale: Locale }) {
     } finally {
       uploadPending.current = false;
     }
+  }
+
+  function documentFile(document: DocumentSummary) {
+    return {
+      name: `Document - ${date.format(new Date(document.created_at))}.pdf`,
+      load: (signal: AbortSignal) =>
+        fetchPdf(`/api/documents/${document.id}`, signal),
+    };
   }
 
   return (
@@ -197,6 +206,7 @@ export function DocumentLibrary({ locale }: { locale: Locale }) {
                 thumbnail={`/api/documents/${document.id}/thumbnail`}
                 date={document.created_at}
                 dateLabel={date.format(new Date(document.created_at))}
+                file={documentFile(document)}
                 onOpen={() => setSelected(document)}
               />
             ))}
@@ -208,16 +218,7 @@ export function DocumentLibrary({ locale }: { locale: Locale }) {
           locale={locale}
           title={title}
           fileKey={selected.id}
-          file={{
-            name: `Document - ${date.format(new Date(selected.created_at))}.pdf`,
-            load: async (signal) => {
-              const response = await fetch(`/api/documents/${selected.id}`, {
-                signal,
-              });
-              if (!response.ok) throw Error();
-              return response.blob();
-            },
-          }}
+          file={documentFile(selected)}
           onClose={() => setSelected(undefined)}
         />
       )}

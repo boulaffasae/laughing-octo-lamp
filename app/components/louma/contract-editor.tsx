@@ -108,9 +108,11 @@ function Inline({
 export function ContractEditor({
   locale,
   saved,
+  onSaved,
 }: {
   locale: Locale;
   saved?: SavedDraft;
+  onSaved?: () => void;
 }) {
   const t = words(locale);
   const account = useAccount();
@@ -121,7 +123,7 @@ export function ContractEditor({
   const tour = useContractTour(locale, !saved);
   const dir = a.locale === "ar" ? "rtl" : "ltr";
   const paperText = words(a.locale);
-  const persistence = useContractSave(a, account.signedIn, saved);
+  const persistence = useContractSave(a, account.signedIn, saved, onSaved);
   const [SyncIcon, syncLabel] = {
     idle: [
       Cloud,
