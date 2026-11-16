@@ -1,5 +1,7 @@
 import {
   blank,
+  conditionDiagram,
+  conditionNoteGroups,
   contractFields,
   fieldId,
   fieldValue,
@@ -39,7 +41,7 @@ const styles = StyleSheet.create({
   front: {
     flexDirection: "row",
     gap: 9,
-    marginBottom: 14,
+    marginBottom: 9,
     alignItems: "stretch",
   },
   column: { flex: 1, minWidth: 0, gap: 9 },
@@ -62,6 +64,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   row: { width: "50%", paddingBottom: 4, paddingHorizontal: 3 },
+  amounts: { marginTop: 5, marginBottom: 7 },
+  inspection: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    padding: 6,
+    paddingHorizontal: 9,
+  },
+  diagram: { width: 58, height: 82 },
+  notes: { flex: 1, gap: 3 },
+  note: { minHeight: 14, borderBottomWidth: 0.7, borderBottomColor: "#a5b7aa" },
   label: { color: "#4c5e55", fontSize: 8 },
   signatures: { flexDirection: "row", gap: 9, marginTop: 8 },
   signature: {
@@ -93,16 +106,25 @@ export async function buildContractPdf(a: Agreement) {
     direction: rtl ? ("rtl" as const) : ("ltr" as const),
   };
   const fields = contractFields(a.locale);
-  const rows = (id: BlockId | "footer") => (
-    <View style={[styles.rows, { flexDirection: rtl ? "row-reverse" : "row" }]}>
-      {fields[id].map(({ key, label, type }) => {
+  const rows = (id: keyof typeof fields) => (
+    <View
+      style={[
+        styles.rows,
+        { flexDirection: rtl ? "row-reverse" : "row" },
+        ...(id === "amounts" ? [styles.amounts] : []),
+      ]}
+    >
+      {fields[id].map(({ key, label, type, fullWidth }) => {
         const id = fieldId(key);
         const raw = fieldValue(a, key).trim();
         const value =
           type === "date" && raw ? raw.split("-").reverse().join("/") : raw;
         const leftToRight = rtl && value && !/\p{Script=Arabic}/u.test(value);
         return (
-          <View key={id} style={styles.row}>
+          <View
+            key={id}
+            style={fullWidth ? [styles.row, { width: "100%" }] : styles.row}
+          >
             <Text style={[styles.label, alignment]}>
               {a.labels[id] ?? label}
             </Text>
@@ -119,18 +141,30 @@ export async function buildContractPdf(a: Agreement) {
       })}
     </View>
   );
-  const block = (id: BlockId, stretch = false) => (
+  const heading = (id: BlockId) => (
+    <Text
+      style={[
+        styles.heading,
+        alignment,
+        { backgroundColor: a.color, color: headingInk(a.color) },
+      ]}
+    >
+      {a.headings[id]}
+    </Text>
+  );
+  const block = (id: Exclude<BlockId, "condition">, stretch = false) => (
     <View style={[styles.section, stretch ? { flex: 1 } : {}]} wrap={false}>
-      <Text
-        style={[
-          styles.heading,
-          alignment,
-          { backgroundColor: a.color, color: headingInk(a.color) },
-        ]}
-      >
-        {a.headings[id]}
-      </Text>
+      {heading(id)}
       {rows(id)}
+    </View>
+  );
+  const notes = (group: readonly number[]) => (
+    <View style={styles.notes}>
+      {group.map((index) => (
+        <Text key={index} style={[styles.note, alignment]}>
+          {a.conditionNotes[index] || " "}
+        </Text>
+      ))}
     </View>
   );
   const footer = () => (
@@ -197,6 +231,19 @@ export async function buildContractPdf(a: Agreement) {
           </View>
         </View>
         <View wrap={false}>
+          <View style={styles.section}>
+            {heading("condition")}
+            <View style={styles.inspection}>
+              {notes(conditionNoteGroups[0])}
+              {/* eslint-disable-next-line jsx-a11y/alt-text -- React PDF Image has no alt property. */}
+              <Image
+                src={new URL(conditionDiagram, window.location.origin).href}
+                style={styles.diagram}
+              />
+              {notes(conditionNoteGroups[1])}
+            </View>
+          </View>
+          {rows("amounts")}
           <Text style={alignment}>
             {a.labels.place ?? t("Fait à / le", "حرر في / بتاريخ")} :{" "}
             {a.place || blank}

@@ -1,7 +1,7 @@
 import { createEmptyDocuments, type DocumentFields } from "./documents";
 import type { Locale } from "@/i18n/locales";
 
-export type BlockId = "renter" | "vehicle" | "rental";
+export type BlockId = "renter" | "vehicle" | "rental" | "condition";
 export type Agreement = {
   locale: Locale;
   title: string;
@@ -17,7 +17,7 @@ export type Agreement = {
   end: string;
   startTime: string;
   endTime: string;
-  condition: string;
+  conditionNotes: string[];
   place: string;
   price: string;
   deposit: string;
@@ -89,7 +89,7 @@ export function initialAgreement(locale: Locale): Agreement {
     end: "",
     startTime: "",
     endTime: "",
-    condition: "",
+    conditionNotes: Array<string>(6).fill(""),
     place: "",
     price: "",
     deposit: "",
@@ -99,6 +99,7 @@ export function initialAgreement(locale: Locale): Agreement {
       renter: t("Locataire", "المستأجر"),
       vehicle: t("Véhicule", "السيارة"),
       rental: t("Départ / Retour", "التسليم / الإرجاع"),
+      condition: t("État", "حالة السيارة"),
     },
     termsTitles: { fr: "Conditions de location", ar: "شروط الكراء" },
     labels: {},
@@ -107,13 +108,19 @@ export function initialAgreement(locale: Locale): Agreement {
 
 type AgreementField = Exclude<
   keyof Agreement,
-  "locale" | "documents" | "headings" | "termsTitles" | "labels"
+  | "locale"
+  | "documents"
+  | "headings"
+  | "termsTitles"
+  | "labels"
+  | "conditionNotes"
 >;
 export type FieldKey = AgreementField | readonly [number, string];
 type ContractField = {
   key: FieldKey;
   label: string;
   type?: "date" | "time" | "tel";
+  fullWidth?: boolean;
 };
 
 export function fieldValue(a: Agreement, key: FieldKey) {
@@ -126,7 +133,10 @@ export function fieldId(key: FieldKey) {
 
 export function contractFields(
   locale: Locale,
-): Record<BlockId | "footer", ContractField[]> {
+): Record<
+  Exclude<BlockId, "condition"> | "footer" | "amounts",
+  ContractField[]
+> {
   const t = words(locale);
   return {
     footer: [
@@ -136,30 +146,28 @@ export function contractFields(
       { key: "phone", label: t("Téléphone", "الهاتف"), type: "tel" },
     ],
     renter: [
-      { key: [0, "name"], label: t("Nom et prénom", "الاسم الكامل") },
+      { key: [0, "lastName"], label: t("Nom", "اسم العائلة") },
+      { key: [0, "firstName"], label: t("Prénom", "الاسم الشخصي") },
       { key: [0, "identity"], label: t("CNIE", "رقم البطاقة الوطنية") },
       {
         key: [0, "issued"],
         label: t("CNIE délivrée le", "تاريخ إصدار البطاقة"),
         type: "date",
       },
-      { key: [0, "address"], label: t("Adresse", "العنوان") },
-      { key: [0, "city"], label: t("Ville", "المدينة") },
+      { key: [0, "address"], label: t("Adresse", "العنوان"), fullWidth: true },
       { key: [1, "licence"], label: t("Permis", "رخصة السياقة") },
       {
         key: [1, "issued"],
         label: t("Permis délivré le", "تاريخ إصدار الرخصة"),
         type: "date",
       },
+      { key: [0, "city"], label: t("Ville", "المدينة") },
     ],
     vehicle: [
-      { key: [2, "brand"], label: t("Marque / Modèle", "الماركة / الطراز") },
+      { key: [2, "brand"], label: t("Marque", "الماركة") },
+      { key: [2, "model"], label: t("Modèle", "الطراز") },
       { key: [2, "plate"], label: t("Immatriculation", "رقم التسجيل") },
       { key: [2, "fuel"], label: t("Carburant", "الوقود") },
-      {
-        key: "condition",
-        label: t("État au départ", "حالة السيارة عند التسليم"),
-      },
     ],
     rental: [
       {
@@ -178,6 +186,8 @@ export function contractFields(
         label: t("Heure de retour", "وقت الإرجاع"),
         type: "time",
       },
+    ],
+    amounts: [
       { key: "price", label: t("Total (MAD)", "المجموع (درهم)") },
       { key: "deposit", label: t("Caution (MAD)", "الضمان (درهم)") },
     ],
@@ -185,3 +195,9 @@ export function contractFields(
 }
 
 export const blank = "……………………";
+
+export const conditionDiagram = "/contract-car.png";
+export const conditionNoteGroups = [
+  [0, 1, 2],
+  [3, 4, 5],
+] as const;

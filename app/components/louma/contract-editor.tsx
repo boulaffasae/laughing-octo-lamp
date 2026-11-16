@@ -6,20 +6,20 @@ import {
   useRef,
   useState,
   type CSSProperties,
-  type ReactNode,
 } from "react";
 import {
   ArrowDownToLine,
   Check,
-  CircleHelp,
   ImagePlus,
-  PencilLine,
   Printer,
   Share2,
   X,
 } from "lucide-react";
+import Image from "next/image";
 import {
   blank,
+  conditionDiagram,
+  conditionNoteGroups,
   contractFields,
   fieldId,
   fieldValue,
@@ -60,6 +60,7 @@ function Inline({
   maxLength = 120,
   type = "text",
   multiline = false,
+  describedBy,
 }: {
   label: string;
   value: string;
@@ -68,6 +69,7 @@ function Inline({
   maxLength?: number;
   type?: "text" | "date" | "time" | "tel";
   multiline?: boolean;
+  describedBy?: string;
 }) {
   return (
     <span
@@ -81,6 +83,7 @@ function Inline({
         <textarea
           rows={1}
           aria-label={label}
+          aria-describedby={describedBy}
           value={value}
           placeholder={placeholder}
           maxLength={maxLength}
@@ -89,6 +92,7 @@ function Inline({
       ) : (
         <input
           aria-label={label}
+          aria-describedby={describedBy}
           type={type}
           value={value}
           placeholder={placeholder}
@@ -243,7 +247,6 @@ export function ContractEditor({ locale }: { locale: Locale }) {
   const t = words(locale);
   const dir = locale === "ar" ? "rtl" : "ltr";
   const [a, setAgreement] = useState(() => initialAgreement(locale));
-  const [guide, setGuide] = useState(true);
   const [logoBusy, setLogoBusy] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [logoError, setLogoError] = useState("");
@@ -323,41 +326,43 @@ export function ContractEditor({ locale }: { locale: Locale }) {
     />
   );
 
-  const rows = (id: BlockId | "footer") =>
-    fields[id].map(({ key, label, type }) => (
-      <div className="paper-row" key={fieldId(key)}>
+  const rows = (id: keyof typeof fields) =>
+    fields[id].map(({ key, label, type, fullWidth }) => (
+      <div
+        className={fullWidth ? "paper-row paper-row-wide" : "paper-row"}
+        key={fieldId(key)}
+      >
         <div className="paper-row-label">{caption(fieldId(key), label)}</div>
         {input(key, label, type)}
       </div>
     ));
 
-  const block = (id: BlockId) => (
-    <section
-      id={id === "renter" ? "contract-renter" : undefined}
-      className={`paper-block paper-${id}`}
-      dir={dir}
-    >
-      <h3 className="paper-band">
-        <Inline
-          label={t("Titre de section", "عنوان القسم") + " · " + id}
-          value={a.headings[id]}
-          maxLength={65}
-          change={(value) =>
-            setAgreement((current) => ({
-              ...current,
-              headings: { ...current.headings, [id]: value },
-            }))
-          }
-        />
-      </h3>
+  const band = (id: BlockId) => (
+    <h3 className="paper-band">
+      <Inline
+        label={t("Titre de section", "عنوان القسم") + " · " + id}
+        value={a.headings[id]}
+        maxLength={65}
+        change={(value) =>
+          setAgreement((current) => ({
+            ...current,
+            headings: { ...current.headings, [id]: value },
+          }))
+        }
+      />
+    </h3>
+  );
+
+  const block = (id: Exclude<BlockId, "condition">) => (
+    <section className={`paper-block paper-${id}`} dir={dir}>
+      {band(id)}
       <div className="paper-rows">{rows(id)}</div>
     </section>
   );
 
-  const footer = (id?: string) => (
+  const footer = () => (
     <footer
       className="paper-footer"
-      id={id}
       aria-label={t("Coordonnées de l’agence", "بيانات الوكالة")}
     >
       {rows("footer")}
@@ -392,89 +397,12 @@ export function ContractEditor({ locale }: { locale: Locale }) {
     );
   };
 
-  function guideLink(target: string, label: ReactNode) {
-    const selector =
-      target === "contract-agency"
-        ? ".paper-agency-name input"
-        : target === "contract-terms"
-          ? `section[lang="${locale}"] > .inline-field textarea`
-          : ".paper-row > .inline-field :is(input, textarea)";
-    return (
-      <a
-        href={`#${target}`}
-        onClick={(event) => {
-          const field = document
-            .getElementById(target)
-            ?.querySelector<HTMLElement>(selector);
-          if (field) {
-            event.preventDefault();
-            field.focus();
-            field.scrollIntoView({ block: "center" });
-          }
-        }}
-      >
-        {label}
-      </a>
-    );
-  }
-
   return (
     <section
       id="contrat"
       className="shell workspace contract-editor"
       aria-label={t("Modifier le contrat", "تعديل العقد")}
     >
-      <div className="editor-guide">
-        {guide ? (
-          <>
-            <PencilLine aria-hidden size={20} />
-            <div id="contract-guide">
-              <strong>
-                {t(
-                  "Modifiez directement sur les pages",
-                  "عدّل العقد مباشرة على الصفحات",
-                )}
-              </strong>
-              <p>
-                {t(
-                  "Cliquez sur un texte ou sur les pointillés pour écrire.",
-                  "انقر على النص أو النقاط للكتابة.",
-                )}
-              </p>
-              <nav aria-label={t("Accès aux champs", "الوصول إلى الحقول")}>
-                {guideLink(
-                  "contract-agency",
-                  t("Logo et nom", "الشعار والاسم"),
-                )}
-                {guideLink(
-                  "contract-renter",
-                  t("Champs du contrat", "حقول العقد"),
-                )}
-                {guideLink("contract-footer", t("Pied de page", "التذييل"))}
-                {guideLink("contract-terms", t("Conditions", "الشروط"))}
-              </nav>
-            </div>
-            <button
-              className="icon-button guide-close"
-              type="button"
-              aria-label={t("Masquer l’aide", "إخفاء المساعدة")}
-              onClick={() => setGuide(false)}
-            >
-              <X size={16} />
-            </button>
-          </>
-        ) : (
-          <button
-            className="button secondary"
-            type="button"
-            onClick={() => setGuide(true)}
-          >
-            <CircleHelp size={16} aria-hidden />{" "}
-            {t("Aide à la modification", "مساعدة في التعديل")}
-          </button>
-        )}
-      </div>
-
       <div
         className="editor-canvas"
         style={
@@ -487,59 +415,74 @@ export function ContractEditor({ locale }: { locale: Locale }) {
         <div className="paper-scroll">
           <article className="paper">
             <header className="paper-header">
-              <div className="paper-brand" id="contract-agency">
-                <label
-                  className="paper-logo upload-control"
-                  title={t("Changer le logo", "تغيير الشعار")}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element -- The agency logo is a local data URL. */}
-                  <img
-                    src={a.logo || "/louma.svg"}
-                    alt=""
-                    width={52}
-                    height={40}
-                  />
-                  <ImagePlus size={15} aria-hidden />
-                  <input
-                    type="file"
-                    accept="image/png,image/jpeg,image/webp"
-                    aria-label={t("Changer le logo", "تغيير الشعار")}
-                    disabled={logoBusy}
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      e.target.value = "";
-                      if (!file) return;
-                      setLogoBusy(true);
-                      setLogoError("");
-                      try {
-                        change({
-                          logo: (
-                            await prepareImage(file, {
-                              maxSide: 640,
-                              output: "image/png",
-                            })
-                          ).src,
-                        });
-                      } catch {
-                        setLogoError(
-                          t(
-                            "Logo : PNG, JPG ou WebP · 4 Mo max.",
-                            "الشعار: PNG أو JPG أو WebP · حتى 4 ميغابايت",
-                          ),
-                        );
-                      } finally {
-                        setLogoBusy(false);
-                      }
-                    }}
-                  />
-                </label>
-                <div className="paper-agency-name">
+              <div className="paper-brand">
+                <div className="paper-help">
+                  <label className="paper-logo upload-control">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- The agency logo is a local data URL. */}
+                    <img
+                      src={a.logo || "/louma.svg"}
+                      alt=""
+                      width={52}
+                      height={40}
+                    />
+                    <ImagePlus size={15} aria-hidden />
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      aria-label={t("Changer le logo", "تغيير الشعار")}
+                      aria-describedby="contract-logo-help"
+                      disabled={logoBusy}
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        e.target.value = "";
+                        if (!file) return;
+                        setLogoBusy(true);
+                        setLogoError("");
+                        try {
+                          change({
+                            logo: (
+                              await prepareImage(file, {
+                                maxSide: 640,
+                                output: "image/png",
+                              })
+                            ).src,
+                          });
+                        } catch {
+                          setLogoError(
+                            t(
+                              "Logo : PNG, JPG ou WebP · 4 Mo max.",
+                              "الشعار: PNG أو JPG أو WebP · حتى 4 ميغابايت",
+                            ),
+                          );
+                        } finally {
+                          setLogoBusy(false);
+                        }
+                      }}
+                    />
+                  </label>
+                  <span
+                    className="paper-tooltip"
+                    id="contract-logo-help"
+                    role="tooltip"
+                  >
+                    {t("1. Changer le logo", "١. تغيير الشعار")}
+                  </span>
+                </div>
+                <div className="paper-agency-name paper-help">
                   <Inline
                     label={t("Nom de l’agence", "اسم الوكالة")}
                     value={a.agency}
+                    describedBy="contract-agency-help"
                     placeholder={t("Nom de l’agence", "اسم الوكالة")}
                     change={(agency) => change({ agency })}
                   />
+                  <span
+                    className="paper-tooltip"
+                    id="contract-agency-help"
+                    role="tooltip"
+                  >
+                    {t("2. Ajouter le nom de l’agence", "٢. إضافة اسم الوكالة")}
+                  </span>
                 </div>
                 {a.logo && (
                   <button
@@ -569,6 +512,50 @@ export function ContractEditor({ locale }: { locale: Locale }) {
               {block("vehicle")}
               {block("rental")}
             </div>
+            <section className="paper-block paper-condition" dir={dir}>
+              {band("condition")}
+              <div className="paper-inspection">
+                {conditionNoteGroups.map((group, side) => (
+                  <div
+                    className={`paper-notes paper-notes-${side}`}
+                    key={side}
+                    dir={dir}
+                  >
+                    {group.map((index) => (
+                      <Inline
+                        key={index}
+                        label={`${side === 0 ? t("Observation à gauche", "ملاحظة على اليسار") : t("Observation à droite", "ملاحظة على اليمين")} ${(index % 3) + 1}`}
+                        value={a.conditionNotes[index]}
+                        placeholder=""
+                        maxLength={100}
+                        multiline
+                        change={(value) =>
+                          setAgreement((current) => ({
+                            ...current,
+                            conditionNotes: current.conditionNotes.map(
+                              (note, i) => (i === index ? value : note),
+                            ),
+                          }))
+                        }
+                      />
+                    ))}
+                  </div>
+                ))}
+                <Image
+                  src={conditionDiagram}
+                  alt={t(
+                    "Schéma du véhicule vu de dessus",
+                    "رسم السيارة من الأعلى",
+                  )}
+                  width={78}
+                  height={110}
+                  unoptimized
+                />
+              </div>
+            </section>
+            <div className="paper-rows paper-amounts" dir={dir}>
+              {rows("amounts")}
+            </div>
             <div className="paper-place">
               {caption("place", t("Fait à / le", "حرر في / بتاريخ"))}
               {input(
@@ -590,11 +577,11 @@ export function ContractEditor({ locale }: { locale: Locale }) {
                 )}
               </div>
             </div>
-            {footer("contract-footer")}
+            {footer()}
           </article>
 
           <article className="paper">
-            <div className="paper-terms-grid" id="contract-terms">
+            <div className="paper-terms-grid">
               {(["fr", "ar"] as const).map(term)}
             </div>
             {footer()}
