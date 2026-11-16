@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { FileText, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { words, type Agreement } from "@/lib/contract/agreement";
 import type {
   ContractRevision,
@@ -194,12 +194,7 @@ export function ContractLibrary({ locale }: { locale: Locale }) {
     <main className="library-page">
       <section className="library-banner">
         <div className="shell library-banner-inner">
-          <div className="library-banner-copy">
-            <span className="library-mark">
-              <FileText size={25} aria-hidden />
-            </span>
-            <h1>{t("Mes contrats", "عقودي")}</h1>
-          </div>
+          <h1>{t("Mes contrats", "عقودي")}</h1>
           <a className="button" href={`/${locale}/new`}>
             <Plus size={18} aria-hidden />
             {t("Nouveau contrat", "عقد جديد")}

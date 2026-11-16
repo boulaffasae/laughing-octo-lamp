@@ -784,16 +784,14 @@ h4 {
   border-block-end: 1px solid var(--line);
 }
 .library-banner-inner {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  align-content: center;
-  justify-content: space-between;
-  gap: 20px;
-  min-height: clamp(230px, 34vh, 360px);
-  padding-block: clamp(32px, 6vw, 76px);
+  display: grid;
+  justify-items: start;
+  gap: 16px;
+  padding-block: clamp(28px, 5vw, 52px);
 }
-.library-banner-copy,
+.library-banner h1 {
+  font-size: clamp(1.875rem, 4.5vw, 2.75rem);
+}
 .library-banner-actions,
 .library-pagination,
 .library-calendar-actions {
@@ -802,27 +800,8 @@ h4 {
   flex-wrap: wrap;
   gap: 10px;
 }
-.library-banner-copy {
-  gap: 14px;
-}
-.library-banner-inner > [role="status"] {
-  flex-basis: 100%;
-}
-.library-banner h1 {
-  font-size: clamp(2rem, 5vw, 3.4rem);
-}
-.library-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  width: fit-content;
-  padding: 10px;
-  border-radius: 10px;
-  color: var(--blue);
-  background: white;
-  font-size: 0.8rem;
-  font-weight: 700;
+.library-banner .button {
+  min-height: 44px;
 }
 .library-content {
   padding-block: 36px 56px;

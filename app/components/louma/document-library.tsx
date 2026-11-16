@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Camera, FileText, Upload } from "lucide-react";
+import { Camera, Upload } from "lucide-react";
 import { prepareImage } from "@/lib/contract/prepare-image";
 import { words } from "@/lib/contract/agreement";
 import { MAX_FILE_BYTES } from "@/lib/upload-policy";
@@ -112,12 +112,7 @@ export function DocumentLibrary({ locale }: { locale: Locale }) {
         }}
       >
         <div className="shell library-banner-inner">
-          <div className="library-banner-copy">
-            <span className="library-mark">
-              <FileText size={25} aria-hidden />
-            </span>
-            <h1>{t("Mes documents", "مستنداتي")}</h1>
-          </div>
+          <h1>{t("Mes documents", "مستنداتي")}</h1>
           <div className="library-banner-actions">
             <button
               type="button"
