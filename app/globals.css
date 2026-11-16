@@ -1,4 +1,4 @@
-@import "@heroui/styles";
+@import "./hero-controls.css";
 
 :root {
   color-scheme: light;
@@ -9,7 +9,6 @@
   --line: #d9e2f0;
   --pale: #eff4ff;
   --white: #fff;
-  --radius: 16px;
 }
 *,
 *::before,
@@ -106,7 +105,7 @@ h4 {
   overflow: hidden;
   white-space: nowrap;
 }
-.button:not([data-slot="button"]) {
+.site-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -121,17 +120,17 @@ h4 {
   font-weight: 650;
   font-size: 0.9rem;
 }
-.button:not([data-slot="button"]):hover:not(:disabled) {
+.site-button:hover:not(:disabled) {
   background: var(--blue-hover);
   color: var(--white);
 }
-.button:not([data-slot="button"]).secondary {
+.site-button.secondary {
   background: var(--white);
   color: var(--blue);
   border-color: var(--line);
 }
-.button:not([data-slot="button"]).subtle,
-.button:not([data-slot="button"]).secondary:hover:not(:disabled) {
+.site-button.subtle,
+.site-button.secondary:hover:not(:disabled) {
   color: var(--blue);
   background: var(--pale);
   border-color: var(--line);
@@ -703,6 +702,17 @@ h4 {
   margin: 0;
   background: white;
 }
+[data-slot="button"]:not(.button--icon-only) {
+  border-radius: 10px;
+}
+.library-page .card,
+.dropdown__popover,
+.library-calendar {
+  border-radius: 14px;
+}
+.modal__dialog {
+  border-radius: 18px;
+}
 .library-page {
   max-width: 1080px;
   min-height: 55vh;
@@ -751,7 +761,7 @@ h4 {
 .library-create-link {
   gap: 6px;
   padding: 10px 15px;
-  border-radius: 999px;
+  border-radius: 10px;
   background: var(--blue);
   color: white;
 }
@@ -823,7 +833,7 @@ h4 {
   place-items: center;
   width: 34px;
   height: 34px;
-  border-radius: 999px;
+  border-radius: 10px;
   border: 1px solid var(--line);
 }
 .library-icon-link:hover {
@@ -862,7 +872,7 @@ h4 {
   .header-actions {
     gap: 5px;
   }
-  .header-actions .button {
+  .header-actions :is(.site-button, .account-link) {
     padding-inline: 8px;
     font-size: 0.78rem;
   }

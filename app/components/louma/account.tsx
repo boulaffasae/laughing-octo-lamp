@@ -174,7 +174,7 @@ export function AccountButtons({
   }
   return (
     <button
-      className="button secondary"
+      className="site-button secondary"
       type="button"
       disabled={!account.available || !account.ready}
       onClick={signup ? account.signUp : account.signIn}
