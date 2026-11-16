@@ -839,12 +839,7 @@ h4 {
   position: relative;
   display: grid;
   justify-items: start;
-  gap: 5px;
   max-width: 100%;
-}
-.library-filter-label {
-  font-size: 0.82rem;
-  color: var(--muted);
 }
 .library-calendar {
   position: absolute;
@@ -863,22 +858,11 @@ h4 {
 .library-calendar .rdp-root {
   --rdp-accent-color: var(--blue);
   --rdp-accent-background-color: var(--pale);
-  --rdp-day-width: clamp(29px, 9vw, 38px);
+  --rdp-months-gap: 12px;
+  --rdp-day-width: clamp(29px, 9vw, 36px);
   --rdp-day-height: var(--rdp-day-width);
   --rdp-day_button-width: calc(var(--rdp-day-width) - 2px);
   --rdp-day_button-height: var(--rdp-day_button-width);
-}
-.library-date-summary {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  margin-block-end: 8px;
-  color: var(--muted);
-  font-size: 0.8rem;
-}
-.library-date-summary strong {
-  display: block;
-  color: var(--navy);
 }
 .library-calendar-actions {
   justify-content: space-between;
@@ -892,6 +876,9 @@ h4 {
   .library-calendar {
     inset-inline-start: 0;
     inset-inline-end: auto;
+  }
+  .library-calendar .rdp-months {
+    flex-direction: column;
   }
 }
 .library-grid {

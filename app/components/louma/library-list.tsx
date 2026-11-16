@@ -129,6 +129,11 @@ export function PeriodFilter({
       timeZone: libraryTimeZone,
     },
   );
+  const start = open ? selected?.from : value && calendarDate(value.start);
+  const end = open ? selected?.to : value && calendarDate(value.end);
+  const startText = start ? dateFormat.format(start) : t("Début", "البداية");
+  const endText = end ? dateFormat.format(end) : t("Fin", "النهاية");
+  const rangeText = `${startText} – ${endText}`;
 
   useEffect(() => {
     if (!open) return;
@@ -165,11 +170,11 @@ export function PeriodFilter({
         }
       }}
     >
-      <span className="library-filter-label">{label}</span>
       <button
         type="button"
         className="button secondary date-filter"
         aria-expanded={open}
+        aria-label={`${label}, ${rangeText}`}
         ref={trigger}
         onClick={() => {
           if (!open) {
@@ -187,38 +192,21 @@ export function PeriodFilter({
         }}
       >
         <CalendarDays size={17} aria-hidden />
-        {value
-          ? dateFormat.formatRange(
-              calendarDate(value.start),
-              calendarDate(value.end),
-            )
-          : t("Choisir une période", "اختر فترة")}
+        <span>{rangeText}</span>
         <ChevronDown size={15} aria-hidden />
       </button>
       {open && (
         <div className="library-calendar" aria-label={label} role="region">
-          <div className="library-date-summary">
-            <span>
-              {t("Début", "البداية")}{" "}
-              <strong>
-                {selected?.from ? dateFormat.format(selected.from) : "—"}
-              </strong>
-            </span>
-            <span>
-              {t("Fin", "النهاية")}{" "}
-              <strong>
-                {selected?.to ? dateFormat.format(selected.to) : "—"}
-              </strong>
-            </span>
-          </div>
           <DayPicker
             mode="range"
+            numberOfMonths={2}
             timeZone={libraryTimeZone}
             locale={locale === "ar" ? arMA : fr}
             dir={locale === "ar" ? "rtl" : "ltr"}
             selected={selected}
             onSelect={setSelected}
             defaultMonth={selected?.from}
+            endMonth={today}
             disabled={today && { after: today }}
             resetOnSelect
           />
