@@ -978,27 +978,71 @@ body {
   max-width: 960px;
   margin-block: 0 48px;
 }
-.paper-help {
-  position: relative;
+.contract-tour {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 9px 11px;
+  margin-block-end: 7px;
+  border: 1px solid #98b3f9;
+  border-radius: 10px;
+  background: #eff4ff;
+  color: #142c68;
+  font-size: clamp(0.87rem, 1.8vw, 1rem);
+  text-align: start;
 }
-.paper-tooltip {
-  position: absolute;
-  z-index: 2;
-  inset-block-start: calc(100% + 4px);
-  inset-inline-start: 0;
-  width: max-content;
-  max-width: min(180px, 45vw);
-  padding: 5px 8px;
-  border-radius: 5px;
-  background: #152821;
+.paper-block > .contract-tour {
+  margin: 5px;
+}
+.contract-tour-title,
+.contract-tour-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.contract-tour-title {
+  flex: 1 1 150px;
+  min-width: 0;
+  font-weight: 700;
+}
+.contract-tour-count {
+  direction: ltr;
+  white-space: nowrap;
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: #dce8ff;
+  font-size: 0.78em;
+}
+.contract-tour-actions {
+  margin-inline-start: auto;
+}
+.contract-tour-actions button {
+  display: inline-grid;
+  place-items: center;
+  min-width: 34px;
+  min-height: 34px;
+  padding: 3px 6px;
+  border: 0;
+  border-radius: 6px;
+  color: inherit;
+}
+.contract-tour-actions button:hover {
+  background: #dce8ff;
+}
+.contract-tour-actions .contract-tour-next {
+  background: #2157f3;
   color: white;
-  font-size: 0.75rem;
-  font-weight: 500;
-  pointer-events: none;
-  visibility: hidden;
 }
-.paper-help:is(:hover, :focus-within) > .paper-tooltip {
-  visibility: visible;
+.contract-tour-actions .contract-tour-next:hover {
+  background: #1744d1;
+}
+[data-tour-active="true"],
+[data-tour-step]:has(> .contract-tour) {
+  outline: 2px solid #98b3f9;
+  outline-offset: 2px;
+  border-radius: 5px;
 }
 .editor-canvas {
   position: relative;
@@ -1063,7 +1107,14 @@ body {
 }
 .paper-logo img {
   object-fit: contain;
-  max-width: 52px;
+  max-width: 75px;
+}
+.paper-logo-placeholder {
+  font-size: 0.83em;
+  padding-inline: 7px;
+}
+.paper-logo-placeholder svg {
+  flex: none;
 }
 .paper-logo-reset {
   display: grid;
@@ -1346,6 +1397,9 @@ body {
   background: transparent;
   border-block-end-color: transparent;
 }
+.paper-footer :is(textarea, .inline-copy) {
+  text-align: center;
+}
 .paper-terms-grid section {
   min-width: 0;
 }
@@ -1568,7 +1622,8 @@ body {
   .hero,
   .site-footer,
   .app-banner,
-  .paper-tooltip,
+  .contract-tour,
+  [data-tour-step="1"]:has(.paper-logo-placeholder),
   .editor-toolbar,
   .contract-save,
   .editor-error,
@@ -1604,6 +1659,9 @@ body {
   }
   .workspace .editor-canvas .paper:last-child {
     break-after: auto;
+  }
+  [data-tour-step] {
+    outline: none !important;
   }
   .paper-logo {
     border: 0;

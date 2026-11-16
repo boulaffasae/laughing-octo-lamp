@@ -69,6 +69,24 @@ const rentalTerms = [
   ],
 ] as const;
 
+function defaultFooter(locale: Locale) {
+  const t = words(locale);
+  return t(
+    "Adresse : ……………………\nTél. : ……………… - Fax : ……………… - ICE : ………………\nRaison sociale : ……………… - Capital : ……………… - RC : ………… - TP : ………… - IF : …………\nE-mail : ……………………",
+    "العنوان: ……………………\nالهاتف: ……………… - الفاكس: ……………… - المعرّف الموحد للمقاولة: ………………\nاسم الشركة: ……………… - رأس المال: ……………… - السجل التجاري: ………… - الضريبة المهنية: ………… - المعرّف الضريبي: …………\nالبريد الإلكتروني: ……………………",
+  );
+}
+
+export function agencyFooterText(agreement: Agreement) {
+  const oldDefault = words(agreement.locale)(
+    "Raison sociale : …… - RC : …… - ICE : …… - Adresse : …… - Téléphone : ……",
+    "اسم الشركة: …… - السجل التجاري: …… - المعرّف الموحد للمقاولة: …… - العنوان: …… - الهاتف: ……",
+  );
+  return agreement.footerText === oldDefault
+    ? defaultFooter(agreement.locale)
+    : agreement.footerText;
+}
+
 export function initialAgreement(locale: Locale): Agreement {
   const t = words(locale);
   return {
@@ -77,10 +95,7 @@ export function initialAgreement(locale: Locale): Agreement {
     logo: "",
     color: "#235346",
     agency: "",
-    footerText: t(
-      "Raison sociale : …… - RC : …… - ICE : …… - Adresse : …… - Téléphone : ……",
-      "اسم الشركة: …… - السجل التجاري: …… - المعرّف الموحد للمقاولة: …… - العنوان: …… - الهاتف: ……",
-    ),
+    footerText: defaultFooter(locale),
     documents: createEmptyDocuments(),
     start: "",
     end: "",

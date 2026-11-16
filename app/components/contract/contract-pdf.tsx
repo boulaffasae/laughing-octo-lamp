@@ -1,4 +1,5 @@
 import {
+  agencyFooterText,
   blank,
   conditionDiagram,
   conditionNoteGroups,
@@ -16,9 +17,6 @@ import {
   Font,
   Image,
   Page,
-  Path,
-  Svg,
-  Rect,
   Text,
   View,
   StyleSheet,
@@ -283,9 +281,12 @@ export async function buildContractPdf(a: Agreement) {
       ))}
     </View>
   );
+  const footerText = agencyFooterText(a);
   const footer = () => (
     <View style={[styles.footer, { borderTopColor: a.color }]} fixed>
-      <Text style={[alignment, valueFont(a.footerText)]}>{a.footerText}</Text>
+      <Text style={[alignment, valueFont(footerText), { textAlign: "center" }]}>
+        {footerText}
+      </Text>
     </View>
   );
   const clauses = (value: string, direction: "ltr" | "rtl") => {
@@ -332,18 +333,10 @@ export async function buildContractPdf(a: Agreement) {
               isSignature ? burgundy.centerBrand : {},
             ]}
           >
-            {a.logo ? (
+            {a.logo && (
               // React-PDF Image does not support the HTML alt property.
               // eslint-disable-next-line jsx-a11y/alt-text
               <Image src={a.logo} style={styles.logo} />
-            ) : (
-              <Svg width={31} height={31} viewBox="0 0 48 48">
-                <Rect width={48} height={48} rx={14} fill="#caff74" />
-                <Path
-                  d="M13 11h8v19h14l-5 7H13z M27 16l5-5h5v5l-5 5h-5z"
-                  fill="#152821"
-                />
-              </Svg>
             )}
             {a.agency && (
               <Text

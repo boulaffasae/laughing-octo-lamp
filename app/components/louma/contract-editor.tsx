@@ -7,6 +7,7 @@ import {
   Cloud,
   CloudCheck,
   CloudOff,
+  CircleHelp,
   ImagePlus,
   LoaderCircle,
   Redo2,
@@ -16,6 +17,7 @@ import {
 import Image from "next/image";
 import {
   addressMaxLength,
+  agencyFooterText,
   blank,
   conditionDiagram,
   conditionNoteGroups,
@@ -35,6 +37,7 @@ import type { Locale } from "@/i18n/locales";
 import type { SavedDraft } from "@/lib/contract/saved-contract";
 import { useAccount } from "./account";
 import { contractPdfName, downloadPdf } from "./pdf-file";
+import { useContractTour } from "./contract-tour";
 import { useAgreementHistory } from "./use-agreement-history";
 import { useContractSave } from "./use-contract-save";
 
@@ -106,6 +109,7 @@ export function ContractEditor({
     () => saved?.draft ?? initialAgreement(locale),
   );
   const { agreement: a, setAgreement } = history;
+  const tour = useContractTour(locale, !saved);
   const dir = a.locale === "ar" ? "rtl" : "ltr";
   const paperText = words(a.locale);
   const persistence = useContractSave(a, account.signedIn, saved);
@@ -240,35 +244,46 @@ export function ContractEditor({
     </h3>
   );
 
-  const block = (id: Exclude<BlockId, "condition">) => (
-    <section className={`paper-block paper-${id}`} dir={dir}>
-      {band(id)}
-      <div
-        className={
-          template.wideFields?.includes(id)
-            ? "paper-rows paper-rows-wide"
-            : "paper-rows"
-        }
+  const block = (id: Exclude<BlockId, "condition">) => {
+    const step = { renter: 3, vehicle: 4, rental: 5 }[id];
+    return (
+      <section
+        className={`paper-block paper-${id}`}
+        dir={dir}
+        data-tour-step={step}
+        aria-describedby={tour.describedBy(step)}
       >
-        {rows(id)}
-      </div>
-    </section>
-  );
+        {tour.hint(step)}
+        {band(id)}
+        <div
+          className={
+            template.wideFields?.includes(id)
+              ? "paper-rows paper-rows-wide"
+              : "paper-rows"
+          }
+        >
+          {rows(id)}
+        </div>
+      </section>
+    );
+  };
 
-  const footer = () => (
+  const footer = (front = false) => (
     <footer
       className="paper-footer"
+      data-tour-step={front ? 9 : undefined}
       aria-label={t("Coordonnées de l’agence", "بيانات الوكالة")}
     >
+      {front && tour.hint(9)}
       <Inline
         label={t("Texte du pied de page", "نص التذييل")}
-        value={a.footerText}
+        describedBy={front ? tour.describedBy(9) : undefined}
+        value={agencyFooterText(a)}
+        lines={4}
         placeholder=""
         maxLength={360}
         multiline
-        change={(footerText) =>
-          change({ footerText: footerText.replace(/\n/g, " ") })
-        }
+        change={(footerText) => change({ footerText })}
       />
     </footer>
   );
@@ -303,7 +318,11 @@ export function ContractEditor({
 
   return (
     <section
-      onBlurCapture={history.finishEdit}
+      onChangeCapture={tour.onChange}
+      onBlurCapture={(event) => {
+        history.finishEdit();
+        tour.onBlur(event);
+      }}
       id="contrat"
       className="shell workspace contract-editor"
       aria-label={t("Modifier le contrat", "تعديل العقد")}
@@ -321,22 +340,31 @@ export function ContractEditor({
         <div className="paper-scroll">
           <article className="paper" lang={a.locale} dir={dir}>
             <header className="paper-header">
+              {tour.hint(1)}
+              {tour.hint(2)}
               <div className="paper-brand">
-                <div className="paper-help">
-                  <label className="paper-logo upload-control">
-                    {/* eslint-disable-next-line @next/next/no-img-element -- The agency logo is a local data URL. */}
-                    <img
-                      src={a.logo || "/louma.svg"}
-                      alt=""
-                      width={52}
-                      height={40}
-                    />
-                    <ImagePlus size={15} aria-hidden />
+                <div data-tour-step={1} data-tour-active={tour.step === 1}>
+                  <label
+                    className={
+                      a.logo
+                        ? "paper-logo upload-control"
+                        : "paper-logo paper-logo-placeholder upload-control"
+                    }
+                  >
+                    {a.logo ? (
+                      /* eslint-disable-next-line @next/next/no-img-element -- The agency logo is a local data URL. */
+                      <img src={a.logo} alt="" width={75} height={44} />
+                    ) : (
+                      <>
+                        <ImagePlus size={19} aria-hidden />
+                        <span>{t("Importer un logo", "رفع شعار")}</span>
+                      </>
+                    )}
                     <input
                       type="file"
                       accept="image/png,image/jpeg,image/webp"
                       aria-label={t("Changer le logo", "تغيير الشعار")}
-                      aria-describedby="contract-logo-help"
+                      aria-describedby={tour.describedBy(1)}
                       disabled={logoBusy}
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
@@ -356,6 +384,7 @@ export function ContractEditor({
                             },
                             false,
                           );
+                          tour.logoUploaded();
                         } catch {
                           setLogoError(
                             t(
@@ -369,39 +398,26 @@ export function ContractEditor({
                       }}
                     />
                   </label>
-                  <span
-                    className="paper-tooltip"
-                    id="contract-logo-help"
-                    role="tooltip"
-                  >
-                    {t("1. Changer le logo", "١. تغيير الشعار")}
-                  </span>
                 </div>
-                <div className="paper-agency-name paper-help">
+                <div
+                  className="paper-agency-name"
+                  data-tour-step={2}
+                  data-tour-active={tour.step === 2}
+                >
                   <Inline
                     label={t("Nom de l’agence", "اسم الوكالة")}
                     value={a.agency}
-                    describedBy="contract-agency-help"
+                    describedBy={tour.describedBy(2)}
                     placeholder={t("Nom de l’agence", "اسم الوكالة")}
                     change={(agency) => change({ agency })}
                   />
-                  <span
-                    className="paper-tooltip"
-                    id="contract-agency-help"
-                    role="tooltip"
-                  >
-                    {t("2. Ajouter le nom de l’agence", "٢. إضافة اسم الوكالة")}
-                  </span>
                 </div>
                 {a.logo && (
                   <button
                     type="button"
                     className="paper-logo-reset"
-                    title={t("Rétablir le logo Louma", "استعادة شعار Louma")}
-                    aria-label={t(
-                      "Rétablir le logo Louma",
-                      "استعادة شعار Louma",
-                    )}
+                    title={t("Retirer le logo", "إزالة الشعار")}
+                    aria-label={t("Retirer le logo", "إزالة الشعار")}
                     disabled={logoBusy}
                     onClick={() => change({ logo: "" }, false)}
                   >
@@ -435,7 +451,13 @@ export function ContractEditor({
                 </div>
               ))}
             </div>
-            <section className="paper-block paper-condition" dir={dir}>
+            <section
+              className="paper-block paper-condition"
+              dir={dir}
+              data-tour-step={6}
+              aria-describedby={tour.describedBy(6)}
+            >
+              {tour.hint(6)}
               {band("condition")}
               <div className="paper-inspection">
                 {conditionNoteGroups.map((group, side) => (
@@ -476,15 +498,21 @@ export function ContractEditor({
                 />
               </div>
             </section>
-            <div className="paper-rows paper-amounts" dir={dir}>
-              {rows("amounts")}
+            <div data-tour-step={7} aria-describedby={tour.describedBy(7)}>
+              {tour.hint(7)}
+              <div className="paper-rows paper-amounts" dir={dir}>
+                {rows("amounts")}
+              </div>
             </div>
-            <div className="paper-place">
-              {caption("place", paperText("Fait à / le", "حرر في / بتاريخ"))}
-              {input(
-                "place",
-                t("Lieu et date de signature", "مكان وتاريخ التوقيع"),
-              )}
+            <div data-tour-step={8} aria-describedby={tour.describedBy(8)}>
+              {tour.hint(8)}
+              <div className="paper-place">
+                {caption("place", paperText("Fait à / le", "حرر في / بتاريخ"))}
+                {input(
+                  "place",
+                  t("Lieu et date de signature", "مكان وتاريخ التوقيع"),
+                )}
+              </div>
             </div>
             <div className="paper-signatures">
               <div>
@@ -503,7 +531,7 @@ export function ContractEditor({
                 )}
               </div>
             </div>
-            {footer()}
+            {footer(true)}
           </article>
 
           <article className="paper" lang={a.locale} dir={dir}>
@@ -540,6 +568,15 @@ export function ContractEditor({
             </button>
           ))}
           <span className="toolbar-divider" aria-hidden />
+          <button
+            type="button"
+            className="icon-button editor-tool"
+            aria-label={t("Ouvrir le guide", "فتح الدليل")}
+            title={t("Ouvrir le guide", "فتح الدليل")}
+            onClick={tour.start}
+          >
+            <CircleHelp size={18} aria-hidden />
+          </button>
           <button
             type="button"
             className="icon-button editor-tool"
