@@ -3,38 +3,24 @@
 import { useEffect, useEffectEvent, useState } from "react";
 import { words } from "@/lib/contract/agreement";
 import type { Locale } from "@/i18n/locales";
-import { LibraryModal } from "./library-modal";
+import { PreviewSkeleton } from "./library-skeleton";
 
 import type { PdfFile } from "./pdf-file";
 
-export function PdfPreview({
+import type { PreviewRequest } from "./library-preview-request";
+
+export function PdfPane({
   locale,
-  title,
   file,
-  fileKey,
-  onClose,
+  initialRequest,
 }: {
   locale: Locale;
-  title: string;
   file: PdfFile;
-  fileKey: string | number;
-  onClose: () => void;
+  initialRequest?: PreviewRequest<Blob>;
 }) {
   const t = words(locale);
-  return (
-    <LibraryModal
-      title={title}
-      closeLabel={t("Fermer", "إغلاق")}
-      onClose={onClose}
-    >
-      <PdfPane key={fileKey} locale={locale} file={file} />
-    </LibraryModal>
-  );
-}
-
-export function PdfPane({ locale, file }: { locale: Locale; file: PdfFile }) {
-  const t = words(locale);
   const [loaded, setLoaded] = useState<string>();
+  const [frameReady, setFrameReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const load = useEffectEvent((signal: AbortSignal) => file.load(signal));
@@ -42,7 +28,10 @@ export function PdfPane({ locale, file }: { locale: Locale; file: PdfFile }) {
   useEffect(() => {
     const request = new AbortController();
     let url: string | undefined;
-    load(request.signal)
+    (attempt === 0 && initialRequest
+      ? initialRequest.result
+      : load(request.signal)
+    )
       .then((blob) => {
         if (request.signal.aborted) return;
         url = URL.createObjectURL(blob);
@@ -55,13 +44,20 @@ export function PdfPane({ locale, file }: { locale: Locale; file: PdfFile }) {
       request.abort();
       if (url) URL.revokeObjectURL(url);
     };
-  }, [attempt]);
+  }, [attempt, initialRequest]);
 
   return (
     <div className="library-preview-main">
-      {loaded ? (
-        <iframe className="library-pdf-frame" src={loaded} title={file.name} />
-      ) : failed ? (
+      {loaded && (
+        <iframe
+          className="library-pdf-frame"
+          style={frameReady ? undefined : { visibility: "hidden" }}
+          src={loaded}
+          title={file.name}
+          onLoad={() => setFrameReady(true)}
+        />
+      )}
+      {failed ? (
         <div className="library-empty">
           <p role="alert">
             {t("Impossible de charger le PDF.", "تعذر تحميل ملف PDF.")}
@@ -78,9 +74,11 @@ export function PdfPane({ locale, file }: { locale: Locale; file: PdfFile }) {
           </button>
         </div>
       ) : (
-        <div className="library-empty" role="status">
-          {t("Chargement du PDF…", "جارٍ تحميل ملف PDF…")}
-        </div>
+        !frameReady && (
+          <PreviewSkeleton
+            label={t("Chargement du PDF…", "جارٍ تحميل ملف PDF…")}
+          />
+        )
       )}
     </div>
   );

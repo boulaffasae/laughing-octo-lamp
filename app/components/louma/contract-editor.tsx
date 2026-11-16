@@ -8,6 +8,7 @@ import {
   CloudCheck,
   CloudOff,
   CircleHelp,
+  FolderPlus,
   ImagePlus,
   LoaderCircle,
   Redo2,
@@ -35,6 +36,7 @@ import {
 } from "@/lib/contract/agreement";
 import { contractTemplates, templateForColor } from "@/lib/contract/templates";
 import { prepareImage } from "@/lib/contract/prepare-image";
+import { MAX_FILE_BYTES } from "@/lib/upload-policy";
 import type { Locale } from "@/i18n/locales";
 import type { SavedDraft } from "@/lib/contract/saved-contract";
 import { useAccount } from "./account";
@@ -140,6 +142,9 @@ export function ContractEditor({
   const [exporting, setExporting] = useState(false);
   const [logoError, setLogoError] = useState("");
   const [exportError, setExportError] = useState("");
+  const [documentState, setDocumentState] = useState<
+    "idle" | "saving" | "saved" | "too-large" | "error"
+  >("idle");
   const pdfCache = useRef<{ agreement: Agreement; result: Promise<Blob> }>(
     null,
   );
@@ -191,9 +196,8 @@ export function ContractEditor({
     setExporting(true);
     setExportError("");
     try {
-      const result = getPdf();
-      persistence.save(a, result);
-      const url = URL.createObjectURL(await result);
+      persistence.save(a);
+      const url = URL.createObjectURL(await getPdf());
       downloadPdf(url, contractPdfName);
       window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch {
@@ -202,6 +206,42 @@ export function ContractEditor({
       setExporting(false);
     }
   }
+
+  async function savePdfToDocuments() {
+    setDocumentState("saving");
+    try {
+      const pdf = await getPdf();
+      if (pdf.size > MAX_FILE_BYTES) {
+        setDocumentState("too-large");
+        return;
+      }
+      const body = new FormData();
+      body.set("file", pdf, contractPdfName);
+      body.set("kind", "contract");
+      const response = await fetch("/api/documents", { method: "POST", body });
+      if (!response.ok) throw Error();
+      setDocumentState("saved");
+    } catch {
+      setDocumentState("error");
+    }
+  }
+
+  const documentMessage = {
+    idle: "",
+    saving: t("Enregistrement du PDF…", "جارٍ حفظ ملف PDF…"),
+    saved: t(
+      "PDF enregistré dans Mes documents.",
+      "تم حفظ ملف PDF في مستنداتي.",
+    ),
+    "too-large": t(
+      "Le PDF dépasse la limite de 4 Mo.",
+      "يتجاوز حجم ملف PDF الحد الأقصى البالغ 4 ميغابايت.",
+    ),
+    error: t(
+      "Impossible d’enregistrer le PDF. Réessayez.",
+      "تعذّر حفظ ملف PDF. حاول مرة أخرى.",
+    ),
+  }[documentState];
 
   const caption = (key: string, label: string) => (
     <Inline
@@ -722,6 +762,32 @@ export function ContractEditor({
           </p>
         )}
       </div>
+      {account.signedIn && (
+        <div className="contract-save">
+          <button
+            type="button"
+            className="button secondary"
+            disabled={documentState === "saving" || logoBusy}
+            onClick={() => void savePdfToDocuments()}
+          >
+            <FolderPlus size={17} aria-hidden />
+            {t(
+              "Enregistrer le PDF dans Mes documents",
+              "حفظ ملف PDF في مستنداتي",
+            )}
+          </button>
+          <p
+            role="status"
+            className={
+              documentState === "error" || documentState === "too-large"
+                ? "error"
+                : undefined
+            }
+          >
+            {documentMessage}
+          </p>
+        </div>
+      )}
       {account.signedIn &&
         (persistence.status === "error" ||
           persistence.status === "conflict") && (

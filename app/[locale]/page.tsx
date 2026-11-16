@@ -1,12 +1,11 @@
 import { isLocale } from "@/i18n/locales";
 import { notFound } from "next/navigation";
-import {
-  Header,
-  Footer,
-  AppBanner,
-  siteTitle,
-} from "@/app/components/louma/site";
+import { Header, Footer, AppBanner } from "@/app/components/louma/site";
 import { ContractEditor } from "@/app/components/louma/contract-editor";
+
+const homeTitle = "La location, tout simplement";
+
+export const metadata = { title: homeTitle };
 
 export default async function Page({ params }: PageProps<"/[locale]">) {
   const { locale } = await params;
@@ -18,7 +17,7 @@ export default async function Page({ params }: PageProps<"/[locale]">) {
         <section className="hero">
           <div className="shell">
             <h1 lang="fr" dir="ltr">
-              {siteTitle}
+              {homeTitle}
             </h1>
           </div>
         </section>

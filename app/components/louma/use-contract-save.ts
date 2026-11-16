@@ -23,18 +23,11 @@ export function useContractSave(
   const conflict = useRef(false);
   const pendingSave = useRef<(() => void) | null>(null);
 
-  function save(snapshot: Agreement, after?: Promise<Blob>) {
+  function save(snapshot: Agreement) {
     if (!signedIn || conflict.current) return;
 
     queue.current = queue.current.then(async () => {
       if (conflict.current) return;
-      if (after) {
-        try {
-          await after;
-        } catch {
-          return; // The download action reports PDF generation errors.
-        }
-      }
       if (archivedDraft.current === snapshot && savedDraft.current === snapshot)
         return;
 

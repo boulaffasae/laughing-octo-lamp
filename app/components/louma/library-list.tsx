@@ -13,6 +13,8 @@ import {
 import { words } from "@/lib/contract/agreement";
 import type { Locale } from "@/i18n/locales";
 
+import { LibraryCardsSkeleton } from "./library-skeleton";
+
 export const libraryTimeZone = "Africa/Casablanca";
 type Period = { start: string; end: string };
 
@@ -264,18 +266,7 @@ export function LibraryResults({
   const t = words(locale);
   const Previous = locale === "ar" ? ChevronRight : ChevronLeft;
   const Next = locale === "ar" ? ChevronLeft : ChevronRight;
-  if (status === "loading") {
-    return (
-      <div role="status">
-        <span className="sr-only">{t("Chargement…", "جارٍ التحميل…")}</span>
-        <div className="library-grid" aria-hidden>
-          {[1, 2, 3].map((id) => (
-            <div key={id} className="library-card-skeleton" />
-          ))}
-        </div>
-      </div>
-    );
-  }
+  if (status === "loading") return <LibraryCardsSkeleton locale={locale} />;
   if (status === "error") {
     return (
       <div className="library-empty">

@@ -8,11 +8,15 @@ export function LibraryModal({
   closeLabel,
   onClose,
   children,
+  sidebar,
+  sidebarLabel,
 }: {
   title: string;
   closeLabel: string;
   onClose: () => void;
-  children?: ReactNode;
+  children: ReactNode;
+  sidebar: ReactNode;
+  sidebarLabel: string;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -29,15 +33,20 @@ export function LibraryModal({
     >
       <div className="dialog-header">
         <button
-          className="icon-button"
+          className="library-close"
           type="button"
-          aria-label={closeLabel}
           onClick={() => dialog.current?.close()}
         >
-          <X size={18} aria-hidden />
+          <X size={14} aria-hidden />
+          {closeLabel}
         </button>
       </div>
-      {children}
+      <div className="library-preview-with-sidebar">
+        <aside className="library-preview-sidebar" aria-label={sidebarLabel}>
+          {sidebar}
+        </aside>
+        {children}
+      </div>
     </dialog>
   );
 }

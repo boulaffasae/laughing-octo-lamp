@@ -24,6 +24,7 @@ export function FileTeaser({
   dateLabel,
   file,
   onOpen,
+  onPreviewIntent,
 }: {
   locale: Locale;
   title: string;
@@ -33,6 +34,7 @@ export function FileTeaser({
   dateLabel: string;
   file: PdfFile;
   onOpen: () => void;
+  onPreviewIntent: () => void;
 }) {
   const t = words(locale);
   const [busy, setBusy] = useState(false);
@@ -137,6 +139,10 @@ export function FileTeaser({
         type="button"
         className="library-item"
         aria-haspopup="dialog"
+        onPointerEnter={(event) => {
+          if (event.pointerType === "mouse") onPreviewIntent();
+        }}
+        onFocus={onPreviewIntent}
         onClick={onOpen}
       >
         <span className="library-poster" aria-hidden>

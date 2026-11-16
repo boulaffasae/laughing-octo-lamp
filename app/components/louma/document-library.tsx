@@ -12,7 +12,12 @@ import {
   libraryTimeZone,
   useLibraryList,
 } from "./library-list";
-import { PdfPreview } from "./pdf-preview";
+import { PdfPane } from "./pdf-preview";
+import { LibraryModal } from "./library-modal";
+import {
+  usePreviewRequest,
+  type PreviewRequest,
+} from "./library-preview-request";
 import { fetchPdf } from "./pdf-file";
 import { FileTeaser } from "./file-teaser";
 
@@ -25,7 +30,14 @@ export function DocumentLibrary({ locale }: { locale: Locale }) {
     dateStyle: "medium",
     timeZone: libraryTimeZone,
   });
-  const [selected, setSelected] = useState<DocumentSummary>();
+  const preview = usePreviewRequest(
+    (document: DocumentSummary) => document.id,
+    (document, signal) => fetchPdf(`/api/documents/${document.id}`, signal),
+  );
+  const [selected, setSelected] = useState<{
+    document: DocumentSummary;
+    request: PreviewRequest<Blob>;
+  }>();
   const title = t("Document PDF", "مستند PDF");
   const fileInput = useRef<HTMLInputElement>(null);
   const cameraInput = useRef<HTMLInputElement>(null);
@@ -130,7 +142,7 @@ export function DocumentLibrary({ locale }: { locale: Locale }) {
               onClick={() => fileInput.current?.click()}
             >
               <Upload size={17} aria-hidden />
-              {t("Importer un PDF", "رفع ملف PDF")}
+              {t("Importer", "استيراد")}
             </button>
             <button
               type="button"
@@ -139,7 +151,7 @@ export function DocumentLibrary({ locale }: { locale: Locale }) {
               onClick={() => cameraInput.current?.click()}
             >
               <Camera size={17} aria-hidden />
-              {t("Photographier en PDF", "التقاط صورة كملف PDF")}
+              {t("Photographier", "تصوير")}
             </button>
             <input
               ref={fileInput}
@@ -206,20 +218,40 @@ export function DocumentLibrary({ locale }: { locale: Locale }) {
                 date={document.created_at}
                 dateLabel={date.format(new Date(document.created_at))}
                 file={documentFile(document)}
-                onOpen={() => setSelected(document)}
+                onPreviewIntent={() => preview.warm(document)}
+                onOpen={() =>
+                  setSelected({ document, request: preview.take(document) })
+                }
               />
             ))}
           </ul>
         </LibraryResults>
       </section>
       {selected && (
-        <PdfPreview
-          locale={locale}
+        <LibraryModal
           title={title}
-          fileKey={selected.id}
-          file={documentFile(selected)}
-          onClose={() => setSelected(undefined)}
-        />
+          closeLabel={t("Fermer", "إغلاق")}
+          sidebarLabel={t("Date d’ajout", "تاريخ الإضافة")}
+          sidebar={
+            <ol className="history-list">
+              <li className="library-revision-row library-revision-current">
+                <time dateTime={selected.document.created_at}>
+                  {date.format(new Date(selected.document.created_at))}
+                </time>
+              </li>
+            </ol>
+          }
+          onClose={() => {
+            selected.request.abort();
+            setSelected(undefined);
+          }}
+        >
+          <PdfPane
+            locale={locale}
+            file={documentFile(selected.document)}
+            initialRequest={selected.request}
+          />
+        </LibraryModal>
       )}
     </main>
   );
