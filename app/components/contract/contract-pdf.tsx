@@ -1,6 +1,8 @@
 import {
   agencyFooterText,
   blank,
+  blueContractFields,
+  blueDocumentChecklist,
   conditionDiagram,
   conditionNoteGroups,
   contractFields,
@@ -93,16 +95,58 @@ const styles = StyleSheet.create({
 });
 
 const blue = StyleSheet.create({
-  header: { backgroundColor: "#eef4fc", padding: 6, paddingHorizontal: 8 },
-  section: { borderColor: "#b9cce6" },
-  rows: { padding: 0 },
-  cell: {
-    padding: 3,
-    paddingHorizontal: 5,
-    borderBottomWidth: 0.7,
-    borderRightWidth: 0.7,
-    borderColor: "#d5e2f3",
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 10,
   },
+  title: {
+    flexGrow: 5,
+    flexBasis: 0,
+    fontSize: 15,
+    padding: 9,
+    borderTopRightRadius: 16,
+    borderBottomLeftRadius: 16,
+    textAlign: "center",
+  },
+  brandColumn: { flexGrow: 4, flexBasis: 0, gap: 4 },
+  section: { borderWidth: 0.75, borderRadius: 9, padding: 4, gap: 2 },
+  heading: {
+    alignSelf: "center",
+    borderWidth: 0.75,
+    borderRadius: 9,
+    paddingHorizontal: 9,
+    paddingVertical: 1,
+    marginBottom: 2,
+    textAlign: "center",
+  },
+  rows: { gap: 2 },
+  row: { alignItems: "stretch", gap: 4, fontSize: 7.75 },
+  caption: {
+    flexBasis: 0,
+    flexGrow: 46,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+  },
+  value: {
+    flexBasis: 0,
+    flexGrow: 54,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+  },
+  pill: { borderRadius: 7, borderWidth: 0.65 },
+  line: { borderBottomWidth: 0.65, borderBottomStyle: "dotted" },
+  conditionDiagram: { width: 40, height: 57 },
+  signature: { borderRadius: 9, minHeight: 87, textAlign: "center" },
+  checklist: {
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    gap: 6,
+    marginTop: 10,
+  },
+  checklistItem: { alignItems: "center", gap: 3, fontSize: 8 },
+  checkbox: { width: 7, height: 7, borderWidth: 0.7, borderRadius: 4 },
 });
 const violet = StyleSheet.create({
   section: { borderColor: "#dcd1e9", borderRadius: 7 },
@@ -163,29 +207,25 @@ export async function buildContractPdf(a: Agreement) {
   };
   const fields = contractFields(a.locale);
   const template = templateForColor(a.color);
-  const isGrid = template.id === "grid";
+  const isBlue = template.id === "blue";
+  const blueFields = blueContractFields(a.locale);
   const isPanels = template.id === "panels";
   const isSignature = template.id === "signature";
   const isRegister = template.id === "register";
   const paperFont = rtl ? { fontFamily: arabicFont } : {};
   const valueFont = (value: string) =>
     /\p{Script=Arabic}/u.test(value) ? { fontFamily: arabicFont } : {};
-  const headerStyle = [
-    styles.header,
-    { borderBottomColor: a.color },
-    isGrid ? blue.header : {},
-  ];
+  const headerStyle = [styles.header, { borderBottomColor: a.color }];
   const frontInk = isRegister ? { color: headingInk(a.color) } : {};
   const sectionStyle = [
     styles.section,
-    isGrid ? blue.section : {},
     isPanels ? violet.section : {},
     isSignature ? { ...burgundy.section, borderColor: a.color } : {},
   ];
   const signatureStyle = [
     styles.signature,
-    isGrid ? blue.section : {},
     isPanels ? violet.section : {},
+    isBlue ? { ...blue.signature, borderColor: a.color } : {},
     isSignature ? { ...burgundy.section, borderColor: a.color } : {},
     isRegister ? slate.signature : {},
   ];
@@ -200,7 +240,6 @@ export async function buildContractPdf(a: Agreement) {
       style={[
         styles.rows,
         { flexDirection: rtl ? "row-reverse" : "row" },
-        isGrid ? blue.rows : {},
         ...(id === "amounts" ? amountsStyle : []),
       ]}
     >
@@ -216,10 +255,6 @@ export async function buildContractPdf(a: Agreement) {
             key={keyId}
             style={[
               styles.row,
-              isGrid ? blue.cell : {},
-              rtl && isGrid
-                ? { borderRightWidth: 0, borderLeftWidth: 0.7 }
-                : {},
               fullWidth
                 ? { width: wide ? "50%" : "100%" }
                 : wide
@@ -327,103 +362,262 @@ export async function buildContractPdf(a: Agreement) {
         );
       });
   };
-  return pdf(
-    <Document title={a.title} creator="Louma" language={a.locale}>
-      <Page size="A4" style={[styles.page, paperFont]}>
-        <View
+  const blueRows = (items: typeof blueFields.renter, pills = false) => (
+    <View style={blue.rows}>
+      {items.map(({ key, label, type, lines }) => {
+        const id = fieldId(key);
+        const raw = fieldValue(a, key).trim();
+        const value =
+          type === "date" && raw ? raw.split("-").reverse().join("/") : raw;
+        const ltr = rtl && value && !/\p{Script=Arabic}/u.test(value);
+        return (
+          <View
+            key={id}
+            wrap={false}
+            style={[blue.row, { flexDirection: rtl ? "row-reverse" : "row" }]}
+          >
+            <Text
+              style={[
+                alignment,
+                blue.caption,
+                pills
+                  ? {
+                      ...blue.pill,
+                      backgroundColor: a.color,
+                      borderColor: a.color,
+                      color: headingInk(a.color),
+                    }
+                  : {},
+              ]}
+            >
+              {a.labels[id] ?? label}
+            </Text>
+            <Text
+              style={[
+                alignment,
+                valueFont(value),
+                blue.value,
+                pills ? blue.pill : blue.line,
+                { borderColor: a.color, minHeight: lines === 2 ? 22 : 0 },
+                ltr ? { direction: "ltr" } : {},
+              ]}
+            >
+              {value ? (ltr ? "\u200e" + value : value) : " "}
+            </Text>
+          </View>
+        );
+      })}
+    </View>
+  );
+  const blueHeading = (title: string, filled = false) => (
+    <Text
+      style={[
+        alignment,
+        valueFont(title),
+        blue.heading,
+        { borderColor: a.color },
+        filled ? { backgroundColor: a.color, color: headingInk(a.color) } : {},
+      ]}
+    >
+      {title}
+    </Text>
+  );
+  const blueSection = (id: "renter" | "vehicle" | "rental" | "driver") => (
+    <View key={id} style={[blue.section, { borderColor: a.color }]}>
+      {blueHeading(
+        id === "driver" ? t("Autre conducteur", "سائق إضافي") : a.headings[id],
+        id === "vehicle" || id === "rental",
+      )}
+      {blueRows(blueFields[id], id === "vehicle" || id === "rental")}
+    </View>
+  );
+  const place = (
+    <Text style={alignment}>
+      {a.labels.place ?? t("Fait à / le", "حرر في / بتاريخ")} :{" "}
+      {a.place || blank}
+    </Text>
+  );
+  const inspection = (
+    <View style={styles.inspection}>
+      {notes(conditionNoteGroups[0])}
+      {/* eslint-disable-next-line jsx-a11y/alt-text -- React PDF Image has no alt property. */}
+      <Image
+        src={new URL(conditionDiagram, window.location.origin).href}
+        style={isBlue ? blue.conditionDiagram : styles.diagram}
+      />
+      {notes(conditionNoteGroups[1])}
+    </View>
+  );
+  const direction = {
+    flexDirection: rtl ? ("row-reverse" as const) : ("row" as const),
+  };
+  const brand = (
+    <View
+      style={[styles.brand, direction, isSignature ? burgundy.centerBrand : {}]}
+    >
+      {a.logo && (
+        // eslint-disable-next-line jsx-a11y/alt-text -- React PDF Image has no alt property.
+        <Image src={a.logo} style={styles.logo} />
+      )}
+      {a.agency && (
+        <Text
           style={[
-            ...headerStyle,
-            isRegister ? { ...slate.header, backgroundColor: a.color } : {},
+            alignment,
+            isSignature ? burgundy.centerAgency : styles.agency,
+            valueFont(a.agency),
+            frontInk,
           ]}
         >
-          <View
-            style={[
-              styles.brand,
-              { flexDirection: rtl ? "row-reverse" : "row" },
-              isSignature ? burgundy.centerBrand : {},
-            ]}
-          >
-            {a.logo && (
-              // React-PDF Image does not support the HTML alt property.
-              // eslint-disable-next-line jsx-a11y/alt-text
-              <Image src={a.logo} style={styles.logo} />
-            )}
-            {a.agency && (
+          {a.agency}
+        </Text>
+      )}
+    </View>
+  );
+  const signatures = (
+    <View style={[styles.signatures, direction]} wrap={false}>
+      <Text style={[alignment, ...signatureStyle]}>
+        {a.labels.stamp ??
+          t("Cachet et signature de l’agence", "ختم وتوقيع الوكالة")}
+      </Text>
+      <Text style={[alignment, ...signatureStyle]}>
+        {a.labels.signature ?? t("Signature du locataire", "توقيع المستأجر")}
+      </Text>
+    </View>
+  );
+  return pdf(
+    <Document title={a.title} creator="Louma" language={a.locale}>
+      <Page
+        size="A4"
+        style={[styles.page, paperFont, isBlue ? { color: a.color } : {}]}
+      >
+        {isBlue ? (
+          <>
+            <View
+              style={[
+                blue.header,
+                { flexDirection: rtl ? "row-reverse" : "row" },
+              ]}
+              wrap={false}
+            >
               <Text
                 style={[
                   alignment,
-                  isSignature ? burgundy.centerAgency : styles.agency,
-                  valueFont(a.agency),
-                  frontInk,
+                  valueFont(a.title),
+                  blue.title,
+                  { backgroundColor: a.color, color: headingInk(a.color) },
                 ]}
               >
-                {a.agency}
+                {a.title.toLocaleUpperCase(a.locale)}
               </Text>
-            )}
-          </View>
-          <Text
-            style={[
-              styles.title,
-              alignment,
-              valueFont(a.title),
-              frontInk,
-              rtl ? { fontWeight: 700 } : {},
-              isSignature ? { textAlign: "center" } : {},
-            ]}
-          >
-            {a.title}
-          </Text>
-        </View>
-        <View style={styles.front} wrap={false}>
-          {template.rows.map((row) => (
-            <View style={styles.sectionRow} key={row[0].blocks[0]}>
-              {row.map(({ blocks, weight }) => (
+              <View style={blue.brandColumn}>
+                {brand}
+                {blueRows([blueFields.reference], true)}
+              </View>
+            </View>
+            <View style={styles.sectionRow}>
+              {template.rows[0].map(({ blocks, weight }) => (
                 <View
-                  style={[styles.column, { flexGrow: weight }]}
                   key={blocks[0]}
+                  style={[styles.column, { flexGrow: weight }]}
                 >
-                  {blocks.map((id) =>
-                    block(id, row.length > 1 && blocks.length === 1),
+                  {blocks.map(blueSection)}
+                  {blocks[0] === "renter" ? (
+                    <>
+                      {blueSection("driver")}
+                      <View
+                        style={[blue.section, { borderColor: a.color }]}
+                        wrap={false}
+                      >
+                        {place}
+                      </View>
+                    </>
+                  ) : (
+                    <>
+                      {blueRows(blueFields.amounts, true)}
+                      <View
+                        style={[blue.section, { borderColor: a.color }]}
+                        wrap={false}
+                      >
+                        {blueHeading(a.headings.condition, true)}
+                        {inspection}
+                        {blueRows(blueFields.inspection)}
+                      </View>
+                    </>
                   )}
                 </View>
               ))}
             </View>
-          ))}
-        </View>
-        <View wrap={false}>
-          <View style={sectionStyle}>
-            {heading("condition")}
-            <View style={styles.inspection}>
-              {notes(conditionNoteGroups[0])}
-              {/* eslint-disable-next-line jsx-a11y/alt-text -- React PDF Image has no alt property. */}
-              <Image
-                src={new URL(conditionDiagram, window.location.origin).href}
-                style={styles.diagram}
-              />
-              {notes(conditionNoteGroups[1])}
+          </>
+        ) : (
+          <>
+            <View
+              style={[
+                ...headerStyle,
+                isRegister ? { ...slate.header, backgroundColor: a.color } : {},
+              ]}
+            >
+              {brand}
+              <Text
+                style={[
+                  styles.title,
+                  alignment,
+                  valueFont(a.title),
+                  frontInk,
+                  rtl ? { fontWeight: 700 } : {},
+                  isSignature ? { textAlign: "center" } : {},
+                ]}
+              >
+                {a.title}
+              </Text>
+            </View>
+            <View style={styles.front} wrap={false}>
+              {template.rows.map((row) => (
+                <View style={styles.sectionRow} key={row[0].blocks[0]}>
+                  {row.map(({ blocks, weight }) => (
+                    <View
+                      style={[styles.column, { flexGrow: weight }]}
+                      key={blocks[0]}
+                    >
+                      {blocks.map((id) =>
+                        block(id, row.length > 1 && blocks.length === 1),
+                      )}
+                    </View>
+                  ))}
+                </View>
+              ))}
+            </View>
+            <View wrap={false}>
+              <View style={sectionStyle}>
+                {heading("condition")}
+                {inspection}
+              </View>
+              {rows("amounts")}
+              {place}
+              {signatures}
+            </View>
+          </>
+        )}
+        {isBlue && (
+          <View wrap={false}>
+            {signatures}
+            <View style={[blue.checklist, direction]}>
+              {blueDocumentChecklist(a.locale).map(({ key, label }) => (
+                <View key={key} style={[blue.checklistItem, direction]}>
+                  <View
+                    style={[
+                      blue.checkbox,
+                      { borderColor: a.color },
+                      a.blueFields?.[key] === "1"
+                        ? { backgroundColor: a.color }
+                        : {},
+                    ]}
+                  />
+                  <Text style={alignment}>{label}</Text>
+                </View>
+              ))}
             </View>
           </View>
-          {rows("amounts")}
-          <Text style={alignment}>
-            {a.labels.place ?? t("Fait à / le", "حرر في / بتاريخ")} :{" "}
-            {a.place || blank}
-          </Text>
-          <View
-            style={[
-              styles.signatures,
-              { flexDirection: rtl ? "row-reverse" : "row" },
-            ]}
-          >
-            <Text style={[...signatureStyle, alignment]}>
-              {a.labels.stamp ??
-                t("Cachet et signature de l’agence", "ختم وتوقيع الوكالة")}
-            </Text>
-            <Text style={[...signatureStyle, alignment]}>
-              {a.labels.signature ??
-                t("Signature du locataire", "توقيع المستأجر")}
-            </Text>
-          </View>
-        </View>
+        )}
         {footer()}
       </Page>
       <Page size="A4" style={styles.page}>

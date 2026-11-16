@@ -25,18 +25,16 @@ export const contractTemplates: readonly Template[] = [
     ],
   },
   {
-    id: "grid",
+    id: "blue",
     color: "#254e9a",
-    fr: "Bleu · Tableau",
-    ar: "أزرق · جدول",
+    fr: "Bleu · Carnet de location",
+    ar: "أزرق · دفتر الكراء",
     rows: [
-      [{ blocks: ["vehicle"], weight: 1 }],
       [
-        { blocks: ["renter"], weight: 3 },
-        { blocks: ["rental"], weight: 2 },
+        { blocks: ["renter"], weight: 5 },
+        { blocks: ["vehicle", "rental"], weight: 4 },
       ],
     ],
-    wideFields: ["vehicle"],
   },
   {
     id: "panels",

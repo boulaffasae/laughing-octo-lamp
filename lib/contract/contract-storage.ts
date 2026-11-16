@@ -49,8 +49,11 @@ export function isAgreement(value: unknown): value is Agreement {
   )
     return false;
   const defaults = initialAgreement(value.locale);
+  const hasBlueFields = Object.hasOwn(value, "blueFields");
   return (
-    Object.keys(value).length === Object.keys(defaults).length &&
+    Object.keys(value).length ===
+      Object.keys(defaults).length + Number(hasBlueFields) &&
+    (!hasBlueFields || textMap(value.blueFields, 30, 120)) &&
     Object.entries(defaults).every(([key, initial]) => {
       const field = value[key];
       switch (key) {

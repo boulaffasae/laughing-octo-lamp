@@ -19,6 +19,8 @@ import {
   addressMaxLength,
   agencyFooterText,
   blank,
+  blueContractFields,
+  blueDocumentChecklist,
   conditionDiagram,
   conditionNoteGroups,
   contractFields,
@@ -141,8 +143,10 @@ export function ContractEditor({
   const pdfCache = useRef<{ agreement: Agreement; result: Promise<Blob> }>(
     null,
   );
-  const fields = contractFields(a.locale);
   const template = templateForColor(a.color);
+  const isBlue = template.id === "blue";
+  const blueFields = blueContractFields(a.locale);
+  const fields = isBlue ? blueFields : contractFields(a.locale);
 
   function change(patch: Partial<Agreement>, group = true) {
     setAgreement((current) => ({ ...current, ...patch }), group);
@@ -150,7 +154,12 @@ export function ContractEditor({
 
   function update(key: FieldKey, value: string) {
     if (typeof key === "string") change({ [key]: value });
-    else {
+    else if (key[0] === "blue") {
+      setAgreement((current) => ({
+        ...current,
+        blueFields: { ...current.blueFields, [key[1]]: value },
+      }));
+    } else {
       setAgreement((current) => ({
         ...current,
         documents: current.documents.map((doc, i) =>
@@ -229,8 +238,8 @@ export function ContractEditor({
     />
   );
 
-  const rows = (id: keyof typeof fields) =>
-    fields[id].map(({ key, label, type, fullWidth, lines }) => (
+  const rows = (items: ReturnType<typeof contractFields>["renter"]) =>
+    items.map(({ key, label, type, fullWidth, lines }) => (
       <div
         className={fullWidth ? "paper-row paper-row-wide" : "paper-row"}
         key={fieldId(key)}
@@ -274,11 +283,86 @@ export function ContractEditor({
               : "paper-rows"
           }
         >
-          {rows(id)}
+          {rows(fields[id])}
         </div>
       </section>
     );
   };
+
+  const condition = (
+    <section
+      className="paper-block paper-condition"
+      dir={dir}
+      data-tour-step={6}
+      aria-describedby={tour.describedBy(6)}
+    >
+      {tour.hint(6)}
+      {band("condition")}
+      <div className="paper-inspection">
+        {conditionNoteGroups.map((group, side) => (
+          <div
+            className={`paper-notes paper-notes-${side}`}
+            key={side}
+            dir={dir}
+          >
+            {group.map((index) => (
+              <Inline
+                key={index}
+                label={`${side === 0 ? t("Observation à gauche", "ملاحظة على اليسار") : t("Observation à droite", "ملاحظة على اليمين")} ${(index % 3) + 1}`}
+                value={a.conditionNotes[index]}
+                placeholder=""
+                maxLength={100}
+                multiline
+                change={(value) =>
+                  setAgreement((current) => ({
+                    ...current,
+                    conditionNotes: current.conditionNotes.map((note, i) =>
+                      i === index ? value : note,
+                    ),
+                  }))
+                }
+              />
+            ))}
+          </div>
+        ))}
+        <Image
+          src={conditionDiagram}
+          alt={t("Schéma du véhicule vu de dessus", "رسم السيارة من الأعلى")}
+          width={78}
+          height={110}
+          unoptimized
+        />
+      </div>
+      {isBlue && (
+        <div className="paper-rows">{rows(blueFields.inspection)}</div>
+      )}
+    </section>
+  );
+  const amounts = (
+    <div data-tour-step={7} aria-describedby={tour.describedBy(7)}>
+      {tour.hint(7)}
+      <div className="paper-rows paper-amounts" dir={dir}>
+        {rows(fields.amounts)}
+      </div>
+    </div>
+  );
+  const place = (
+    <div data-tour-step={8} aria-describedby={tour.describedBy(8)}>
+      {tour.hint(8)}
+      <div className="paper-place">
+        {caption("place", paperText("Fait à / le", "حرر في / بتاريخ"))}
+        {input("place", t("Lieu et date de signature", "مكان وتاريخ التوقيع"))}
+      </div>
+    </div>
+  );
+  const otherDriver = (
+    <section className="paper-block paper-driver" dir={dir}>
+      <h3 className="paper-band">
+        {paperText("Autre conducteur", "سائق إضافي")}
+      </h3>
+      <div className="paper-rows">{rows(blueFields.driver)}</div>
+    </section>
+  );
 
   const footer = (front = false) => (
     <footer
@@ -350,7 +434,7 @@ export function ContractEditor({
         }
       >
         <div className="paper-scroll">
-          <article className="paper" lang={a.locale} dir={dir}>
+          <article className="paper paper-front" lang={a.locale} dir={dir}>
             <header className="paper-header">
               {tour.hint(1)}
               {tour.hint(2)}
@@ -444,6 +528,11 @@ export function ContractEditor({
                 </p>
               )}
               <h2>{input("title", t("Titre du contrat", "عنوان العقد"))}</h2>
+              {isBlue && (
+                <div className="paper-reference" dir={dir}>
+                  {rows([blueFields.reference])}
+                </div>
+              )}
             </header>
             <div className="paper-sections">
               {template.rows.map((row) => (
@@ -459,74 +548,30 @@ export function ContractEditor({
                           {block(id)}
                         </div>
                       ))}
+                      {isBlue &&
+                        (blocks[0] === "renter" ? (
+                          <>
+                            {otherDriver}
+                            {place}
+                          </>
+                        ) : (
+                          <>
+                            {amounts}
+                            {condition}
+                          </>
+                        ))}
                     </div>
                   ))}
                 </div>
               ))}
             </div>
-            <section
-              className="paper-block paper-condition"
-              dir={dir}
-              data-tour-step={6}
-              aria-describedby={tour.describedBy(6)}
-            >
-              {tour.hint(6)}
-              {band("condition")}
-              <div className="paper-inspection">
-                {conditionNoteGroups.map((group, side) => (
-                  <div
-                    className={`paper-notes paper-notes-${side}`}
-                    key={side}
-                    dir={dir}
-                  >
-                    {group.map((index) => (
-                      <Inline
-                        key={index}
-                        label={`${side === 0 ? t("Observation à gauche", "ملاحظة على اليسار") : t("Observation à droite", "ملاحظة على اليمين")} ${(index % 3) + 1}`}
-                        value={a.conditionNotes[index]}
-                        placeholder=""
-                        maxLength={100}
-                        multiline
-                        change={(value) =>
-                          setAgreement((current) => ({
-                            ...current,
-                            conditionNotes: current.conditionNotes.map(
-                              (note, i) => (i === index ? value : note),
-                            ),
-                          }))
-                        }
-                      />
-                    ))}
-                  </div>
-                ))}
-                <Image
-                  src={conditionDiagram}
-                  alt={t(
-                    "Schéma du véhicule vu de dessus",
-                    "رسم السيارة من الأعلى",
-                  )}
-                  width={78}
-                  height={110}
-                  unoptimized
-                />
-              </div>
-            </section>
-            <div data-tour-step={7} aria-describedby={tour.describedBy(7)}>
-              {tour.hint(7)}
-              <div className="paper-rows paper-amounts" dir={dir}>
-                {rows("amounts")}
-              </div>
-            </div>
-            <div data-tour-step={8} aria-describedby={tour.describedBy(8)}>
-              {tour.hint(8)}
-              <div className="paper-place">
-                {caption("place", paperText("Fait à / le", "حرر في / بتاريخ"))}
-                {input(
-                  "place",
-                  t("Lieu et date de signature", "مكان وتاريخ التوقيع"),
-                )}
-              </div>
-            </div>
+            {!isBlue && (
+              <>
+                {condition}
+                {amounts}
+                {place}
+              </>
+            )}
             <div className="paper-signatures">
               <div>
                 {caption(
@@ -544,6 +589,26 @@ export function ContractEditor({
                 )}
               </div>
             </div>
+            {isBlue && (
+              <div
+                className="paper-checklist"
+                role="group"
+                aria-label={paperText("Documents remis", "الوثائق المسلّمة")}
+              >
+                {blueDocumentChecklist(a.locale).map(({ key, label }) => (
+                  <label key={key}>
+                    <input
+                      type="checkbox"
+                      checked={a.blueFields?.[key] === "1"}
+                      onChange={(event) =>
+                        update(["blue", key], event.target.checked ? "1" : "")
+                      }
+                    />
+                    {label}
+                  </label>
+                ))}
+              </div>
+            )}
             {footer(true)}
           </article>
 

@@ -23,6 +23,7 @@ export type Agreement = {
   headings: Record<BlockId, string>;
   termsTitles: Record<Locale, string>;
   labels: Record<string, string>;
+  blueFields?: Record<string, string>;
 };
 
 export const words = (locale: Locale) => (fr: string, ar: string) =>
@@ -126,8 +127,9 @@ type AgreementField = Exclude<
   | "termsTitles"
   | "labels"
   | "conditionNotes"
+  | "blueFields"
 >;
-export type FieldKey = AgreementField | readonly [number, string];
+export type FieldKey = AgreementField | readonly [number | "blue", string];
 type ContractField = {
   key: FieldKey;
   label: string;
@@ -138,6 +140,7 @@ type ContractField = {
 
 export function fieldValue(a: Agreement, key: FieldKey) {
   if (typeof key === "string") return a[key];
+  if (key[0] === "blue") return a.blueFields?.[key[1]] ?? "";
   const document = a.documents[key[0]];
   if (key[0] === 0 && key[1] === "address")
     return [document.address, document.city].filter(Boolean).join("\n");
@@ -204,6 +207,83 @@ export function contractFields(
       { key: "deposit", label: t("Caution (MAD)", "الضمان (درهم)") },
     ],
   };
+}
+
+export function blueContractFields(locale: Locale) {
+  const t = words(locale);
+  const field = (
+    key: string,
+    fr: string,
+    ar: string,
+    type?: "date" | "time",
+  ): ContractField => ({
+    key: ["blue", key],
+    label: t(fr, ar),
+    type,
+  });
+  const base = contractFields(locale);
+  return {
+    ...base,
+    reference: field("reference", "N° de contrat", "رقم العقد"),
+    renter: [
+      ...base.renter.slice(0, 2),
+      field("nationality", "Nationalité", "الجنسية"),
+      field("birthDate", "Date de naissance", "تاريخ الميلاد", "date"),
+      field("profession", "Profession", "المهنة"),
+      field("passport", "N° de passeport", "رقم جواز السفر"),
+      ...base.renter.slice(2),
+      field(
+        "licencePlace",
+        "Lieu de délivrance du permis",
+        "مكان إصدار الرخصة",
+      ),
+      field("otherAddress", "Autre adresse", "عنوان آخر"),
+      field("phone", "Téléphone", "الهاتف"),
+    ],
+    driver: [
+      field("driverName", "Nom et prénom", "الاسم الكامل"),
+      field("driverLicence", "N° de permis", "رقم رخصة السياقة"),
+      field(
+        "driverLicenceDate",
+        "Permis délivré le",
+        "تاريخ إصدار الرخصة",
+        "date",
+      ),
+      field("driverLicencePlace", "Lieu de délivrance", "مكان إصدار الرخصة"),
+      field("driverIdentity", "CNIE", "رقم البطاقة الوطنية"),
+    ],
+    rental: [
+      ...base.rental,
+      field("extension", "Prolongation", "التمديد"),
+      field("startMileage", "Kilométrage de départ", "عداد التسليم"),
+      field("endMileage", "Kilométrage de retour", "عداد الإرجاع"),
+      field("days", "Nombre de jours", "عدد الأيام"),
+    ],
+    amounts: [
+      ...base.amounts,
+      field("payment", "Mode de règlement", "طريقة الدفع"),
+      field("balance", "Reste à payer (MAD)", "المتبقي (درهم)"),
+    ],
+    inspection: [
+      field("fuelLevel", "Niveau de carburant", "مستوى الوقود"),
+      field("wash", "Lavage", "الغسل"),
+    ],
+  };
+}
+
+export function blueDocumentChecklist(locale: Locale) {
+  const t = words(locale);
+  return [
+    { key: "registration", label: t("Carte grise", "البطاقة الرمادية") },
+    { key: "insurance", label: t("Assurance", "التأمين") },
+    { key: "taxSticker", label: t("Vignette", "الضريبة السنوية") },
+    {
+      key: "technicalInspection",
+      label: t("Visite technique", "الفحص التقني"),
+    },
+    { key: "authorization", label: t("Autorisation", "الترخيص") },
+    { key: "contractCopy", label: t("Contrat", "العقد") },
+  ];
 }
 
 export const addressMaxLength = 360;
