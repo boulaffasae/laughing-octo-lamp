@@ -240,7 +240,10 @@ h4 {
   border-start-start-radius: 0;
   border-start-end-radius: 0;
 }
-.languages {
+.header-inner,
+.header-actions,
+.languages,
+.logo {
   display: flex;
   align-items: center;
 }
@@ -1086,6 +1089,25 @@ h4 {
   }
 }
 @media (max-width: 410px) {
+  .header-inner {
+    gap: 6px;
+  }
+  .header-inner .logo {
+    gap: 5px;
+    font-size: 1.2rem;
+  }
+  .header-inner .logo img {
+    width: 28px;
+    height: 28px;
+  }
+  .header-actions .languages a {
+    min-inline-size: 28px;
+    padding-inline: 4px;
+  }
+  .header-actions .account-link {
+    gap: 4px;
+    padding-inline: 6px;
+  }
   .scan-form .fields {
     grid-template-columns: minmax(0, 1fr);
   }
