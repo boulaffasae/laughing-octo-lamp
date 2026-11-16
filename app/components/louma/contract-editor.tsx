@@ -62,7 +62,7 @@ function Inline({
   change: (value: string) => void;
   placeholder?: string;
   maxLength?: number;
-  type?: "text" | "date" | "time";
+  type?: "text" | "date" | "time" | "tel";
   multiline?: boolean;
   lines?: number;
   dotted?: boolean;
@@ -262,7 +262,7 @@ export function ContractEditor({
   const input = (
     key: FieldKey,
     label: string,
-    type?: "date" | "time",
+    type?: "date" | "time" | "tel",
     lines = 1,
   ) => (
     <Inline
@@ -415,7 +415,7 @@ export function ContractEditor({
         label={t("Texte du pied de page", "نص التذييل")}
         describedBy={front ? tour.describedBy(9) : undefined}
         value={agencyFooterText(a)}
-        lines={4}
+        lines={5}
         placeholder=""
         maxLength={360}
         multiline

@@ -41,40 +41,59 @@ export function headingInk(color: string) {
 
 const rentalTerms = [
   [
-    "1. Conducteurs autorisés\nSeuls les conducteurs inscrits au contrat et titulaires d’un permis valide peuvent conduire.\nConducteur supplémentaire / n° de permis : …",
-    "١. السائقون المصرح لهم\nلا يجوز قيادة السيارة إلا للسائقين المسجلين في العقد والحاملين لرخصة سياقة سارية.\nالسائق الإضافي / رقم الرخصة: …",
+    "1. Conducteurs autorisés\nSeuls les conducteurs inscrits au contrat et titulaires d’un permis valide pour le véhicule peuvent conduire. Ils présentent leur permis et une pièce d’identité au départ.",
+    "١. السائقون المصرح لهم\nتقتصر القيادة على السائقين المسجلين في العقد والحاملين لرخصة سياقة سارية تخول لهم قيادة السيارة. ويقدمون رخصة السياقة ووثيقة الهوية عند التسليم.",
   ],
   [
-    "2. Utilisation du véhicule\nLe locataire respecte le code de la route et les limites d’utilisation convenues.\nZone autorisée / restrictions : …",
-    "٢. استعمال السيارة\nيلتزم المستأجر بقواعد السير والقيود المتفق عليها لاستعمال السيارة.\nنطاق السير المسموح / القيود: …",
+    "2. Remise et état des lieux\nLe loueur remet un véhicule en état de circuler, avec ses clés, ses documents et ses accessoires. Les parties relèvent ensemble les défauts apparents, le kilométrage et le niveau de carburant au départ et au retour.",
+    "٢. التسليم ومعاينة الحالة\nيسلم المؤجر سيارة صالحة للسير مع مفاتيحها ووثائقها وملحقاتها. ويعاين الطرفان معا العيوب الظاهرة وقراءة العداد ومستوى الوقود عند التسليم والإرجاع.",
   ],
   [
-    "3. Départ et état des lieux\nLes parties relèvent ensemble l’état, les accessoires, le compteur et le niveau de carburant au départ et au retour.\nCompteur et carburant au départ / au retour : …",
-    "٣. التسليم ومعاينة الحالة\nيسجل الطرفان حالة السيارة وملحقاتها وقراءة العداد ومستوى الوقود عند التسليم والإرجاع.\nالعداد والوقود عند التسليم / الإرجاع: …",
+    "3. Utilisation du véhicule\nLe locataire respecte le code de la route. Sauf accord écrit du loueur, le véhicule circule au Maroc sur des voies ouvertes à la circulation. La sous-location, les compétitions et le remorquage sont interdits.",
+    "٣. استعمال السيارة\nيلتزم المستأجر بقواعد السير. وتستعمل السيارة داخل المغرب على الطرق المفتوحة للسير إلا بموافقة كتابية من المؤجر. ويمنع الكراء من الباطن واستعمال السيارة في السباقات أو للقطر.",
   ],
   [
-    "4. Kilométrage et carburant\nForfait kilométrique : … km. Prix du km supplémentaire : … MAD.\nNiveau de carburant attendu au retour / frais convenus : …",
-    "٤. المسافة والوقود\nالمسافة المشمولة: … كم. سعر الكيلومتر الإضافي: … درهم.\nمستوى الوقود المطلوب عند الإرجاع / الرسوم المتفق عليها: …",
+    "4. Prix et frais de location\nLe prix figure au recto. Les prestations facultatives, le forfait kilométrique et les tarifs applicables aux dépassements ou retards, le cas échéant, sont communiqués et convenus par écrit avant la signature.",
+    "٤. السعر ومصاريف الكراء\nيبين السعر في الصفحة الأولى. ويبلغ المؤجر المستأجر بالخدمات الاختيارية والمسافة المشمولة وتعرفة تجاوزها أو التأخر، عند الاقتضاء، ويتفق الطرفان عليها كتابة قبل التوقيع.",
   ],
   [
-    "5. Prix et dépôt de garantie\nLe prix et le dépôt figurent au recto. Les retenues éventuelles sont détaillées et justifiées.\nMode de paiement / délai de restitution du dépôt : …",
-    "٥. السعر ومبلغ الضمان\nيُبيّن السعر ومبلغ الضمان في الصفحة الأولى. تُفصّل وتُبرّر أي اقتطاعات.\nطريقة الدفع / أجل رد مبلغ الضمان: …",
+    "5. Caution\nSi une caution est prévue au recto, le loueur la restitue après le retour et l’état des lieux. Toute retenue correspond à une somme due, détaillée et justifiée par écrit. Le solde est restitué sans délai injustifié.",
+    "٥. مبلغ الضمان\nإذا نصت الصفحة الأولى على مبلغ للضمان، يرده المؤجر بعد إرجاع السيارة ومعاينة حالتها. ويقتصر أي اقتطاع على مبالغ مستحقة يبينها المؤجر ويبررها كتابة، ويرد الرصيد دون تأخير غير مبرر.",
   ],
   [
-    "6. Assurance et sinistre\nEn cas de panne, de vol ou d’accident, prévenir rapidement l’agence et lui transmettre les justificatifs disponibles.\nGaranties / franchise / exclusions : …\nContact d’assistance : …",
-    "٦. التأمين والحوادث\nعند العطل أو السرقة أو الحادث، يجب إبلاغ الوكالة سريعًا وإرسال الوثائق المتاحة إليها.\nالتغطية / مبلغ التحمل / الاستثناءات: …\nرقم المساعدة: …",
+    "6. Carburant et kilométrage\nLe véhicule est rendu avec le même niveau de carburant qu’au départ, sauf accord écrit. L’éventuel dépassement kilométrique se calcule à partir des relevés de départ et de retour et du forfait convenu.",
+    "٦. الوقود والمسافة المقطوعة\nتعاد السيارة بمستوى الوقود نفسه المسجل عند التسليم ما لم يتفق الطرفان كتابة على خلاف ذلك. ويحسب أي تجاوز للمسافة المشمولة بناء على قراءتي العداد والمسافة المتفق عليها.",
   ],
   [
-    "7. Restitution et prolongation\nRestituer le véhicule, ses clés, ses documents et ses accessoires à la date et au lieu convenus. Toute prolongation requiert l’accord de l’agence.\nLieu de retour / frais de retard convenus : …",
-    "٧. الإرجاع والتمديد\nتُعاد السيارة ومفاتيحها ووثائقها وملحقاتها في الموعد والمكان المتفق عليهما. يتطلب التمديد موافقة الوكالة.\nمكان الإرجاع / رسوم التأخير المتفق عليها: …",
+    "7. Assurance et assistance\nLe loueur communique les garanties, exclusions et franchises applicables avant signature. En cas de panne, d’accident ou de vol, le locataire se met en sécurité, contacte les services compétents si nécessaire et prévient le loueur aux coordonnées du contrat.",
+    "٧. التأمين والمساعدة\nيطلع المؤجر المستأجر قبل التوقيع على التغطيات والاستثناءات ومبالغ التحمل المطبقة. وعند العطل أو الحادث أو السرقة، يتخذ المستأجر تدابير السلامة ويتصل بالجهات المختصة عند الحاجة ويبلغ المؤجر عبر بيانات الاتصال الواردة في العقد.",
+  ],
+  [
+    "8. Restitution et prolongation\nLe locataire restitue le véhicule, les clés, les documents et les accessoires aux date, heure et lieu convenus. Toute prolongation et son prix doivent être acceptés par écrit avant l’échéance.",
+    "٨. الإرجاع والتمديد\nيعيد المستأجر السيارة ومفاتيحها ووثائقها وملحقاتها في التاريخ والوقت والمكان المتفق عليها. ويشترط الاتفاق كتابة على أي تمديد وسعره قبل انتهاء مدة الكراء.",
+  ],
+  [
+    "9. Infractions et péages\nLe locataire règle les amendes, péages et frais de stationnement qui lui incombent pour la période de location. Le loueur transmet les justificatifs de toute somme dont il demande le remboursement.",
+    "٩. المخالفات ورسوم المرور\nيؤدي المستأجر الغرامات ورسوم المرور والوقوف التي يتحملها عن مدة الكراء. ويقدم المؤجر ما يثبت أي مبلغ يطلب استرداده.",
+  ],
+  [
+    "10. Réclamations\nLe locataire peut adresser une réclamation au loueur aux coordonnées indiquées au contrat. Les parties peuvent chercher une solution amiable et conservent leurs voies de recours.",
+    "١٠. الشكاوى\nيمكن للمستأجر توجيه شكواه إلى المؤجر عبر بيانات الاتصال الواردة في العقد. ويمكن للطرفين السعي إلى حل ودي مع احتفاظهما بحقوقهما في التظلم والتقاضي.",
   ],
 ] as const;
 
-function defaultFooter(locale: Locale) {
+function previousFooter(locale: Locale) {
   const t = words(locale);
   return t(
     "Adresse : ……………………\nTél. : ……………… - Fax : ……………… - ICE : ………………\nRaison sociale : ……………… - Capital : ……………… - RC : ………… - TP : ………… - IF : …………\nE-mail : ……………………",
     "العنوان: ……………………\nالهاتف: ……………… - الفاكس: ……………… - المعرّف الموحد للمقاولة: ………………\nاسم الشركة: ……………… - رأس المال: ……………… - السجل التجاري: ………… - الضريبة المهنية: ………… - المعرّف الضريبي: …………\nالبريد الإلكتروني: ……………………",
+  );
+}
+
+function defaultFooter(locale: Locale) {
+  return words(locale)(
+    "Adresse : ……………………\nTél. : ……………… · E-mail : ……………………\nICE : ………………\nPatente : ………… · IF : …………\nRC : …………",
+    "العنوان: ……………………\nالهاتف: ……………… · البريد الإلكتروني: ……………………\nالمعرّف الموحد للمقاولة: ………………\nالضريبة المهنية: ………… · المعرّف الضريبي: …………\nالسجل التجاري: …………",
   );
 }
 
@@ -83,7 +102,8 @@ export function agencyFooterText(agreement: Agreement) {
     "Raison sociale : …… - RC : …… - ICE : …… - Adresse : …… - Téléphone : ……",
     "اسم الشركة: …… - السجل التجاري: …… - المعرّف الموحد للمقاولة: …… - العنوان: …… - الهاتف: ……",
   );
-  return agreement.footerText === oldDefault
+  return agreement.footerText === oldDefault ||
+    agreement.footerText === previousFooter(agreement.locale)
     ? defaultFooter(agreement.locale)
     : agreement.footerText;
 }
@@ -133,7 +153,7 @@ export type FieldKey = AgreementField | readonly [number | "blue", string];
 type ContractField = {
   key: FieldKey;
   label: string;
-  type?: "date" | "time";
+  type?: "date" | "time" | "tel";
   fullWidth?: boolean;
   lines?: number;
 };
@@ -170,6 +190,11 @@ export function contractFields(
         label: t("Adresse", "العنوان"),
         fullWidth: true,
         lines: 2,
+      },
+      {
+        key: ["blue", "phone"],
+        label: t("Téléphone mobile", "الهاتف المحمول"),
+        type: "tel",
       },
       { key: [1, "licence"], label: t("Permis", "رخصة السياقة") },
       {
@@ -238,7 +263,6 @@ export function blueContractFields(locale: Locale) {
         "مكان إصدار الرخصة",
       ),
       field("otherAddress", "Autre adresse", "عنوان آخر"),
-      field("phone", "Téléphone", "الهاتف"),
     ],
     driver: [
       field("driverName", "Nom et prénom", "الاسم الكامل"),

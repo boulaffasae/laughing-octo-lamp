@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
     right: 37,
     borderTopWidth: 1,
     paddingTop: 6,
-    fontSize: 8,
+    fontSize: 7,
   },
   header: { borderBottomWidth: 2, marginBottom: 10 },
   pair: { flexDirection: "row", gap: 9, marginBottom: 9 },
@@ -90,7 +90,8 @@ const styles = StyleSheet.create({
     borderColor: "#dae4de",
   },
   termsColumn: { flex: 1, minWidth: 0 },
-  clause: { marginBottom: 8, fontSize: 9, lineHeight: 1.45 },
+  clause: { marginBottom: 5 },
+  clauseText: { fontSize: 8, lineHeight: 1.3 },
   clauseTitle: { color: "#235346", marginBottom: 2 },
 });
 
@@ -349,6 +350,7 @@ export async function buildContractPdf(a: Agreement) {
             <Text
               style={[
                 align,
+                styles.clauseText,
                 styles.clauseTitle,
                 { color: a.color },
                 direction === "rtl" ? { fontWeight: 700 } : {},
@@ -357,7 +359,9 @@ export async function buildContractPdf(a: Agreement) {
             >
               {title}
             </Text>
-            {body.length > 0 && <Text style={align}>{body.join("\n")}</Text>}
+            {body.length > 0 && (
+              <Text style={[align, styles.clauseText]}>{body.join("\n")}</Text>
+            )}
           </View>
         );
       });
