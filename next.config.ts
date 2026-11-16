@@ -6,6 +6,13 @@ const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  serverExternalPackages: ["pdfjs-dist", "@napi-rs/canvas"],
+  outputFileTracingIncludes: {
+    "/api/documents{,/**}": [
+      "./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs",
+      "./node_modules/pdfjs-dist/{cmaps,iccs,standard_fonts,wasm}/**/*",
+    ],
+  },
   async redirects() {
     return [
       {

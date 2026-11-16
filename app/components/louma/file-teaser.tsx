@@ -1,10 +1,19 @@
-import { ChevronLeft, ChevronRight, FileText } from "lucide-react";
+"use client";
+
+import Image from "next/image";
+import {
+  ChevronLeft,
+  ChevronRight,
+  FileSignature,
+  FileText,
+} from "lucide-react";
 import type { Locale } from "@/i18n/locales";
 
 export function FileTeaser({
   locale,
   title,
   details,
+  thumbnail,
   date,
   dateLabel,
   onOpen,
@@ -12,6 +21,7 @@ export function FileTeaser({
   locale: Locale;
   title: string;
   details?: string;
+  thumbnail?: string;
   date: string;
   dateLabel: string;
   onOpen: () => void;
@@ -25,8 +35,33 @@ export function FileTeaser({
         aria-haspopup="dialog"
         onClick={onOpen}
       >
-        <span className="library-item-mark">
-          <FileText size={21} aria-hidden />
+        <span
+          className={
+            thumbnail
+              ? "library-poster"
+              : "library-poster library-poster-contract"
+          }
+          aria-hidden
+        >
+          {thumbnail ? (
+            <>
+              <FileText size={21} />
+              <Image
+                src={thumbnail}
+                alt=""
+                fill
+                unoptimized
+                loading="lazy"
+                onError={(event) => {
+                  event.currentTarget.hidden = true;
+                }}
+              />
+            </>
+          ) : (
+            <span className="library-poster-paper">
+              <FileSignature size={18} />
+            </span>
+          )}
         </span>
         <span className="library-item-copy">
           <strong>{title}</strong>

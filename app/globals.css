@@ -811,8 +811,7 @@ h4 {
 .library-banner h1 {
   font-size: clamp(2rem, 5vw, 3.4rem);
 }
-.library-mark,
-.library-item-mark {
+.library-mark {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -958,8 +957,41 @@ h4 {
   justify-content: end;
   margin-block-start: 15px;
 }
-.library-item-mark {
+.library-poster {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 72px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
   background: var(--pale);
+  color: var(--blue);
+}
+.library-poster img {
+  object-fit: contain;
+  background: white;
+}
+.library-poster-contract {
+  background: #eaf0ff;
+}
+.library-poster-paper {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 6px;
+  width: 33px;
+  height: 46px;
+  border: 1px solid #ccd9f7;
+  border-radius: 4px;
+  background: white;
+}
+.library-poster-paper::after {
+  content: "";
+  width: 15px;
+  height: 6px;
+  border-block: 1px solid #a9bde8;
 }
 .library-dialog-wide {
   width: min(1100px, calc(100vw - 24px));

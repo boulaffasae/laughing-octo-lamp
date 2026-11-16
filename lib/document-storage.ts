@@ -7,7 +7,7 @@ export const authConfigured = () =>
     process.env.CLERK_SECRET_KEY &&
     process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
   );
-type StorageOperation = "list" | "save" | "download";
+type StorageOperation = "list" | "save" | "download" | "thumbnail";
 
 export function storageConfigured(operation: StorageOperation) {
   const missing = [];

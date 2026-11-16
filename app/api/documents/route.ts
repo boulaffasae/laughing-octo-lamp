@@ -1,5 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { del, put } from "@vercel/blob";
+import { after } from "next/server";
+import { saveDocumentThumbnail } from "@/lib/document-thumbnail";
 import {
   failure,
   ownerId,
@@ -91,8 +93,12 @@ export async function POST(request: Request) {
         VALUES (${id}, ${owner}, ${pathname}, ${kind}, ${file.size}, ${hash})
         ON CONFLICT (owner_id, kind, content_hash) DO NOTHING RETURNING id
       `;
-      if (rows.length)
+      if (rows.length) {
+        after(async () => {
+          await saveDocumentThumbnail(id, pathname, bytes);
+        });
         return Response.json({ id }, { status: 201, headers: privateHeaders });
+      }
     } catch (error) {
       // A failed response can arrive after Neon committed. Check before deleting.
       const saved =

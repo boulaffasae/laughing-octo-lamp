@@ -199,6 +199,7 @@ export function DocumentLibrary({ locale }: { locale: Locale }) {
                 key={document.id}
                 locale={locale}
                 title={title}
+                thumbnail={`/api/documents/${document.id}/thumbnail`}
                 date={document.created_at}
                 dateLabel={date.format(new Date(document.created_at))}
                 onOpen={() => setSelected(document)}
