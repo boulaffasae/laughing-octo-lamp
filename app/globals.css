@@ -176,6 +176,54 @@ h4 {
 .account-link:dir(rtl) .account-avatar {
   order: 1;
 }
+.account-menu {
+  position: relative;
+}
+.account-menu summary {
+  list-style: none;
+}
+.account-menu summary::-webkit-details-marker {
+  display: none;
+}
+.account-menu-panel {
+  position: absolute;
+  z-index: 5;
+  inset-block-start: calc(100% + 6px);
+  inset-inline-end: 0;
+  width: max-content;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: white;
+  box-shadow: 0 8px 24px #15282122;
+}
+.workspace-dialog {
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px);
+  padding: clamp(14px, 4vw, 24px);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: white;
+  color: var(--navy);
+}
+.workspace-dialog::backdrop {
+  background: #14213c59;
+}
+.dialog-header,
+.dialog-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dialog-header {
+  justify-content: space-between;
+  margin-block-end: 12px;
+  overflow-wrap: anywhere;
+}
+.dialog-actions {
+  flex-wrap: wrap;
+  margin-block-start: 12px;
+}
 .languages {
   gap: 2px;
   font-size: 0.82rem;
@@ -664,11 +712,6 @@ h4 {
   background: var(--pale);
   color: var(--blue);
 }
-.footer-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 165px) auto;
-  gap: clamp(12px, 4vw, 52px);
-}
 .footer-grid nav {
   display: grid;
   align-content: start;
@@ -806,6 +849,105 @@ h4 {
   color: var(--muted);
   border: 1px solid var(--line);
   border-radius: 14px;
+}
+.file-meta:has(.pdf-actions) {
+  align-items: start;
+  flex-direction: column;
+  direction: inherit;
+}
+.pdf-tools {
+  gap: 4px;
+}
+.pdf-actions .icon-button {
+  width: 40px;
+  height: 40px;
+  flex-basis: 40px;
+}
+.pdf-dialog iframe {
+  display: block;
+  width: min(72vw, 850px);
+  height: min(68dvh, 850px);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.contract-library {
+  margin-block: 18px 30px;
+}
+.contract-card {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  height: 100%;
+  padding: 12px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--pale);
+  color: var(--navy);
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+.contract-card:hover {
+  background: #dcebe1;
+}
+.contract-card > span {
+  flex: 1;
+  min-width: 0;
+}
+.contract-card svg {
+  flex: none;
+}
+.contract-card small,
+.contract-card time,
+.history-row time {
+  display: block;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.contract-history {
+  width: min(640px, calc(100vw - 24px));
+}
+.contract-history h3 {
+  margin-block-start: 20px;
+}
+.history-list {
+  padding: 0;
+  list-style: none;
+}
+.history-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-block: 8px;
+  border-block-end: 1px solid var(--line);
+}
+.contract-history > .button {
+  margin-block-start: 12px;
+}
+.contract-save {
+  margin-block-start: 10px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+.contract-save label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.contract-save a {
+  text-decoration: underline;
+}
+@media (max-width: 420px) {
+  .contract-library .file-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .file-meta .pdf-actions .icon-button {
+    width: 36px;
+    height: 40px;
+    flex-basis: 36px;
+  }
 }
 .pagination {
   justify-content: end;
@@ -1296,7 +1438,6 @@ body {
   margin-inline: 3px;
   background: var(--line);
 }
-.editor-actions,
 .storage-sources {
   display: flex;
   align-items: center;
@@ -1305,10 +1446,7 @@ body {
   gap: 8px;
   margin-block-start: 12px;
 }
-.editor-actions .status {
-  flex-basis: 100%;
-  text-align: center;
-}
+
 .editor-error {
   text-align: center;
   font-size: 0.86rem;
@@ -1438,7 +1576,7 @@ body {
   .app-banner,
   .paper-tooltip,
   .editor-toolbar,
-  .editor-actions,
+  .contract-save,
   .editor-error,
   .paper-logo svg,
   .paper-logo-reset,

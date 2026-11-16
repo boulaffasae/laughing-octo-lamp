@@ -30,8 +30,8 @@ export default async function Page({
       "لوما أداة لإعداد عقود كراء السيارات.",
     ),
     t(
-      "Le brouillon reste dans l’onglet en cours. Si vous utilisez le scan, le PDF est envoyé à Datalab pour la lecture automatique. Les PDF enregistrés sont accessibles depuis votre compte.",
-      "تبقى المسودة في علامة التبويب الحالية. عند المسح، يُرسل ملف PDF إلى Datalab للقراءة الآلية. يمكنك الوصول إلى الملفات المحفوظة من حسابك.",
+      "Sans compte, le brouillon reste dans l’onglet. Si vous êtes connecté et utilisez l’enregistrement ou le téléchargement, les champs du contrat sont conservés dans votre espace privé. Vous pouvez aussi activer l’enregistrement automatique du brouillon. Si vous utilisez le scan, le PDF est envoyé à Datalab pour la lecture automatique.",
+      "من دون حساب، تبقى المسودة في علامة التبويب. عند حفظ العقد أو تنزيله بعد تسجيل الدخول، تُحفظ بيانات العقد في مساحتك الخاصة. ويمكنك تفعيل الحفظ التلقائي للمسودة. عند المسح، يُرسل ملف PDF إلى Datalab للقراءة الآلية.",
     ),
     t(
       "Vérifiez le contrat avant de le signer ou de le remettre au locataire. Importez uniquement des documents que vous êtes autorisé à traiter.",

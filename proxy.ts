@@ -12,7 +12,9 @@ const route = (request: NextRequest) => {
 };
 
 function privateLocale(request: NextRequest) {
-  return /^\/(fr|ar)\/dashboard\/?$/.exec(request.nextUrl.pathname)?.[1];
+  return /^\/(fr|ar)\/(?:dashboard|contracts\/[^/]+)\/?$/.exec(
+    request.nextUrl.pathname,
+  )?.[1];
 }
 
 export default process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
@@ -34,6 +36,7 @@ export const config = {
   matcher: [
     "/((?!_next|_vercel|.*\\..*).*)",
     "/api/documents/:path*",
+    "/api/contracts/:path*",
     "/__clerk/:path*",
   ],
 };

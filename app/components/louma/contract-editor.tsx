@@ -1,20 +1,7 @@
 "use client";
 
-import {
-  useEffect,
-  useEffectEvent,
-  useRef,
-  useState,
-  type CSSProperties,
-} from "react";
-import {
-  ArrowDownToLine,
-  Check,
-  ImagePlus,
-  Printer,
-  Share2,
-  X,
-} from "lucide-react";
+import { useRef, useState, type CSSProperties } from "react";
+import { ArrowDownToLine, Check, ImagePlus, Save, X } from "lucide-react";
 import Image from "next/image";
 import {
   blank,
@@ -32,9 +19,11 @@ import {
 } from "@/lib/contract/agreement";
 import { prepareImage } from "@/lib/contract/prepare-image";
 import type { Locale } from "@/i18n/locales";
+import type { SavedDraft } from "@/lib/contract/saved-contract";
 import { useAccount } from "./account";
+import { contractPdfName, downloadPdf } from "./pdf-file";
+import { useContractSave } from "./use-contract-save";
 
-const pdfName = "Modèle de contrat de location.pdf";
 const themes = [
   ["#235346", "Vert", "أخضر"],
   ["#254e9a", "Bleu", "أزرق"],
@@ -42,15 +31,6 @@ const themes = [
   ["#903d43", "Bordeaux", "عنابي"],
   ["#25323e", "Ardoise", "رمادي داكن"],
 ] as const;
-
-function download(blob: Blob) {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = pdfName;
-  link.click();
-  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
-}
 
 function Inline({
   label,
@@ -104,149 +84,21 @@ function Inline({
   );
 }
 
-function PdfActions({
-  agreement,
-  getPdf,
+export function ContractEditor({
   locale,
+  saved,
 }: {
-  agreement: Agreement;
-  getPdf: () => Promise<Blob>;
   locale: Locale;
+  saved?: SavedDraft;
 }) {
   const t = words(locale);
   const account = useAccount();
-  const pending = useRef(false);
-  const sending = useRef(false);
-  const [status, setStatus] = useState("");
-  const [error, setError] = useState(false);
-  const [savedAgreement, setSavedAgreement] = useState<Agreement>();
-  const saved = savedAgreement === agreement;
-  const [busy, setBusy] = useState(false);
-  async function save() {
-    if (sending.current || saved) return;
-    sending.current = true;
-    pending.current = false;
-    setBusy(true);
-    setError(false);
-    setStatus("");
-    try {
-      const form = new FormData();
-      form.set("file", await getPdf(), pdfName);
-      form.set("kind", "contract");
-      const result = await fetch("/api/documents", {
-        method: "POST",
-        body: form,
-      });
-      if (!result.ok) throw Error();
-      setSavedAgreement(agreement);
-      setStatus(t("PDF enregistré.", "تم حفظ الملف."));
-    } catch {
-      setError(true);
-      setStatus(
-        t(
-          "Enregistrement indisponible. Votre PDF reste téléchargeable.",
-          "الحفظ غير متاح. يمكنك تنزيل الملف.",
-        ),
-      );
-    } finally {
-      sending.current = false;
-      setBusy(false);
-    }
-  }
-
-  const resume = useEffectEvent(() => {
-    if (pending.current) void save();
-  });
-  useEffect(() => {
-    if (account.signedIn) resume();
-  }, [account.signedIn]);
-
-  return (
-    <>
-      <div className="editor-actions">
-        <button
-          className="button secondary"
-          type="button"
-          disabled={busy || saved || !account.ready || !account.available}
-          onClick={() => {
-            if (account.signedIn) void save();
-            else {
-              pending.current = true;
-              account.signUp();
-            }
-          }}
-        >
-          {saved
-            ? t("Enregistré", "تم الحفظ")
-            : busy
-              ? t("Enregistrement…", "جارٍ الحفظ…")
-              : account.signedIn
-                ? t("Enregistrer", "حفظ")
-                : t("S’inscrire pour enregistrer", "إنشاء حساب لحفظ العقد")}
-        </button>
-        <div className="pdf-tools">
-          <button
-            className="icon-button"
-            aria-label={t("Partager le PDF", "مشاركة PDF")}
-            title={t("Partager le PDF", "مشاركة PDF")}
-            type="button"
-            onClick={async () => {
-              let blob: Blob;
-              try {
-                blob = await getPdf();
-              } catch {
-                setError(true);
-                setStatus(
-                  t("Création du PDF impossible.", "تعذّر إنشاء ملف PDF."),
-                );
-                return;
-              }
-              const file = new File([blob], pdfName, {
-                type: "application/pdf",
-              });
-              if (navigator.canShare?.({ files: [file] })) {
-                try {
-                  await navigator.share({ files: [file] });
-                  return;
-                } catch (err) {
-                  if (err instanceof DOMException && err.name === "AbortError")
-                    return;
-                }
-              }
-              download(blob);
-              setError(false);
-              setStatus(
-                t(
-                  "PDF téléchargé. Joignez-le dans votre application de partage.",
-                  "تم تنزيل الملف. أرفقه في تطبيق المشاركة.",
-                ),
-              );
-            }}
-          >
-            <Share2 size={18} />
-          </button>
-          <button
-            className="icon-button"
-            type="button"
-            aria-label={t("Imprimer", "طباعة")}
-            title={t("Imprimer", "طباعة")}
-            onClick={() => window.print()}
-          >
-            <Printer size={18} />
-          </button>
-        </div>
-        <p className={error ? "error status" : "status"} aria-live="polite">
-          {status && (!savedAgreement || saved || error) ? status : ""}
-        </p>
-      </div>
-    </>
+  const [a, setAgreement] = useState(
+    () => saved?.draft ?? initialAgreement(locale),
   );
-}
-
-export function ContractEditor({ locale }: { locale: Locale }) {
-  const t = words(locale);
-  const dir = locale === "ar" ? "rtl" : "ltr";
-  const [a, setAgreement] = useState(() => initialAgreement(locale));
+  const dir = a.locale === "ar" ? "rtl" : "ltr";
+  const paperText = words(a.locale);
+  const persistence = useContractSave(a, account.signedIn, saved);
   const [logoBusy, setLogoBusy] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [logoError, setLogoError] = useState("");
@@ -254,7 +106,7 @@ export function ContractEditor({ locale }: { locale: Locale }) {
   const pdfCache = useRef<{ agreement: Agreement; result: Promise<Blob> }>(
     null,
   );
-  const fields = contractFields(locale);
+  const fields = contractFields(a.locale);
 
   function change(patch: Partial<Agreement>) {
     setAgreement((current) => ({ ...current, ...patch }));
@@ -288,7 +140,11 @@ export function ContractEditor({ locale }: { locale: Locale }) {
     setExporting(true);
     setExportError("");
     try {
-      download(await getPdf());
+      const result = getPdf();
+      persistence.save(a, true, result);
+      const url = URL.createObjectURL(await result);
+      downloadPdf(url, contractPdfName);
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch {
       setExportError(t("Création du PDF impossible.", "تعذّر إنشاء ملف PDF."));
     } finally {
@@ -418,7 +274,7 @@ export function ContractEditor({ locale }: { locale: Locale }) {
         }
       >
         <div className="paper-scroll">
-          <article className="paper">
+          <article className="paper" lang={a.locale} dir={dir}>
             <header className="paper-header">
               <div className="paper-brand">
                 <div className="paper-help">
@@ -562,7 +418,7 @@ export function ContractEditor({ locale }: { locale: Locale }) {
               {rows("amounts")}
             </div>
             <div className="paper-place">
-              {caption("place", t("Fait à / le", "حرر في / بتاريخ"))}
+              {caption("place", paperText("Fait à / le", "حرر في / بتاريخ"))}
               {input(
                 "place",
                 t("Lieu et date de signature", "مكان وتاريخ التوقيع"),
@@ -572,20 +428,23 @@ export function ContractEditor({ locale }: { locale: Locale }) {
               <div>
                 {caption(
                   "stamp",
-                  t("Cachet et signature de l’agence", "ختم وتوقيع الوكالة"),
+                  paperText(
+                    "Cachet et signature de l’agence",
+                    "ختم وتوقيع الوكالة",
+                  ),
                 )}
               </div>
               <div>
                 {caption(
                   "signature",
-                  t("Signature du locataire", "توقيع المستأجر"),
+                  paperText("Signature du locataire", "توقيع المستأجر"),
                 )}
               </div>
             </div>
             {footer()}
           </article>
 
-          <article className="paper">
+          <article className="paper" lang={a.locale} dir={dir}>
             <div className="paper-terms-grid">
               {(["fr", "ar"] as const).map(term)}
             </div>
@@ -596,7 +455,10 @@ export function ContractEditor({ locale }: { locale: Locale }) {
         <div
           className="editor-toolbar"
           role="group"
-          aria-label={t("Couleurs et téléchargement", "الألوان والتنزيل")}
+          aria-label={t(
+            "Couleurs, versions et téléchargement",
+            "الألوان والإصدارات والتنزيل",
+          )}
           dir="ltr"
         >
           {themes.map(([color, fr, ar]) => (
@@ -614,6 +476,18 @@ export function ContractEditor({ locale }: { locale: Locale }) {
             </button>
           ))}
           <span className="toolbar-divider" aria-hidden />
+          {account.signedIn && (
+            <button
+              type="button"
+              className="icon-button"
+              aria-label={t("Enregistrer une version", "حفظ إصدار")}
+              title={t("Enregistrer une version", "حفظ إصدار")}
+              disabled={logoBusy || persistence.status === "conflict"}
+              onClick={() => persistence.save(a, true)}
+            >
+              <Save size={19} aria-hidden />
+            </button>
+          )}
           <button
             type="button"
             className="editor-download"
@@ -632,7 +506,55 @@ export function ContractEditor({ locale }: { locale: Locale }) {
           </p>
         )}
       </div>
-      <PdfActions agreement={a} getPdf={getPdf} locale={locale} />
+      {account.signedIn && (
+        <div className="contract-save">
+          <label>
+            <input
+              type="checkbox"
+              checked={persistence.autoSave}
+              onChange={(event) =>
+                persistence.setAutoSave(event.target.checked)
+              }
+            />
+            {t(
+              "Enregistrer automatiquement le brouillon",
+              "حفظ المسودة تلقائيًا",
+            )}
+          </label>
+          <p
+            role="status"
+            className={
+              persistence.status === "error" ||
+              persistence.status === "conflict"
+                ? "error"
+                : ""
+            }
+          >
+            {
+              {
+                idle: "",
+                saving: t("Enregistrement…", "جارٍ الحفظ…"),
+                saved: t("Brouillon enregistré.", "تم حفظ المسودة."),
+                archived: t("Version enregistrée.", "تم حفظ الإصدار."),
+                error: t(
+                  "Enregistrement indisponible. Réessayez avec le bouton d’enregistrement.",
+                  "الحفظ غير متاح. حاول مرة أخرى باستخدام زر الحفظ.",
+                ),
+                conflict: t(
+                  "Ce contrat a changé ailleurs. Téléchargez vos modifications, puis rouvrez le contrat depuis Mon espace.",
+                  "تم تعديل هذا العقد في مكان آخر. نزّل تعديلاتك ثم أعد فتح العقد من مساحتي.",
+                ),
+              }[persistence.status]
+            }
+            {persistence.hasSaved && (
+              <>
+                {" "}
+                <a href={`/${locale}/dashboard`}>{t("Mon espace", "مساحتي")}</a>
+              </>
+            )}
+          </p>
+        </div>
+      )}
     </section>
   );
 }

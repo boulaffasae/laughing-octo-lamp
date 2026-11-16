@@ -1,14 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import {
-  ArrowDownToLine,
-  CalendarDays,
-  Camera,
-  FileText,
-  Upload,
-  X,
-} from "lucide-react";
+import { CalendarDays, Camera, FileText, Upload, X } from "lucide-react";
 import { DayPicker, type DateRange } from "react-day-picker";
 import { arMA, fr } from "react-day-picker/locale";
 import "react-day-picker/style.css";
@@ -16,6 +9,8 @@ import { prepareImage } from "@/lib/contract/prepare-image";
 import { words } from "@/lib/contract/agreement";
 import { MAX_FILE_BYTES } from "@/lib/upload-policy";
 import type { Locale } from "@/i18n/locales";
+import { ContractLibrary } from "./contract-library";
+import { PdfControls } from "./pdf-controls";
 
 type DocumentSummary = { id: string; created_at: string };
 type Result = { documents: DocumentSummary[]; more: boolean };
@@ -216,8 +211,10 @@ export function Dashboard({ locale }: { locale: Locale }) {
         </p>
       </section>
       <section className="shell files">
+        <h2>{t("Mon espace", "مساحتي")}</h2>
+        <ContractLibrary locale={locale} />
         <div className="files-heading">
-          <h2>{t("Mon espace", "مساحتي")}</h2>
+          <h3>{t("Documents PDF", "مستندات PDF")}</h3>
           <button
             className="date-filter"
             type="button"
@@ -337,19 +334,16 @@ export function Dashboard({ locale }: { locale: Locale }) {
                   <time dateTime={created_at}>
                     {date.format(new Date(created_at))}
                   </time>
-                  <a
-                    className="icon-button"
-                    title={t("Télécharger le PDF", "تنزيل PDF")}
-                    aria-label={
-                      t("Télécharger le PDF", "تنزيل PDF") +
-                      " · " +
-                      date.format(new Date(created_at))
-                    }
+                  <PdfControls
+                    locale={locale}
+                    name={`Document - ${dateKey(new Date(created_at))}.pdf`}
                     href={`/api/documents/${id}`}
-                    download
-                  >
-                    <ArrowDownToLine size={19} aria-hidden />
-                  </a>
+                    load={async () => {
+                      const response = await fetch(`/api/documents/${id}`);
+                      if (!response.ok) throw Error();
+                      return response.blob();
+                    }}
+                  />
                 </div>
               </li>
             ))}

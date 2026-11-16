@@ -14,7 +14,7 @@ async function PrivateFiles({ locale }: { locale: Locale }) {
     <>
       <Header locale={locale} path="/dashboard" />
       <Dashboard locale={locale} />
-      <Footer locale={locale} dashboard />
+      <Footer locale={locale} />
     </>
   );
 }

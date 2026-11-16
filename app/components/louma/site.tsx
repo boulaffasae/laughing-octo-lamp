@@ -31,9 +31,11 @@ export function Logo({ locale }: { locale: Locale }) {
 export function Header({
   locale,
   path = "",
+  dashboard = path === "/dashboard",
 }: {
   locale: Locale;
   path?: string;
+  dashboard?: boolean;
 }) {
   return (
     <header className="site-header">
@@ -61,7 +63,7 @@ export function Header({
               <span className="sr-only">العربية</span>
             </a>
           </nav>
-          <AccountButtons locale={locale} dashboard={path === "/dashboard"} />
+          <AccountButtons locale={locale} dashboard={dashboard} />
         </div>
       </div>
     </header>
@@ -136,13 +138,7 @@ const socials = [
   ],
 ] as const;
 
-export function Footer({
-  locale,
-  dashboard = false,
-}: {
-  locale: Locale;
-  dashboard?: boolean;
-}) {
+export function Footer({ locale }: { locale: Locale }) {
   const t = words(locale);
   return (
     <footer className="shell site-footer">
@@ -200,9 +196,6 @@ export function Footer({
             </a>
           ))}
         </nav>
-        <div>
-          <AccountButtons locale={locale} dashboard={dashboard} />
-        </div>
       </div>
     </footer>
   );
