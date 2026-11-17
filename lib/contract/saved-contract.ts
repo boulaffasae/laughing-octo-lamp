@@ -4,6 +4,7 @@ export type SavedDraft = {
   id: string;
   draft: Agreement;
   edit_version: number;
+  historical?: { revision: number; fingerprint: string };
 };
 
 export type ContractSummary = {

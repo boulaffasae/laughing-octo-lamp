@@ -9,10 +9,10 @@ import type {
   SavedDraft,
 } from "@/lib/contract/saved-contract";
 import type { Locale } from "@/i18n/locales";
-import { PdfPane } from "./pdf-preview";
 import { LibraryModal } from "./library-modal";
 import { PreviewSkeleton } from "./library-skeleton";
 import { ContractEditor } from "./contract-editor";
+import { pendingRevisionWrite } from "./use-contract-save";
 import {
   usePreviewRequest,
   type PreviewRequest,
@@ -34,13 +34,13 @@ async function json<T>(url: string, signal?: AbortSignal): Promise<T> {
   return response.json();
 }
 
-function contractFile(id: string, revision = 0) {
+function contractFile(id: string) {
   return {
-    name: revision ? `Contrat - v${revision}.pdf` : contractPdfName,
+    name: contractPdfName,
     load: async (signal: AbortSignal) => {
       const [{ snapshot }, { buildContractPdf }] = await Promise.all([
         json<{ snapshot: Agreement }>(
-          `/api/contracts/${id}?revision=${revision}`,
+          `/api/contracts/${id}?revision=0`,
           signal,
         ),
         import("../contract/contract-pdf"),
@@ -51,10 +51,69 @@ function contractFile(id: string, revision = 0) {
   };
 }
 
+function RevisionEditor({
+  locale,
+  base,
+  revision,
+}: {
+  locale: Locale;
+  base: string;
+  revision: number;
+}) {
+  const t = words(locale);
+  const [draft, setDraft] = useState<SavedDraft>();
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    const request = new AbortController();
+    const url = `${base}?revision=${revision}`;
+    async function load() {
+      await pendingRevisionWrite(url);
+      request.signal.throwIfAborted();
+      return json<SavedDraft>(`${url}&draft`, request.signal);
+    }
+    load().then(
+      (data) => {
+        if (!request.signal.aborted) setDraft(data);
+      },
+      () => {
+        if (!request.signal.aborted) setFailed(true);
+      },
+    );
+    return () => request.abort();
+  }, [base, revision, attempt]);
+
+  if (draft) return <ContractEditor locale={locale} saved={draft} />;
+  if (!failed)
+    return (
+      <PreviewSkeleton
+        editor
+        label={t("Chargement de la version…", "جارٍ تحميل الإصدار…")}
+      />
+    );
+  return (
+    <div className="library-empty">
+      <p role="alert">
+        {t("Impossible de charger la version.", "تعذر تحميل الإصدار.")}
+      </p>
+      <button
+        type="button"
+        className="button secondary"
+        onClick={() => {
+          setFailed(false);
+          setAttempt((value) => value + 1);
+        }}
+      >
+        {t("Réessayer", "إعادة المحاولة")}
+      </button>
+    </div>
+  );
+}
+
 function ContractDetails({
   contract,
   locale,
-  date,
   dateTime,
   draftRequest,
   onClose,
@@ -62,7 +121,6 @@ function ContractDetails({
 }: {
   contract: ContractSummary;
   locale: Locale;
-  date: Intl.DateTimeFormat;
   dateTime: Intl.DateTimeFormat;
   draftRequest: PreviewRequest<SavedDraft>;
   onClose: () => void;
@@ -158,7 +216,7 @@ function ContractDetails({
   return (
     <LibraryModal
       title={title}
-      closeLabel={t("Fermer", "إغلاق")}
+      backLabel={t("Retour", "رجوع")}
       onClose={() => {
         closed.current = true;
         draftRequest.abort();
@@ -185,12 +243,11 @@ function ContractDetails({
                   type="button"
                   className="library-revision"
                   aria-pressed={revision === item.revision}
-                  title={dateTime.format(new Date(item.created_at))}
                   aria-label={`${dateTime.format(new Date(item.created_at))} · ${t("Version", "الإصدار")} ${item.revision}`}
                   onClick={() => setRevision(item.revision)}
                 >
                   <time dateTime={item.created_at}>
-                    {date.format(new Date(item.created_at))}
+                    {dateTime.format(new Date(item.created_at))}
                   </time>
                 </button>
               </li>
@@ -274,10 +331,11 @@ function ContractDetails({
           )}
         </div>
         {revision !== 0 && (
-          <PdfPane
+          <RevisionEditor
             key={revision}
             locale={locale}
-            file={contractFile(contract.id, revision)}
+            base={base}
+            revision={revision}
           />
         )}
       </div>
@@ -373,7 +431,6 @@ export function ContractLibrary({ locale }: { locale: Locale }) {
           contract={selected.contract}
           draftRequest={selected.request}
           locale={locale}
-          date={date}
           dateTime={revisionDate}
           onSaved={() => list.refresh()}
           onClose={() => setSelected(undefined)}

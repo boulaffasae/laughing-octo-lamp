@@ -1,0 +1,120 @@
+.field {
+  min-width: 0;
+}
+
+.editor {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+}
+
+.format {
+  max-width: 100%;
+  padding: 1px 3px;
+  border: 1px solid #82988b77;
+  border-radius: 4px;
+  background: #fff;
+  color: #303b36;
+  font: inherit;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.plate {
+  display: flex;
+  align-items: stretch;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 17rem;
+  min-height: 2.55rem;
+  padding: 3px;
+  border: 1px solid #a0aaa5;
+  border-radius: 6px;
+  background: #fff;
+  color: #141b18;
+  box-shadow:
+    inset 0 0 0 2px #f1f3f2,
+    0 1px 2px #15282114;
+}
+
+.plate input {
+  flex: 5;
+  width: 100%;
+  min-width: 0;
+  padding: 1px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: inherit;
+  font:
+    750 clamp(13px, 2vw, 21px) / 1.15 "Inter Variable",
+    sans-serif;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.plate input::placeholder {
+  color: #67746c;
+}
+
+.plate input:focus-visible,
+.format:focus-visible {
+  outline: 2px solid var(--paper-color, #38734f);
+  outline-offset: -2px;
+}
+
+.series,
+.mark {
+  display: grid;
+  place-items: center;
+  flex: 2;
+  min-width: 0;
+  border-inline: 1px solid #c7ceca;
+}
+
+.series input {
+  font-family: system-ui, sans-serif;
+}
+
+.series + input {
+  flex: 2;
+}
+
+.latin {
+  min-width: 1em;
+  border-block-start: 1px solid #c7ceca;
+  font:
+    750 10px / 1.2 "Inter Variable",
+    sans-serif;
+  text-align: center;
+}
+
+.mark {
+  border-inline-end: 0;
+  font:
+    750 clamp(10px, 1.5vw, 16px) / 1 "Inter Variable",
+    sans-serif;
+}
+
+[data-format="bilingual"] .mark {
+  flex: 1.5;
+  font-size: 10px;
+}
+
+.plate .free {
+  font-size: clamp(13px, 2vw, 18px);
+}
+
+.print {
+  display: none;
+}
+
+@media print {
+  .editor {
+    display: none;
+  }
+
+  .print {
+    display: inline;
+  }
+}

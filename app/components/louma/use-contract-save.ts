@@ -4,6 +4,12 @@ import { useEffect, useEffectEvent, useRef, useState } from "react";
 import type { Agreement } from "@/lib/contract/agreement";
 import type { SavedDraft } from "@/lib/contract/saved-contract";
 
+const revisionWrites = new Map<string, Promise<void>>();
+
+export function pendingRevisionWrite(url: string) {
+  return revisionWrites.get(url);
+}
+
 type Status = "idle" | "saving" | "saved" | "error" | "conflict";
 
 export function useContractSave(
@@ -17,6 +23,7 @@ export function useContractSave(
   const [phase, setPhase] = useState<Status>(saved ? "saved" : "idle");
   const id = useRef(saved?.id);
   const version = useRef(saved?.edit_version ?? 0);
+  const fingerprint = useRef(saved?.historical?.fingerprint);
   const savedDraft = useRef(saved?.draft);
   const archivedDraft = useRef<Agreement>(undefined);
   const queue = useRef(Promise.resolve());
@@ -26,7 +33,11 @@ export function useContractSave(
   function save(snapshot: Agreement) {
     if (!signedIn || conflict.current) return;
 
-    queue.current = queue.current.then(async () => {
+    const historical = saved?.historical;
+    const revisionUrl = historical
+      ? `/api/contracts/${saved.id}?revision=${historical.revision}`
+      : undefined;
+    const write = queue.current.then(async () => {
       if (conflict.current) return;
       if (archivedDraft.current === snapshot && savedDraft.current === snapshot)
         return;
@@ -34,14 +45,19 @@ export function useContractSave(
       setPhase("saving");
       try {
         id.current ??= crypto.randomUUID();
-        const body = JSON.stringify({
-          draft: snapshot,
-          base: version.current,
-          operation: crypto.randomUUID(),
-          archive: true,
-        });
+        const url = `/api/contracts/${id.current}`;
+        const body = JSON.stringify(
+          historical
+            ? { draft: snapshot, fingerprint: fingerprint.current }
+            : {
+                draft: snapshot,
+                base: version.current,
+                operation: crypto.randomUUID(),
+                archive: true,
+              },
+        );
         const send = () =>
-          fetch(`/api/contracts/${id.current}`, {
+          fetch(revisionUrl ?? url, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             signal: AbortSignal.timeout(15_000),
@@ -55,7 +71,9 @@ export function useContractSave(
           return;
         }
         if (!response.ok) throw Error();
-        version.current = (await response.json()).edit_version;
+        const result = await response.json();
+        if (historical) fingerprint.current = result.fingerprint;
+        else version.current = result.edit_version;
         savedDraft.current = snapshot;
         archivedDraft.current = snapshot;
         setSyncedDraft(snapshot);
@@ -65,6 +83,14 @@ export function useContractSave(
         setPhase("error");
       }
     });
+    queue.current = write;
+    if (revisionUrl) {
+      revisionWrites.set(revisionUrl, write);
+      void write.then(() => {
+        if (revisionWrites.get(revisionUrl) === write)
+          revisionWrites.delete(revisionUrl);
+      });
+    }
   }
 
   const needsSync = draft !== (syncedDraft ?? initialDraft);
@@ -72,7 +98,7 @@ export function useContractSave(
     needsSync && (phase === "idle" || phase === "saved") ? "saving" : phase;
   const saveAutomatically = useEffectEvent(() => save(draft));
 
-  // Flush a debounced edit when the library closes the editor.
+  // Flush a debounced edit when the library closes or switches revisions.
   useEffect(() => () => pendingSave.current?.(), []);
   useEffect(() => {
     pendingSave.current = null;

@@ -230,7 +230,7 @@ export function DocumentLibrary({ locale }: { locale: Locale }) {
       {selected && (
         <LibraryModal
           title={title}
-          closeLabel={t("Fermer", "إغلاق")}
+          backLabel={t("Retour", "رجوع")}
           sidebarLabel={t("Date d’ajout", "تاريخ الإضافة")}
           sidebar={
             <ol className="history-list">

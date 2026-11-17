@@ -198,6 +198,8 @@ export function PeriodFilter({
         <div className="library-calendar" aria-label={label} role="region">
           <DayPicker
             mode="range"
+            numberOfMonths={2}
+            today={today}
             timeZone={libraryTimeZone}
             locale={fr}
             selected={selected}

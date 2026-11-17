@@ -38,7 +38,7 @@ export async function GET(
   }
 
   try {
-    if (search.has("draft")) {
+    if (search.has("draft") && revision === 0) {
       const saved = await loadDraft(owner, id);
       return saved
         ? Response.json(saved, { headers: privateHeaders })
@@ -50,13 +50,21 @@ export async function GET(
         revision === 0
           ? await sql`SELECT draft AS snapshot FROM rental_contracts WHERE id = ${id} AND owner_id = ${owner}`
           : await sql`
-          SELECT r.snapshot FROM rental_contract_revisions r
+          SELECT r.snapshot, md5(r.snapshot::text) AS fingerprint
+          FROM rental_contract_revisions r
           JOIN rental_contracts c ON c.id = r.contract_id
           WHERE c.id = ${id} AND c.owner_id = ${owner} AND r.revision = ${revision}
         `;
-      return row
-        ? Response.json(row, { headers: privateHeaders })
-        : failure("missing", 404);
+      if (!row) return failure("missing", 404);
+      const result = search.has("draft")
+        ? {
+            id,
+            draft: row.snapshot,
+            edit_version: 0,
+            historical: { revision, fingerprint: row.fingerprint },
+          }
+        : { snapshot: row.snapshot };
+      return Response.json(result, { headers: privateHeaders });
     }
     const revisions = await sql`
       SELECT r.revision, r.created_at FROM rental_contract_revisions r
@@ -93,6 +101,12 @@ export async function PUT(
   if (request.headers.get("content-type")?.split(";")[0] !== "application/json")
     return failure("format", 415);
 
+  const revision = Number(
+    new URL(request.url).searchParams.get("revision") ?? 0,
+  );
+  if (!Number.isInteger(revision) || revision < 0 || revision > 2_147_483_647)
+    return failure("revision", 400);
+
   try {
     const body = await readLimitedBody(request, 2_400_000);
     let payload;
@@ -101,15 +115,39 @@ export async function PUT(
     } catch {
       return failure("format", 400);
     }
+    if (!payload || !isAgreement(payload.draft)) return failure("draft", 400);
+
+    if (revision > 0) {
+      if (
+        typeof payload.fingerprint !== "string" ||
+        !/^[a-f0-9]{32}$/.test(payload.fingerprint)
+      )
+        return failure("draft", 400);
+
+      const snapshot = JSON.stringify(payload.draft);
+      const sql = repository();
+      const [row] = await sql`
+        UPDATE rental_contract_revisions r
+        SET snapshot = ${snapshot}::jsonb
+        FROM rental_contracts c
+        WHERE c.id = r.contract_id AND c.id = ${id} AND c.owner_id = ${owner}
+          AND r.revision = ${revision}
+          AND (md5(r.snapshot::text) = ${payload.fingerprint}
+               OR r.snapshot = ${snapshot}::jsonb)
+        RETURNING md5(r.snapshot::text) AS fingerprint
+      `;
+      return row
+        ? Response.json(row, { headers: privateHeaders })
+        : failure("conflict", 409);
+    }
+
     if (
-      !payload ||
       !Number.isInteger(payload.base) ||
       payload.base < 0 ||
       payload.base >= 2_147_483_647 ||
       typeof payload.operation !== "string" ||
       !uuidPattern.test(payload.operation) ||
-      typeof payload.archive !== "boolean" ||
-      !isAgreement(payload.draft)
+      typeof payload.archive !== "boolean"
     )
       return failure("draft", 400);
 

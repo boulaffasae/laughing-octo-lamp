@@ -21,16 +21,19 @@ export async function GET(
 
   try {
     const sql = repository();
-    const rows =
-      await sql`SELECT blob_path FROM documents WHERE id = ${id} AND owner_id = ${owner}`;
-    if (!rows.length) return failure("missing", 404);
-    const blob = await get(rows[0].blob_path, { access: "private" });
+    const [document] = await sql`
+      SELECT blob_path,
+        to_char(created_at AT TIME ZONE 'Africa/Casablanca', 'DD-MM-YYYY') AS creation_date
+      FROM documents WHERE id = ${id} AND owner_id = ${owner}
+    `;
+    if (!document) return failure("missing", 404);
+    const blob = await get(document.blob_path, { access: "private" });
     if (blob?.statusCode !== 200) return failure("missing", 404);
     return new Response(blob.stream, {
       headers: {
         ...privateHeaders,
         "Content-Type": "application/pdf",
-        "Content-Disposition": 'attachment; filename="louma.pdf"',
+        "Content-Disposition": `attachment; filename="Document - ${document.creation_date}.pdf"`,
         "X-Content-Type-Options": "nosniff",
       },
     });

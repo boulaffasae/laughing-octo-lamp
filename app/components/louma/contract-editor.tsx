@@ -41,6 +41,7 @@ import type { SavedDraft } from "@/lib/contract/saved-contract";
 import { useAccount } from "./account";
 import { contractPdfName, downloadPdf } from "./pdf-file";
 import { useContractTour } from "./contract-tour";
+import { RegistrationPlate } from "./registration-plate";
 import { TemplateGallery } from "./template-gallery";
 import { useAgreementHistory } from "./use-agreement-history";
 import { useContractSave } from "./use-contract-save";
@@ -252,7 +253,16 @@ export function ContractEditor({
         key={fieldId(key)}
       >
         <div className="paper-row-label">{caption(fieldId(key), label)}</div>
-        {input(key, label, type, lines)}
+        {fieldId(key) === "2-plate" ? (
+          <RegistrationPlate
+            label={label}
+            locale={locale}
+            value={fieldValue(a, key)}
+            change={(value) => update(key, value)}
+          />
+        ) : (
+          input(key, label, type, lines)
+        )}
       </div>
     ));
 
@@ -735,27 +745,6 @@ export function ContractEditor({
           </p>
         )}
       </div>
-      <p className="contract-workflow">
-        {t(
-          "Personnalisez le modèle, téléchargez le PDF et imprimez-le. Remplissez et signez le contrat à la main, puis importez un scan PDF ou prenez une photo dans",
-          "خصّص القالب ونزّل ملف PDF واطبعه. املأ العقد ووقّعه بخط اليد، ثم استورد نسخة ممسوحة بصيغة PDF أو التقط صورة من قسم",
-        )}{" "}
-        {account.signedIn ? (
-          <a href={`/${locale}/documents`}>{t("Mes contrats", "عقودي")}</a>
-        ) : (
-          <strong>{t("Mes contrats", "عقودي")}</strong>
-        )}
-        .
-        {account.ready && account.available && !account.signedIn && (
-          <>
-            {" "}
-            {t(
-              "Connectez-vous pour accéder à vos archives.",
-              "سجّل الدخول للوصول إلى أرشيفك.",
-            )}
-          </>
-        )}
-      </p>
       {account.signedIn &&
         (persistence.status === "error" ||
           persistence.status === "conflict") && (
