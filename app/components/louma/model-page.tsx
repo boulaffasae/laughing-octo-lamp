@@ -1,3 +1,4 @@
+import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContractEditor } from "@/app/components/louma/contract-editor";
@@ -43,7 +44,10 @@ export function ModelPage({ template }: { template: PublicTemplate }) {
       <Header locale={locale} />
       <main>
         <div className={`shell ${styles.modelIntro}`}>
-          <Link href="/#modeles">&lt; retour</Link>
+          <Link href="/#modeles">
+            <ArrowLeft size={16} aria-hidden="true" />
+            Retour
+          </Link>
         </div>
         <ContractEditor locale={locale} initialTemplateColor={template.color} />
       </main>
