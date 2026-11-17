@@ -13,7 +13,6 @@ import styles from "./home.module.css";
 type Category = {
   label: string;
   image?: string;
-  fields?: string;
 };
 
 const rentalCategory: Category = { label: "Contrat de location de voiture" };
@@ -23,17 +22,14 @@ const featuredCategories: Category[] = [
   {
     label: "Procuration",
     image: "procuration",
-    fields: "Noms, objet du mandat et durée.",
   },
   {
     label: "Quittance de loyer",
     image: "quittance",
-    fields: "Adresse, période de location et montant payé.",
   },
   {
     label: "Invitation de mariage",
     image: "mariage",
-    fields: "Prénoms, date, lieu et coordonnées pour la réponse.",
   },
   { label: "Règlement intérieur" },
   { label: "Bon de livraison" },
@@ -41,7 +37,6 @@ const featuredCategories: Category[] = [
   {
     label: "Menus de restaurants et de snacks",
     image: "menu",
-    fields: "Rubriques, plats, descriptions et prix.",
   },
 ];
 
@@ -104,7 +99,7 @@ const moreCategories = [
   },
 ];
 
-const categories = [
+const categories: Category[] = [
   ...featuredCategories,
   ...moreCategories.flatMap(({ labels }) => labels.map((label) => ({ label }))),
 ];
@@ -190,14 +185,17 @@ export function TemplateGallery() {
         : matchesSearch(`${rentalCategory.label} ${fr}`, submittedTerms),
     )
     .slice(0, 10);
-  const upcomingMatches =
-    !category &&
-    submittedTerms.length > 0 &&
-    categories.some(
-      (option) =>
-        option !== rentalCategory &&
-        matchesSearch(option.label, submittedTerms),
-    );
+  const upcoming = category
+    ? category === rentalCategory
+      ? []
+      : [category]
+    : submittedTerms.length > 0
+      ? categories.filter(
+          (option) =>
+            option !== rentalCategory &&
+            matchesSearch(option.label, submittedTerms),
+        )
+      : [];
 
   function resetSearch() {
     setQuery("");
@@ -308,9 +306,6 @@ export function TemplateGallery() {
               }}
             >
               {option.label}
-              {option !== rentalCategory && (
-                <span className={styles.chipStatus}>Bientôt</span>
-              )}
             </button>
           ))}
         </div>
@@ -359,61 +354,63 @@ export function TemplateGallery() {
             {models.length === 1 ? "modèle disponible" : "modèles disponibles"}
           </p>
         )}
-        {models.length > 0 ? (
+        {models.length > 0 || upcoming.length > 0 ? (
           <ul
             className={styles.cards}
             ref={modelTrack}
             role="list"
-            aria-label="Modèles disponibles"
+            aria-label="Résultats des modèles"
           >
             {models.map((template) => (
               <li key={template.id}>
                 <Link
                   href={contractTemplatePath(template)}
-                  className={styles.cardLink}
+                  className={`${styles.card} ${styles.cardLink}`}
                   aria-label={`Essayer le modèle ${template.fr} de contrat de location de voiture`}
                 >
                   <Image
                     src={`/modeles/${template.id}.png`}
                     width={640}
                     height={640}
-                    sizes="(max-width: 520px) 45vw, (max-width: 900px) 32vw, 160px"
+                    sizes="190px"
                     alt=""
                   />
                   <div className={styles.cardBody}>
-                    <strong>{template.fr}</strong>
+                    <span className={styles.cardTitle}>{template.fr}</span>
                     <span>Essayer</span>
                   </div>
                 </Link>
               </li>
             ))}
+            {upcoming.map((option) => (
+              <li key={option.label}>
+                <div className={styles.card}>
+                  {option.image ? (
+                    <Image
+                      src={`/modeles/${option.image}.png`}
+                      width={600}
+                      height={400}
+                      sizes="190px"
+                      alt=""
+                    />
+                  ) : (
+                    <div className={styles.placeholder} aria-hidden>
+                      <FileText size={34} strokeWidth={1.5} />
+                    </div>
+                  )}
+                  <div className={styles.cardBody}>
+                    <span className={styles.cardTitle} title={option.label}>
+                      {option.label}
+                    </span>
+                    <span>Bientôt</span>
+                  </div>
+                </div>
+              </li>
+            ))}
           </ul>
-        ) : category ? (
-          <div className={styles.upcoming}>
-            {category.image ? (
-              <Image
-                src={`/modeles/${category.image}.png`}
-                width={600}
-                height={400}
-                sizes="(max-width: 520px) 88vw, 280px"
-                alt=""
-              />
-            ) : (
-              <div className={styles.placeholder} aria-hidden>
-                <FileText size={34} strokeWidth={1.5} />
-              </div>
-            )}
-            <div className={styles.upcomingBody}>
-              <span className={styles.badge}>Bientôt</span>
-              <h2>{category.label}</h2>
-              {category.fields && <p>À personnaliser · {category.fields}</p>}
-            </div>
-          </div>
         ) : (
           <p className={styles.noCategories} role="status">
-            {upcomingMatches
-              ? "Les catégories correspondantes sont en préparation."
-              : "Aucun modèle trouvé."}
+            Aucun modèle trouvé.
           </p>
         )}
       </div>

@@ -43,9 +43,7 @@ export function ModelPage({ template }: { template: PublicTemplate }) {
       <Header locale={locale} />
       <main>
         <div className={`shell ${styles.modelIntro}`}>
-          <Link href="/#modeles">Tous les modèles</Link>
-          <h1>Contrat de location de voiture · {template.fr}</h1>
-          <p>{template.description}</p>
+          <Link href="/#modeles">&lt; retour</Link>
         </div>
         <ContractEditor locale={locale} initialTemplateColor={template.color} />
       </main>
