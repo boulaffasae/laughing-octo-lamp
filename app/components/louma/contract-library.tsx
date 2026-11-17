@@ -373,7 +373,7 @@ export function ContractLibrary({ locale }: { locale: Locale }) {
           <h1>{t("Mes modèles", "قوالبي")}</h1>
           <Link className="button" href="/new">
             <Plus size={18} aria-hidden />
-            {t("Nouveau modèle", "قالب جديد")}
+            {t("Nouveau", "جديد")}
           </Link>
         </div>
       </section>

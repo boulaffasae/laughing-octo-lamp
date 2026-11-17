@@ -6,11 +6,25 @@ export function LibraryCardsSkeleton({ locale }: { locale: Locale }) {
   return (
     <div role="status">
       <span className="sr-only">{t("Chargement…", "جارٍ التحميل…")}</span>
-      <div className="library-grid" aria-hidden>
+      <ul className="library-grid" aria-hidden>
         {[1, 2, 3].map((id) => (
-          <div key={id} className="library-card-skeleton" />
+          <li key={id} className="library-card">
+            <div className="library-item library-item-skeleton">
+              <div className="library-poster">
+                <span className="library-skeleton-sheet" />
+              </div>
+              <div className="library-item-copy">
+                <span className="library-skeleton-date" />
+              </div>
+            </div>
+            <div className="library-card-actions library-actions-skeleton">
+              <span />
+              <span />
+              <span />
+            </div>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }
@@ -32,9 +46,18 @@ export function LibraryPageSkeleton({
               ? t("Mes modèles", "قوالبي")
               : t("Mes contrats", "عقودي")}
           </h1>
+          <div className="library-banner-actions" aria-hidden>
+            <span className="library-skeleton-control" />
+            {kind === "documents" && (
+              <span className="library-skeleton-control" />
+            )}
+          </div>
         </div>
       </section>
       <section className="shell library-content">
+        <div className="library-heading" aria-hidden>
+          <span className="library-skeleton-control" />
+        </div>
         <LibraryCardsSkeleton locale={locale} />
       </section>
     </main>

@@ -13,6 +13,32 @@ import { words } from "@/lib/contract/agreement";
 import type { Locale } from "@/i18n/locales";
 import { downloadPdf, type PdfFile } from "./pdf-file";
 
+function PosterThumbnail({ src }: { src: string }) {
+  const [status, setStatus] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
+
+  if (status === "error") return <FileText size={24} />;
+
+  return (
+    <>
+      {status === "loading" && <span className="library-skeleton-sheet" />}
+      <Image
+        src={src}
+        alt=""
+        fill
+        unoptimized
+        loading="lazy"
+        className={
+          status === "loading" ? "library-thumbnail-loading" : undefined
+        }
+        onLoad={() => setStatus("ready")}
+        onError={() => setStatus("error")}
+      />
+    </>
+  );
+}
+
 type Action = "download" | "share" | "print";
 
 export function FileTeaser({
@@ -147,19 +173,7 @@ export function FileTeaser({
       >
         <span className="library-poster" aria-hidden>
           {thumbnail ? (
-            <>
-              <FileText size={24} />
-              <Image
-                src={thumbnail}
-                alt=""
-                fill
-                unoptimized
-                loading="lazy"
-                onError={(event) => {
-                  event.currentTarget.hidden = true;
-                }}
-              />
-            </>
+            <PosterThumbnail key={thumbnail} src={thumbnail} />
           ) : (
             <span className="library-poster-paper">
               <FileSignature size={17} />

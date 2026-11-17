@@ -142,7 +142,7 @@ export function DocumentLibrary({ locale }: { locale: Locale }) {
               onClick={() => fileInput.current?.click()}
             >
               <Upload size={17} aria-hidden />
-              {t("Importer un scan PDF", "استيراد نسخة ممسوحة بصيغة PDF")}
+              {t("Importer", "استيراد")}
             </button>
             <button
               type="button"
@@ -151,7 +151,7 @@ export function DocumentLibrary({ locale }: { locale: Locale }) {
               onClick={() => cameraInput.current?.click()}
             >
               <Camera size={17} aria-hidden />
-              {t("Photographier le contrat", "تصوير العقد")}
+              {t("Photographier", "تصوير")}
             </button>
             <input
               ref={fileInput}
