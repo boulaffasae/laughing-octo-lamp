@@ -1007,7 +1007,9 @@ h4 {
   position: sticky;
   top: 0;
   z-index: 1;
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   width: 100%;
   min-height: 32px;
   padding: 4px 9px;

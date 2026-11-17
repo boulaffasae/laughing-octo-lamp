@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowLeft } from "lucide-react";
 import { useEffect, useRef, type ReactNode } from "react";
 
 export function LibraryModal({
@@ -37,6 +38,7 @@ export function LibraryModal({
             type="button"
             onClick={() => dialog.current?.close()}
           >
+            <ArrowLeft size={16} aria-hidden="true" />
             {backLabel}
           </button>
           {sidebar}
