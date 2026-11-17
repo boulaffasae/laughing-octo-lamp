@@ -12,30 +12,51 @@ import styles from "./home.module.css";
 
 type Category = {
   label: string;
+  description: string;
   image?: string;
 };
 
-const rentalCategory: Category = { label: "Contrat de location de voiture" };
+const rentalCategory: Category = {
+  label: "Contrat de location de voiture",
+  description:
+    "Renseignez le locataire, le véhicule et les conditions de location.",
+};
 
 const featuredCategories: Category[] = [
   rentalCategory,
   {
     label: "Procuration",
+    description:
+      "Autorisez une personne à effectuer une démarche en votre nom.",
     image: "procuration",
   },
   {
     label: "Quittance de loyer",
+    description:
+      "Attestez le paiement du loyer et des charges pour une période donnée.",
     image: "quittance",
   },
   {
     label: "Invitation de mariage",
+    description: "Annoncez la date et le lieu de la cérémonie à vos invités.",
     image: "mariage",
   },
-  { label: "Règlement intérieur" },
-  { label: "Bon de livraison" },
-  { label: "Bon de commande" },
+  {
+    label: "Règlement intérieur",
+    description: "Présentez les règles de fonctionnement et de vie collective.",
+  },
+  {
+    label: "Bon de livraison",
+    description:
+      "Consignez les articles et les quantités remis au destinataire.",
+  },
+  {
+    label: "Bon de commande",
+    description: "Précisez les articles commandés, les quantités et les prix.",
+  },
   {
     label: "Menus de restaurants et de snacks",
+    description: "Présentez les plats, les boissons et leurs prix.",
     image: "menu",
   },
 ];
@@ -43,65 +64,179 @@ const featuredCategories: Category[] = [
 const moreCategories = [
   {
     title: "Démarches et attestations",
-    labels: [
-      "Déclaration sur l’honneur",
-      "Attestation d’hébergement",
-      "Autorisation parentale",
-      "Lettre de demande",
-      "Lettre de réclamation",
+    options: [
+      {
+        label: "Déclaration sur l’honneur",
+        description: "Déclarez des faits sous votre responsabilité.",
+      },
+      {
+        label: "Attestation d’hébergement",
+        description: "Confirmez qu’une personne est hébergée à votre adresse.",
+      },
+      {
+        label: "Autorisation parentale",
+        description:
+          "Formalisez l’accord d’un parent pour une activité ou une démarche.",
+      },
+      {
+        label: "Lettre de demande",
+        description: "Présentez votre demande et les éléments qui la motivent.",
+      },
+      {
+        label: "Lettre de réclamation",
+        description: "Décrivez le problème rencontré et la solution attendue.",
+      },
     ],
   },
   {
     title: "Logement et location",
-    labels: [
-      "Bail d’habitation",
-      "État des lieux",
-      "Avis d’échéance",
-      "Reçu de dépôt de garantie",
-      "Inventaire de location meublée",
+    options: [
+      {
+        label: "Bail d’habitation",
+        description: "Précisez les conditions de location d’un logement.",
+      },
+      {
+        label: "État des lieux",
+        description:
+          "Consignez l’état du logement et de ses équipements à l’entrée ou à la sortie.",
+      },
+      {
+        label: "Avis d’échéance",
+        description:
+          "Indiquez le montant du loyer et des charges à régler ainsi que la date limite.",
+      },
+      {
+        label: "Reçu de dépôt de garantie",
+        description:
+          "Confirmez le versement du dépôt de garantie par le locataire.",
+      },
+      {
+        label: "Inventaire de location meublée",
+        description:
+          "Recensez le mobilier et les équipements mis à disposition.",
+      },
     ],
   },
   {
     title: "Commerce et services",
-    labels: [
-      "Facture",
-      "Devis",
-      "Reçu de paiement",
-      "Catalogue de produits",
-      "Grille tarifaire",
-      "Fiche d’intervention",
-      "Procès-verbal de réception",
+    options: [
+      {
+        label: "Facture",
+        description:
+          "Détaillez les biens ou services facturés et le montant à régler.",
+      },
+      {
+        label: "Devis",
+        description:
+          "Présentez les prestations proposées et leur prix avant l’accord du client.",
+      },
+      {
+        label: "Reçu de paiement",
+        description:
+          "Confirmez la réception d’un paiement pour un montant et une date donnés.",
+      },
+      {
+        label: "Catalogue de produits",
+        description:
+          "Présentez votre gamme avec les références et les caractéristiques des produits.",
+      },
+      {
+        label: "Grille tarifaire",
+        description: "Indiquez vos prix par prestation ou formule.",
+      },
+      {
+        label: "Fiche d’intervention",
+        description:
+          "Consignez les travaux effectués, leur durée et les observations du technicien.",
+      },
+      {
+        label: "Procès-verbal de réception",
+        description:
+          "Consignez l’acceptation des travaux et les réserves éventuelles.",
+      },
     ],
   },
   {
     title: "Travail, école et associations",
-    labels: [
-      "CV",
-      "Lettre de motivation",
-      "Attestation de travail",
-      "Attestation de stage",
-      "Autorisation de sortie scolaire",
-      "Bulletin d’adhésion",
-      "Procès-verbal de réunion",
+    options: [
+      {
+        label: "CV",
+        description:
+          "Présentez votre parcours, vos formations et vos compétences.",
+      },
+      {
+        label: "Lettre de motivation",
+        description:
+          "Expliquez votre intérêt pour un poste et les expériences qui appuient votre candidature.",
+      },
+      {
+        label: "Attestation de travail",
+        description: "Confirmez l’emploi occupé et la période de travail.",
+      },
+      {
+        label: "Attestation de stage",
+        description: "Confirmez les dates du stage et les missions réalisées.",
+      },
+      {
+        label: "Autorisation de sortie scolaire",
+        description:
+          "Recueillez l’accord parental pour la participation d’un élève à une sortie.",
+      },
+      {
+        label: "Bulletin d’adhésion",
+        description:
+          "Recueillez les coordonnées d’un nouveau membre et son choix de cotisation.",
+      },
+      {
+        label: "Procès-verbal de réunion",
+        description:
+          "Consignez les participants, les décisions et les actions convenues.",
+      },
     ],
   },
   {
     title: "Événements et restauration",
-    labels: [
-      "Invitation d’anniversaire",
-      "Faire-part de naissance",
-      "Programme d’événement",
-      "Plan de table",
-      "Carte de traiteur",
-      "Menu du Ramadan",
-      "Carte de fidélité",
+    options: [
+      {
+        label: "Invitation d’anniversaire",
+        description:
+          "Communiquez la date, le lieu et les modalités de réponse aux invités.",
+      },
+      {
+        label: "Faire-part de naissance",
+        description: "Annoncez la naissance de votre enfant à vos proches.",
+      },
+      {
+        label: "Programme d’événement",
+        description:
+          "Présentez les horaires, les lieux et les activités prévues.",
+      },
+      {
+        label: "Plan de table",
+        description: "Indiquez à chaque invité la table qui lui est attribuée.",
+      },
+      {
+        label: "Carte de traiteur",
+        description:
+          "Présentez les plats, les formules et les conditions de commande.",
+      },
+      {
+        label: "Menu du Ramadan",
+        description:
+          "Présentez les plats et les formules proposés pendant le Ramadan.",
+      },
+      {
+        label: "Carte de fidélité",
+        description:
+          "Indiquez comment cumuler les visites ou les achats et obtenir une récompense.",
+      },
     ],
   },
 ];
 
 const categories: Category[] = [
   ...featuredCategories,
-  ...moreCategories.flatMap(({ labels }) => labels.map((label) => ({ label }))),
+  ...moreCategories.flatMap(({ options }) => options),
 ];
 
 function normalizeSearch(value: string) {
@@ -366,6 +501,7 @@ export function TemplateGallery() {
                 <Link
                   href={contractTemplatePath(template)}
                   className={`${styles.card} ${styles.cardLink}`}
+                  aria-describedby={`model-description-${template.id}`}
                   aria-label={`Essayer le modèle ${template.fr} de contrat de location de voiture`}
                 >
                   <Image
@@ -380,6 +516,9 @@ export function TemplateGallery() {
                     <span>Essayer</span>
                   </div>
                 </Link>
+                <p id={`model-description-${template.id}`} className="sr-only">
+                  {template.description}
+                </p>
               </li>
             ))}
             {upcoming.map((option) => (
@@ -404,6 +543,7 @@ export function TemplateGallery() {
                     </span>
                     <span>Bientôt</span>
                   </div>
+                  <p className="sr-only">{option.description}</p>
                 </div>
               </li>
             ))}

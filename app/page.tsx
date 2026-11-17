@@ -4,6 +4,8 @@ import styles from "@/app/components/louma/home.module.css";
 
 const title = "La location, tout simplement";
 const description = "Modèles de documents prêts à personnaliser";
+const metaDescription =
+  "Comparez les modèles Louma de contrat de location de voiture, personnalisez votre contrat en ligne et téléchargez-le en PDF.";
 const topics = [
   "La location",
   "La procuration",
@@ -17,9 +19,9 @@ const rotatingTopics = [topics.at(-1), ...topics, ...topics.slice(0, 2)];
 
 export const metadata = {
   title,
-  description,
+  description: metaDescription,
   alternates: { canonical: "/" },
-  openGraph: { title, description },
+  openGraph: { title, description: metaDescription },
 };
 
 export default function Page() {
