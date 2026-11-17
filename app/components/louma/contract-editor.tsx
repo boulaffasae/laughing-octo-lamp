@@ -41,7 +41,6 @@ import type { SavedDraft } from "@/lib/contract/saved-contract";
 import { useAccount } from "./account";
 import { contractPdfName, downloadPdf } from "./pdf-file";
 import { useContractTour } from "./contract-tour";
-import { RegistrationPlate } from "./registration-plate";
 import { useAgreementHistory } from "./use-agreement-history";
 import { useContractSave } from "./use-contract-save";
 
@@ -255,16 +254,7 @@ export function ContractEditor({
         key={fieldId(key)}
       >
         <div className="paper-row-label">{caption(fieldId(key), label)}</div>
-        {fieldId(key) === "2-plate" ? (
-          <RegistrationPlate
-            label={label}
-            locale={locale}
-            value={fieldValue(a, key)}
-            change={(value) => update(key, value)}
-          />
-        ) : (
-          input(key, label, type, lines)
-        )}
+        {input(key, label, type, lines)}
       </div>
     ));
 
