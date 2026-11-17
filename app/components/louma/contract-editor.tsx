@@ -41,6 +41,7 @@ import type { SavedDraft } from "@/lib/contract/saved-contract";
 import { useAccount } from "./account";
 import { contractPdfName, downloadPdf } from "./pdf-file";
 import { useContractTour } from "./contract-tour";
+import { TemplateGallery } from "./template-gallery";
 import { useAgreementHistory } from "./use-agreement-history";
 import { useContractSave } from "./use-contract-save";
 
@@ -112,10 +113,12 @@ export function ContractEditor({
   locale,
   saved,
   onSaved,
+  showTemplateGallery = false,
 }: {
   locale: Locale;
   saved?: SavedDraft;
   onSaved?: () => void;
+  showTemplateGallery?: boolean;
 }) {
   const t = words(locale);
   const account = useAccount();
@@ -151,6 +154,10 @@ export function ContractEditor({
 
   function change(patch: Partial<Agreement>, group = true) {
     setAgreement((current) => ({ ...current, ...patch }), group);
+  }
+
+  function selectTemplate(color: string) {
+    if (a.color !== color) change({ color }, false);
   }
 
   function update(key: FieldKey, value: string) {
@@ -420,7 +427,7 @@ export function ContractEditor({
     );
   };
 
-  return (
+  const editor = (
     <section
       onChangeCapture={tour.onChange}
       onBlurCapture={(event) => {
@@ -646,9 +653,7 @@ export function ContractEditor({
               aria-label={t(fr, ar)}
               title={t(fr, ar)}
               aria-pressed={template.color === color}
-              onClick={() => {
-                if (a.color !== color) change({ color }, false);
-              }}
+              onClick={() => selectTemplate(color)}
             >
               {template.color === color && <Check size={16} aria-hidden />}
             </button>
@@ -767,5 +772,14 @@ export function ContractEditor({
           </p>
         )}
     </section>
+  );
+
+  if (!showTemplateGallery) return editor;
+
+  return (
+    <>
+      <TemplateGallery color={a.color} onSelect={selectTemplate} />
+      {editor}
+    </>
   );
 }
