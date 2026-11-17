@@ -1,4 +1,4 @@
-import { Footer } from "@/app/components/louma/site";
+import { Footer, Header } from "@/app/components/louma/site";
 import { TemplateGallery } from "@/app/components/louma/template-gallery";
 import styles from "@/app/components/louma/home.module.css";
 
@@ -27,6 +27,7 @@ export default function Page() {
 
   return (
     <>
+      <Header locale={locale} />
       <main>
         <section
           className={`shell ${styles.banner}`}
