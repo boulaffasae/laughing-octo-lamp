@@ -37,6 +37,38 @@ export const contractTemplates: readonly Template[] = [
     ],
   },
   {
+    id: "banded",
+    color: "#8a5418",
+    fr: "Ocre · Bandeau",
+    ar: "مغرة · شريط علوي",
+    rows: [
+      [{ blocks: ["vehicle"], weight: 1 }],
+      [
+        { blocks: ["renter"], weight: 3 },
+        { blocks: ["rental"], weight: 2 },
+      ],
+    ],
+    wideFields: ["vehicle"],
+  },
+  {
+    id: "tabular",
+    color: "#652d56",
+    fr: "Aubergine · Tableau",
+    ar: "أرجواني داكن · جدول",
+    rows: [
+      [
+        { blocks: ["vehicle"], weight: 1 },
+        { blocks: ["rental"], weight: 1 },
+      ],
+      [{ blocks: ["renter"], weight: 1 }],
+    ],
+    wideFields: ["renter"],
+  },
+];
+
+// Keep resolving colors stored by drafts created with earlier versions.
+const legacyTemplates: readonly Template[] = [
+  {
     id: "panels",
     color: "#543b75",
     fr: "Violet · Encadrés",
@@ -76,9 +108,10 @@ export const contractTemplates: readonly Template[] = [
 ];
 
 export function templateForColor(color: string) {
+  const normalizedColor = color.toLowerCase();
   return (
-    contractTemplates.find(
-      (template) => template.color === color.toLowerCase(),
-    ) ?? contractTemplates[0]
+    contractTemplates.find((template) => template.color === normalizedColor) ??
+    legacyTemplates.find((template) => template.color === normalizedColor) ??
+    contractTemplates[0]
   );
 }

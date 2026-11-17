@@ -632,8 +632,8 @@ export function ContractEditor({
           className="editor-toolbar"
           role="group"
           aria-label={t(
-            "Couleurs, versions et téléchargement",
-            "الألوان والإصدارات والتنزيل",
+            "Formats de contrat, versions et téléchargement",
+            "تنسيقات العقد والإصدارات والتنزيل",
           )}
           dir="ltr"
         >

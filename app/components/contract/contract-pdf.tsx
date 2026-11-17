@@ -209,6 +209,8 @@ export async function buildContractPdf(a: Agreement) {
   const fields = contractFields(a.locale);
   const template = templateForColor(a.color);
   const isBlue = template.id === "blue";
+  const isBanded = template.id === "banded";
+  const isTabular = template.id === "tabular";
   const blueFields = blueContractFields(a.locale);
   const isPanels = template.id === "panels";
   const isSignature = template.id === "signature";
@@ -225,6 +227,7 @@ export async function buildContractPdf(a: Agreement) {
   ];
   const signatureStyle = [
     styles.signature,
+    isTabular ? { borderTopWidth: 5, borderTopColor: a.color } : {},
     isPanels ? violet.section : {},
     isBlue ? { ...blue.signature, borderColor: a.color } : {},
     isSignature ? { ...burgundy.section, borderColor: a.color } : {},
@@ -299,6 +302,7 @@ export async function buildContractPdf(a: Agreement) {
         isSignature ? burgundy.heading : {},
         isRegister ? slate.heading : {},
         isPanels || isSignature || isRegister ? { color: a.color } : {},
+        isTabular ? { textAlign: "center" } : {},
         rtl ? { fontWeight: 700 } : {},
       ]}
     >
@@ -557,6 +561,9 @@ export async function buildContractPdf(a: Agreement) {
             <View
               style={[
                 ...headerStyle,
+                isBanded
+                  ? { borderTopWidth: 9, borderTopColor: a.color, paddingTop: 8 }
+                  : {},
                 isRegister ? { ...slate.header, backgroundColor: a.color } : {},
               ]}
             >

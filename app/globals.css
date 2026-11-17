@@ -1793,6 +1793,16 @@ body {
   accent-color: var(--paper-color);
 }
 
+[data-template="banded"] .paper-front > .paper-header {
+  border-block-start: 9px solid var(--paper-color);
+  padding-block-start: 8px;
+}
+[data-template="tabular"] .paper-band :is(textarea, .inline-copy) {
+  text-align: center;
+}
+[data-template="tabular"] .paper-signatures > div {
+  border-block-start: 5px solid var(--paper-color);
+}
 [data-template="panels"] :is(.paper-block, .paper-signatures > div) {
   border-color: #dcd1e9;
   border-radius: 10px;
