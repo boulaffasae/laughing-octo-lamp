@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Plus } from "lucide-react";
 import { words, type Agreement } from "@/lib/contract/agreement";
@@ -370,10 +371,10 @@ export function ContractLibrary({ locale }: { locale: Locale }) {
       <section className="library-banner">
         <div className="shell library-banner-inner">
           <h1>{t("Mes modèles", "قوالبي")}</h1>
-          <a className="button" href={`/${locale}/new`}>
+          <Link className="button" href="/new">
             <Plus size={18} aria-hidden />
             {t("Nouveau modèle", "قالب جديد")}
-          </a>
+          </Link>
         </div>
       </section>
       <section className="shell library-content">

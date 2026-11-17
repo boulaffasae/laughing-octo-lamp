@@ -42,7 +42,6 @@ import { useAccount } from "./account";
 import { contractPdfName, downloadPdf } from "./pdf-file";
 import { useContractTour } from "./contract-tour";
 import { RegistrationPlate } from "./registration-plate";
-import { TemplateGallery } from "./template-gallery";
 import { useAgreementHistory } from "./use-agreement-history";
 import { useContractSave } from "./use-contract-save";
 
@@ -114,18 +113,21 @@ export function ContractEditor({
   locale,
   saved,
   onSaved,
-  showTemplateGallery = false,
+  initialTemplateColor,
 }: {
   locale: Locale;
   saved?: SavedDraft;
   onSaved?: () => void;
-  showTemplateGallery?: boolean;
+  initialTemplateColor?: string;
 }) {
   const t = words(locale);
   const account = useAccount();
-  const history = useAgreementHistory(
-    () => saved?.draft ?? initialAgreement(locale),
-  );
+  const history = useAgreementHistory(() => {
+    const draft = initialAgreement(locale);
+    return (
+      saved?.draft ?? { ...draft, color: initialTemplateColor ?? draft.color }
+    );
+  });
   const { agreement: a, setAgreement } = history;
   const tour = useContractTour(locale, !saved);
   const dir = a.locale === "ar" ? "rtl" : "ltr";
@@ -437,7 +439,7 @@ export function ContractEditor({
     );
   };
 
-  const editor = (
+  return (
     <section
       onChangeCapture={tour.onChange}
       onBlurCapture={(event) => {
@@ -761,14 +763,5 @@ export function ContractEditor({
           </p>
         )}
     </section>
-  );
-
-  if (!showTemplateGallery) return editor;
-
-  return (
-    <>
-      <TemplateGallery color={a.color} onSelect={selectTemplate} />
-      {editor}
-    </>
   );
 }

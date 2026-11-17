@@ -1,8 +1,9 @@
 import { withSentryConfig } from "@sentry/nextjs/config";
 import type { NextConfig } from "next";
-import createNextIntlPlugin from "next-intl/plugin";
-
-const withNextIntl = createNextIntlPlugin();
+import {
+  contractTemplatePath,
+  contractTemplates,
+} from "./lib/contract/templates";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
@@ -14,26 +15,41 @@ const nextConfig: NextConfig = {
     ],
   },
   async redirects() {
+    const previousModelNames: Record<string, string> = {
+      classic: "classique",
+      blue: "carnet",
+      banded: "bandeau",
+      tabular: "tableau",
+    };
+
     return [
+      ...contractTemplates
+        .filter(({ id }) => id in previousModelNames)
+        .map((template) => ({
+          source: `/:locale(fr|ar|en)?/modeles/contrat-location-voiture-${previousModelNames[template.id]}`,
+          destination: contractTemplatePath(template),
+          permanent: true,
+        })),
       {
-        source: "/:legacy(dashboard|espace)",
+        source: "/:locale(fr|ar|en)?/:legacy(dashboard|espace)",
         destination: "/contracts",
         permanent: true,
       },
       {
-        source: "/:locale(fr|ar)/:legacy(dashboard|espace)",
-        destination: "/fr/contracts",
+        source: "/:locale(fr|ar|en)?/mes-fichiers",
+        destination: "/documents",
         permanent: true,
       },
-      { source: "/mes-fichiers", destination: "/documents", permanent: true },
       {
-        source: "/:locale(fr|ar)/mes-fichiers",
-        destination: "/fr/documents",
+        source: "/:locale(fr|ar|en)",
+        destination: "/",
         permanent: true,
       },
-      { source: "/ar/:path*", destination: "/fr/:path*", permanent: true },
-      { source: "/en", destination: "/fr", permanent: true },
-      { source: "/en/new", destination: "/fr#contrat", permanent: true },
+      {
+        source: "/:locale(fr|ar|en)/:path+",
+        destination: "/:path+",
+        permanent: true,
+      },
     ];
   },
   async headers() {
@@ -59,7 +75,7 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
 };
 
-export default withSentryConfig(withNextIntl(nextConfig), {
+export default withSentryConfig(nextConfig, {
   silent: true,
   // Enable uploads only when CI has a Sentry auth token and project settings.
   sourcemaps: { disable: !process.env.SENTRY_AUTH_TOKEN },

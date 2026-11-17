@@ -1,9 +1,9 @@
+import Link from "next/link";
 import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { ContractEditor } from "@/app/components/louma/contract-editor";
 import { Footer, Header } from "@/app/components/louma/site";
-import { isLocale } from "@/i18n/locales";
 import { logStorageFailure, ownerId } from "@/lib/document-storage";
 import { loadDraft } from "@/lib/contract/contract-storage";
 import { uuidPattern } from "@/lib/contract/saved-contract";
@@ -11,13 +11,14 @@ import { words } from "@/lib/contract/agreement";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
-type ContractPageProps = Pick<PageProps<"/[locale]/contracts/[id]">, "params">;
+type ContractPageProps = Pick<PageProps<"/contracts/[id]">, "params">;
 
 async function EditContract({ params }: ContractPageProps) {
-  const { locale, id } = await params;
-  if (!isLocale(locale) || !uuidPattern.test(id)) notFound();
+  const { id } = await params;
+  const locale = "fr";
+  if (!uuidPattern.test(id)) notFound();
   const owner = await ownerId();
-  if (!owner) redirect(`/${locale}`);
+  if (!owner) redirect("/");
   const t = words(locale);
   let saved;
   try {
@@ -31,9 +32,9 @@ async function EditContract({ params }: ContractPageProps) {
           <p role="alert">
             {t("Impossible de charger le contrat.", "تعذر تحميل العقد.")}
           </p>
-          <a className="button secondary" href={`/${locale}/contracts`}>
+          <Link className="button secondary" href="/contracts">
             {t("Mes modèles", "قوالبي")}
-          </a>
+          </Link>
         </main>
         <Footer locale={locale} />
       </>
@@ -47,9 +48,7 @@ async function EditContract({ params }: ContractPageProps) {
       <main>
         <section className="hero">
           <div className="shell">
-            <a href={`/${locale}/contracts`}>
-              {t("← Mes modèles", "قوالبي ←")}
-            </a>
+            <Link href="/contracts">{t("← Mes modèles", "قوالبي ←")}</Link>
             <h1>{t("Modifier le contrat", "تعديل العقد")}</h1>
           </div>
         </section>

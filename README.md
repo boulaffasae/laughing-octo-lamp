@@ -4,7 +4,7 @@ Louma aide les agences à préparer des contrats de location de voiture en fran�
 
 ## Démarrage local
 
-Avec Node.js 24, lancez `npm ci` puis `npm run dev`. Ouvrez `http://localhost:3000/fr`. Les dossiers privés se trouvent sous `/fr/contracts` et `/fr/documents`.
+Avec Node.js 24, lancez `npm ci` puis `npm run dev`. Ouvrez `http://localhost:3000`. Les dossiers privés se trouvent sous `/contracts` et `/documents`.
 
 Copiez `.env.example` vers `.env.local` et renseignez les services utilisés.
 

@@ -5,7 +5,6 @@ import {
   siteLabels,
   topics,
 } from "@/app/components/louma/site";
-import { isLocale, locales } from "@/i18n/locales";
 import { words } from "@/lib/contract/agreement";
 
 const address = "5 RUE ENNOUSSOUR 20250 CASABLANCA MAROC";
@@ -21,16 +20,12 @@ function ContactEmail() {
 }
 
 export function generateStaticParams() {
-  return locales.flatMap((locale) =>
-    topics.map((topic) => ({ locale, topic })),
-  );
+  return topics.map((topic) => ({ topic }));
 }
 
-export default async function Page({
-  params,
-}: PageProps<"/[locale]/info/[topic]">) {
-  const { locale, topic } = await params;
-  if (!isLocale(locale)) notFound();
+export default async function Page({ params }: PageProps<"/info/[topic]">) {
+  const { topic } = await params;
+  const locale = "fr";
   const index = topics.findIndex((item) => item === topic);
   if (index < 0) notFound();
 

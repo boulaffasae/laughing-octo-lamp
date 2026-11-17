@@ -1,7 +1,15 @@
 import type { MetadataRoute } from "next";
+import {
+  contractTemplatePath,
+  contractTemplates,
+} from "@/lib/contract/templates";
 import { absoluteUrl } from "@/lib/site-url";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const url = absoluteUrl("/fr");
-  return url ? [{ url }] : [];
+  return ["/", ...contractTemplates.map(contractTemplatePath)].flatMap(
+    (path) => {
+      const url = absoluteUrl(path);
+      return url ? [{ url }] : [];
+    },
+  );
 }

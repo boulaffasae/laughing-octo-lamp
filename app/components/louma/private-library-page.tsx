@@ -12,7 +12,7 @@ export async function PrivateLibraryPage({
   locale: Locale;
   kind: "contracts" | "documents";
 }) {
-  if (!(await ownerId())) redirect(`/${locale}`);
+  if (!(await ownerId())) redirect("/");
   return (
     <>
       <Header locale={locale} />

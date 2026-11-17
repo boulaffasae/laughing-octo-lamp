@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Image from "next/image";
 import { words } from "@/lib/contract/agreement";
 import type { Locale } from "@/i18n/locales";
@@ -21,12 +22,12 @@ export function siteLabels(locale: Locale) {
   ];
 }
 
-export function Logo({ locale }: { locale: Locale }) {
+export function Logo() {
   return (
-    <a className="logo" href={`/${locale}`} aria-label="Louma">
+    <Link className="logo" href="/" aria-label="Louma">
       <Image src="/louma.svg" width={36} height={36} alt="" />
       louma
-    </a>
+    </Link>
   );
 }
 
@@ -34,7 +35,7 @@ export function Header({ locale }: { locale: Locale }) {
   return (
     <header className="site-header">
       <div className="shell header-inner">
-        <Logo locale={locale} />
+        <Logo />
         <div className="header-actions">
           <AccountButtons locale={locale} />
         </div>
@@ -111,12 +112,18 @@ const socials = [
   ],
 ] as const;
 
-export function Footer({ locale }: { locale: Locale }) {
+export function Footer({
+  locale,
+  showLogo = true,
+}: {
+  locale: Locale;
+  showLogo?: boolean;
+}) {
   const t = words(locale);
   return (
     <footer className="shell site-footer">
       <div>
-        <Logo locale={locale} />
+        {showLogo && <Logo />}
         <nav
           aria-label={t("Réseaux sociaux", "شبكات التواصل")}
           className="socials"
@@ -164,9 +171,9 @@ export function Footer({ locale }: { locale: Locale }) {
       <div className="footer-grid">
         <nav aria-label={words(locale)("Informations", "معلومات")}>
           {topics.map((topic, i) => (
-            <a key={topic} href={`/${locale}/info/${topic}`}>
+            <Link key={topic} href={`/info/${topic}`}>
               {siteLabels(locale)[i]}
-            </a>
+            </Link>
           ))}
         </nav>
       </div>

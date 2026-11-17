@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   createContext,
   useContext,
@@ -89,7 +90,7 @@ function AccountMenu({
     setBusy(true);
     setError(false);
     try {
-      await signOut(`/${locale}`);
+      await signOut("/");
       dialog.current?.close();
     } catch {
       setError(true);
@@ -116,14 +117,14 @@ function AccountMenu({
           <ChevronDown size={16} aria-hidden />
         </summary>
         <div className="account-menu-panel">
-          <a href={`/${locale}/contracts`}>
+          <Link href="/contracts">
             <FolderOpen size={17} aria-hidden />
             {t("Mes modèles", "قوالبي")}
-          </a>
-          <a href={`/${locale}/documents`}>
+          </Link>
+          <Link href="/documents">
             <FileText size={17} aria-hidden />
             {t("Mes contrats", "عقودي")}
-          </a>
+          </Link>
           <button
             type="button"
             onClick={() => {
