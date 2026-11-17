@@ -1,8 +1,15 @@
 "use client";
 
-import { ArrowDown, FileText } from "lucide-react";
+import {
+  ArrowDown,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  Search,
+  X,
+} from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { contractTemplates } from "@/lib/contract/templates";
 import styles from "./home.module.css";
 
@@ -100,6 +107,20 @@ const moreCategories = [
   },
 ];
 
+const categories = [
+  ...featuredCategories,
+  ...moreCategories.flatMap(({ labels }) => labels.map((label) => ({ label }))),
+];
+
+function normalizeSearch(value: string) {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim();
+}
+
 export function TemplateGallery({
   color,
   onSelect,
@@ -110,19 +131,47 @@ export function TemplateGallery({
   const [category, setCategory] = useState<Category>(rentalCategory);
   const isRental = category.label === rentalCategory.label;
 
-  function categoryChip(option: Category) {
-    return (
-      <button
-        key={option.label}
-        type="button"
-        className={styles.chip}
-        aria-pressed={category.label === option.label}
-        aria-controls="modeles-panel"
-        onClick={() => setCategory(option)}
-      >
-        {option.label}
-      </button>
-    );
+  const [query, setQuery] = useState("");
+  const [scroll, setScroll] = useState({ previous: false, next: false });
+  const track = useRef<HTMLDivElement>(null);
+  const searchInput = useRef<HTMLInputElement>(null);
+  const terms = normalizeSearch(query).split(" ").filter(Boolean);
+  const results = categories.filter(({ label }) =>
+    terms.every((term) => normalizeSearch(label).includes(term)),
+  );
+
+  useEffect(() => {
+    const element = track.current;
+    if (!element) return;
+
+    const updateScroll = () => {
+      setScroll({
+        previous: element.scrollLeft > 1,
+        next:
+          element.scrollLeft + element.clientWidth < element.scrollWidth - 1,
+      });
+    };
+
+    element.scrollLeft = 0;
+    updateScroll();
+    const observer = new ResizeObserver(updateScroll);
+    observer.observe(element);
+    element.addEventListener("scroll", updateScroll, { passive: true });
+    return () => {
+      observer.disconnect();
+      element.removeEventListener("scroll", updateScroll);
+    };
+  }, [query]);
+
+  function scrollCategories(direction: number) {
+    const element = track.current;
+    if (!element) return;
+    element.scrollBy({
+      left: direction * element.clientWidth * 0.8,
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "instant"
+        : "smooth",
+    });
   }
 
   return (
@@ -132,26 +181,92 @@ export function TemplateGallery({
       aria-labelledby="modeles-title"
     >
       <h2 id="modeles-title">Modèles de documents</h2>
-      <div
-        className={styles.filters}
-        role="group"
-        aria-label="Catégories de documents"
-      >
-        {featuredCategories.map(categoryChip)}
+      <div className={styles.categorySearch}>
+        <Search size={18} aria-hidden />
+        <input
+          ref={searchInput}
+          type="search"
+          aria-label="Rechercher une catégorie"
+          aria-controls="modeles-categories"
+          placeholder="Rechercher une catégorie"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+        />
+        {query && (
+          <button
+            className={styles.iconButton}
+            type="button"
+            aria-label="Effacer la recherche"
+            onClick={() => {
+              setQuery("");
+              searchInput.current?.focus();
+            }}
+          >
+            <X size={18} aria-hidden />
+          </button>
+        )}
       </div>
-      <details className={styles.more}>
-        <summary>Plus de catégories</summary>
-        <div className={styles.categoryGroups}>
-          {moreCategories.map(({ title, labels }) => (
-            <div key={title} role="group" aria-label={title}>
-              <h3>{title}</h3>
-              <div className={styles.filters}>
-                {labels.map((label) => categoryChip({ label }))}
-              </div>
-            </div>
+      <div className={styles.categorySlider}>
+        <div
+          id="modeles-categories"
+          className={styles.categoryTrack}
+          ref={track}
+          role="group"
+          aria-label="Catégories de documents"
+        >
+          {results.map((option) => (
+            <button
+              key={option.label}
+              type="button"
+              className={styles.chip}
+              aria-pressed={category.label === option.label}
+              aria-controls="modeles-panel"
+              onClick={() => setCategory(option)}
+            >
+              {option.label}
+              {option !== rentalCategory && (
+                <span className={styles.chipStatus}>Bientôt</span>
+              )}
+            </button>
           ))}
         </div>
-      </details>
+        {results.length > 0 && (
+          <div
+            className={styles.sliderControls}
+            data-overflow={scroll.previous || scroll.next}
+          >
+            <button
+              className={styles.iconButton}
+              type="button"
+              aria-label="Catégories précédentes"
+              aria-controls="modeles-categories"
+              disabled={!scroll.previous}
+              onClick={() => scrollCategories(-1)}
+            >
+              <ChevronLeft size={20} aria-hidden />
+            </button>
+            <button
+              className={styles.iconButton}
+              type="button"
+              aria-label="Catégories suivantes"
+              aria-controls="modeles-categories"
+              disabled={!scroll.next}
+              onClick={() => scrollCategories(1)}
+            >
+              <ChevronRight size={20} aria-hidden />
+            </button>
+          </div>
+        )}
+      </div>
+      <p
+        className={results.length ? "sr-only" : styles.noCategories}
+        role="status"
+      >
+        {results.length === 0
+          ? "Aucune catégorie trouvée."
+          : query.trim() &&
+            `${results.length} catégorie${results.length === 1 ? "" : "s"}`}
+      </p>
 
       <div
         id="modeles-panel"

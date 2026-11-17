@@ -53,8 +53,7 @@
   font-size: clamp(1rem, 2vw, 1.18rem);
 }
 
-.actions,
-.filters {
+.actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
@@ -113,8 +112,113 @@
   letter-spacing: -0.04em;
 }
 
+.categorySearch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(100%, 420px);
+  margin-block-start: 18px;
+  padding-inline: 14px 5px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  color: var(--muted);
+  background: white;
+}
+
+.categorySearch:focus-within {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.categorySearch input {
+  flex: 1;
+  min-width: 0;
+  min-height: 46px;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.categorySearch input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.categorySlider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-block-start: 10px;
+}
+
+.categoryTrack {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px;
+  scrollbar-width: thin;
+}
+
+.sliderControls {
+  display: none;
+  gap: 6px;
+}
+
+.sliderControls[data-overflow="false"] {
+  visibility: hidden;
+}
+
+@media (min-width: 641px) {
+  .sliderControls {
+    display: flex;
+  }
+}
+
+.iconButton {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--blue);
+  background: white;
+  cursor: pointer;
+}
+
+.iconButton:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.iconButton:hover:not(:disabled) {
+  background: var(--pale);
+}
+
+.noCategories {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.chipStatus {
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--pale);
+  color: var(--blue-hover);
+  font-size: 0.7rem;
+}
+
 .chip {
   display: inline-flex;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  cursor: pointer;
   align-items: center;
   gap: 7px;
   min-height: 42px;
@@ -193,35 +297,6 @@
 
 .cardBody svg {
   flex-shrink: 0;
-}
-
-.more {
-  margin-block-start: 14px;
-}
-
-.more summary {
-  width: fit-content;
-  color: var(--blue);
-  font-size: 0.9rem;
-  font-weight: 650;
-  cursor: pointer;
-}
-
-.categoryGroups {
-  display: grid;
-  gap: 18px;
-  margin-block-start: 12px;
-  padding: 16px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-}
-
-.categoryGroups h3 {
-  font-size: 0.95rem;
-}
-
-.categoryGroups .filters {
-  margin-block-start: 8px;
 }
 
 .panel {
