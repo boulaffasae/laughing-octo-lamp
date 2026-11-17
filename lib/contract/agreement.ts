@@ -1,9 +1,9 @@
 import { createEmptyDocuments, type DocumentFields } from "./documents";
-import type { Locale } from "@/i18n/locales";
+export type AgreementLocale = "fr" | "ar";
 
 export type BlockId = "renter" | "vehicle" | "rental" | "condition";
 export type Agreement = {
-  locale: Locale;
+  locale: AgreementLocale;
   title: string;
   logo: string;
   color: string;
@@ -21,12 +21,12 @@ export type Agreement = {
   termsFr: string;
   termsAr: string;
   headings: Record<BlockId, string>;
-  termsTitles: Record<Locale, string>;
+  termsTitles: Record<AgreementLocale, string>;
   labels: Record<string, string>;
   blueFields?: Record<string, string>;
 };
 
-export const words = (locale: Locale) => (fr: string, ar: string) =>
+export const words = (locale: AgreementLocale) => (fr: string, ar: string) =>
   locale === "ar" ? ar : fr;
 
 export function headingInk(color: string) {
@@ -82,7 +82,7 @@ const rentalTerms = [
   ],
 ] as const;
 
-function previousFooter(locale: Locale) {
+function previousFooter(locale: AgreementLocale) {
   const t = words(locale);
   return t(
     "Adresse : ……………………\nTél. : ……………… - Fax : ……………… - ICE : ………………\nRaison sociale : ……………… - Capital : ……………… - RC : ………… - TP : ………… - IF : …………\nE-mail : ……………………",
@@ -90,7 +90,7 @@ function previousFooter(locale: Locale) {
   );
 }
 
-function defaultFooter(locale: Locale) {
+function defaultFooter(locale: AgreementLocale) {
   return words(locale)(
     "Adresse : ……………………\nTél. : ……………… · E-mail : ……………………\nICE : ………………\nPatente : ………… · IF : …………\nRC : …………",
     "العنوان: ……………………\nالهاتف: ……………… · البريد الإلكتروني: ……………………\nالمعرّف الموحد للمقاولة: ………………\nالضريبة المهنية: ………… · المعرّف الضريبي: …………\nالسجل التجاري: …………",
@@ -108,7 +108,7 @@ export function agencyFooterText(agreement: Agreement) {
     : agreement.footerText;
 }
 
-export function initialAgreement(locale: Locale): Agreement {
+export function initialAgreement(locale: AgreementLocale): Agreement {
   const t = words(locale);
   return {
     locale,
@@ -172,7 +172,7 @@ export function fieldId(key: FieldKey) {
 }
 
 export function contractFields(
-  locale: Locale,
+  locale: AgreementLocale,
 ): Record<Exclude<BlockId, "condition"> | "amounts", ContractField[]> {
   const t = words(locale);
   return {
@@ -234,7 +234,7 @@ export function contractFields(
   };
 }
 
-export function blueContractFields(locale: Locale) {
+export function blueContractFields(locale: AgreementLocale) {
   const t = words(locale);
   const field = (
     key: string,
@@ -295,7 +295,7 @@ export function blueContractFields(locale: Locale) {
   };
 }
 
-export function blueDocumentChecklist(locale: Locale) {
+export function blueDocumentChecklist(locale: AgreementLocale) {
   const t = words(locale);
   return [
     { key: "registration", label: t("Carte grise", "البطاقة الرمادية") },

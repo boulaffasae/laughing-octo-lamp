@@ -1,4 +1,3 @@
-import { isLocale } from "@/i18n/locales";
 import { repository } from "@/lib/document-storage";
 import {
   addressMaxLength,
@@ -42,11 +41,7 @@ const textLimits: Record<string, number> = {
 };
 
 export function isAgreement(value: unknown): value is Agreement {
-  if (
-    !record(value) ||
-    typeof value.locale !== "string" ||
-    !isLocale(value.locale)
-  )
+  if (!record(value) || (value.locale !== "fr" && value.locale !== "ar"))
     return false;
   const defaults = initialAgreement(value.locale);
   const hasBlueFields = Object.hasOwn(value, "blueFields");

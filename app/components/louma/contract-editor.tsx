@@ -30,6 +30,7 @@ import {
   initialAgreement,
   words,
   type Agreement,
+  type AgreementLocale,
   type BlockId,
   type FieldKey,
 } from "@/lib/contract/agreement";
@@ -383,13 +384,17 @@ export function ContractEditor({
     </footer>
   );
 
-  const term = (lang: Locale) => {
+  const term = (lang: AgreementLocale) => {
     const key = lang === "fr" ? "termsFr" : "termsAr";
     return (
       <section key={lang} lang={lang} dir={lang === "ar" ? "rtl" : "ltr"}>
         <h3 className="paper-header">
           <Inline
-            label={lang === "fr" ? "Titre des conditions" : "عنوان الشروط"}
+            label={
+              lang === "fr"
+                ? "Titre des conditions"
+                : "Titre des conditions en arabe"
+            }
             value={a.termsTitles[lang]}
             maxLength={65}
             change={(value) =>
@@ -401,7 +406,11 @@ export function ContractEditor({
           />
         </h3>
         <Inline
-          label={lang === "fr" ? "Texte des conditions" : "نص الشروط"}
+          label={
+            lang === "fr"
+              ? "Texte des conditions"
+              : "Texte des conditions en arabe"
+          }
           value={a[key]}
           maxLength={3500}
           multiline

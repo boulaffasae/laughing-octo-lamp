@@ -22,15 +22,16 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/:locale(fr|ar)/:legacy(dashboard|espace)",
-        destination: "/:locale/contracts",
+        destination: "/fr/contracts",
         permanent: true,
       },
       { source: "/mes-fichiers", destination: "/documents", permanent: true },
       {
         source: "/:locale(fr|ar)/mes-fichiers",
-        destination: "/:locale/documents",
+        destination: "/fr/documents",
         permanent: true,
       },
+      { source: "/ar/:path*", destination: "/fr/:path*", permanent: true },
       { source: "/en", destination: "/fr", permanent: true },
       { source: "/en/new", destination: "/fr#contrat", permanent: true },
     ];

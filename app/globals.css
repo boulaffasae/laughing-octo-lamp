@@ -242,7 +242,6 @@ h4 {
 }
 .header-inner,
 .header-actions,
-.languages,
 .logo {
   display: flex;
   align-items: center;
@@ -264,19 +263,6 @@ h4 {
 }
 .account-link:dir(rtl) .account-avatar {
   order: 1;
-}
-.languages {
-  gap: 2px;
-  font-size: 0.82rem;
-  font-weight: 700;
-}
-.languages a {
-  padding: 7px;
-  border-radius: 6px;
-}
-.languages [aria-current] {
-  background: var(--pale);
-  color: var(--blue);
 }
 .logo {
   width: max-content;
@@ -1276,10 +1262,6 @@ h4 {
     width: 28px;
     height: 28px;
   }
-  .header-actions .languages a {
-    min-inline-size: 28px;
-    padding-inline: 4px;
-  }
   .header-actions .account-link {
     gap: 4px;
     padding-inline: 6px;
@@ -1328,35 +1310,6 @@ body {
 }
 .site-header {
   background: #f7f9f5;
-}
-.header-actions .languages {
-  direction: ltr;
-  gap: 3px;
-  padding: 3px;
-  background: #eaf0e9;
-  border: 1px solid var(--line);
-  border-radius: 99px;
-}
-.languages a {
-  display: grid;
-  place-items: center;
-  min-inline-size: 42px;
-  min-block-size: 32px;
-  padding: 2px 6px;
-  border-radius: 99px;
-  color: var(--muted);
-}
-.languages .language-flag {
-  font-family:
-    "Inter Variable", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji",
-    system-ui, sans-serif;
-  font-size: 1rem;
-  line-height: 1;
-}
-.languages [aria-current] {
-  background: #fff;
-  color: var(--navy);
-  box-shadow: 0 1px 2px #15282118;
 }
 .hero {
   background: none;

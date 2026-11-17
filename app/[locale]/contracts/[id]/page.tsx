@@ -26,7 +26,7 @@ async function EditContract({ params }: ContractPageProps) {
     logStorageFailure("list", error);
     return (
       <>
-        <Header locale={locale} path={`/contracts/${id}`} />
+        <Header locale={locale} />
         <main className="shell files-empty">
           <p role="alert">
             {t("Impossible de charger le contrat.", "تعذر تحميل العقد.")}
@@ -43,7 +43,7 @@ async function EditContract({ params }: ContractPageProps) {
 
   return (
     <>
-      <Header locale={locale} path={`/contracts/${id}`} />
+      <Header locale={locale} />
       <main>
         <section className="hero">
           <div className="shell">

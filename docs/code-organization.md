@@ -1,6 +1,6 @@
 # Organisation du code
 
-- `app/[locale]/` compose l’accueil, le tableau de bord et les pages d’information en français et arabe.
+- `app/[locale]/` compose l’accueil, le tableau de bord et les pages d’information en français.
 - `app/components/louma/` contient la navigation, le parcours du contrat, l’intégration client Clerk et le tableau de bord.
 - `lib/contract/` définit les données utilisées par l’éditeur, le PDF et le client OCR.
 - `app/components/contract/contract-pdf.tsx` rend le PDF dans le navigateur et charge la police embarquée depuis `public/fonts/`.

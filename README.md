@@ -1,10 +1,10 @@
 # Louma
 
-Louma aide les agences à préparer des contrats de location de voiture en français ou en arabe. Le PDF se génère dans le navigateur. L’agence peut le télécharger, le partager comme pièce jointe ou l’ouvrir pour l’imprimer. Le fichier téléchargé reste lisible hors ligne.
+Louma aide les agences à préparer des contrats de location de voiture en français, avec des conditions de location en français et en arabe. Le PDF se génère dans le navigateur. L’agence peut le télécharger, le partager comme pièce jointe ou l’ouvrir pour l’imprimer. Le fichier téléchargé reste lisible hors ligne.
 
 ## Démarrage local
 
-Avec Node.js 24, lancez `npm ci` puis `npm run dev`. Ouvrez `http://localhost:3000/fr` ou `/ar`. Les dossiers privés se trouvent sous `/{locale}/contracts` et `/{locale}/documents`.
+Avec Node.js 24, lancez `npm ci` puis `npm run dev`. Ouvrez `http://localhost:3000/fr`. Les dossiers privés se trouvent sous `/fr/contracts` et `/fr/documents`.
 
 Copiez `.env.example` vers `.env.local` et renseignez les services utilisés.
 
@@ -22,6 +22,6 @@ Les API vérifient le compte Clerk et la propriété des fichiers. Neon stocke l
 
 L’OCR conserve sa validation des uploads, ses délais et sa limite concurrente par instance. Pour imposer un quota sur plusieurs instances Vercel, configurez une règle de limitation sur `POST /api/ocr`. Le test OCR live facultatif envoie un document synthétique facturable avec `node --env-file=.env.local scripts/smoke-ocr.mjs`.
 
-Lancez `npm run check` et `npm run build` avant de pousser. Pour le test d’intégration en environnement configuré, créez un contrat en FR et en AR, attendez la synchronisation et reprenez le brouillon depuis Mes modèles. Téléchargez deux versions modifiées, ouvrez la plus ancienne dans l’historique et vérifiez que l’API refuse son accès à un second compte. Testez aussi l’import et une période dont le premier et le dernier jour contiennent chacun un PDF.
+Lancez `npm run check` et `npm run build` avant de pousser. Pour le test d’intégration en environnement configuré, créez un contrat et vérifiez que le PDF contient les conditions en français et en arabe, attendez la synchronisation et reprenez le brouillon depuis Mes modèles. Téléchargez deux versions modifiées, ouvrez la plus ancienne dans l’historique et vérifiez que l’API refuse son accès à un second compte. Testez aussi l’import et une période dont le premier et le dernier jour contiennent chacun un PDF.
 
 Voir [l’organisation du code](docs/code-organization.md).

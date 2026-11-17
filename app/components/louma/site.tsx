@@ -30,43 +30,12 @@ export function Logo({ locale }: { locale: Locale }) {
   );
 }
 
-export function Header({
-  locale,
-  path = "",
-}: {
-  locale: Locale;
-  path?: string;
-}) {
+export function Header({ locale }: { locale: Locale }) {
   return (
     <header className="site-header">
       <div className="shell header-inner">
         <Logo locale={locale} />
         <div className="header-actions">
-          <nav
-            className="languages"
-            aria-label={words(locale)("Langue", "اللغة")}
-          >
-            <a
-              href={`/fr${path}`}
-              lang="fr"
-              aria-current={locale === "fr" ? "page" : undefined}
-            >
-              <span className="language-flag" aria-hidden="true">
-                🇫🇷
-              </span>
-              <span className="sr-only">Français</span>
-            </a>
-            <a
-              href={`/ar${path}`}
-              lang="ar"
-              aria-current={locale === "ar" ? "page" : undefined}
-            >
-              <span className="language-flag" aria-hidden="true">
-                🇲🇦
-              </span>
-              <span className="sr-only">العربية</span>
-            </a>
-          </nav>
           <AccountButtons locale={locale} />
         </div>
       </div>

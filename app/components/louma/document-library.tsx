@@ -26,7 +26,7 @@ type DocumentSummary = { id: string; created_at: string };
 export function DocumentLibrary({ locale }: { locale: Locale }) {
   const t = words(locale);
   const list = useLibraryList<"documents", DocumentSummary>("documents");
-  const date = new Intl.DateTimeFormat(locale === "ar" ? "ar-MA" : "fr-FR", {
+  const date = new Intl.DateTimeFormat("fr-FR", {
     dateStyle: "medium",
     timeZone: libraryTimeZone,
   });

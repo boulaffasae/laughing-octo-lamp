@@ -15,7 +15,7 @@ export async function PrivateLibraryPage({
   if (!(await ownerId())) redirect(`/${locale}`);
   return (
     <>
-      <Header locale={locale} path={`/${kind}`} />
+      <Header locale={locale} />
       {kind === "contracts" ? (
         <ContractLibrary locale={locale} />
       ) : (

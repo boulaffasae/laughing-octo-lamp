@@ -89,7 +89,6 @@ export function useContractTour(locale: Locale, startOpen: boolean) {
         className="contract-tour"
         ref={activeHint}
         tabIndex={-1}
-        dir={locale === "ar" ? "rtl" : "ltr"}
       >
         <div className="contract-tour-top">
           <span className="contract-tour-count">

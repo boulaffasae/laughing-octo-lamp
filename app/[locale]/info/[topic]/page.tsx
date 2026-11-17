@@ -154,7 +154,7 @@ export default async function Page({
 
   return (
     <>
-      <Header locale={locale} path={`/info/${topic}`} />
+      <Header locale={locale} />
       <main className="shell info-page">
         <h1>{siteLabels(locale)[index]}</h1>
         {content}

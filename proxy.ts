@@ -11,24 +11,22 @@ const route = (request: NextRequest) => {
   return intl(request);
 };
 
-function privateLocale(request: NextRequest) {
-  return /^\/(fr|ar)\/(?:documents|contracts(?:\/[^/]+)?)\/?$/.exec(
+function isPrivatePage(request: NextRequest) {
+  return /^\/fr\/(?:documents|contracts(?:\/[^/]+)?)\/?$/.test(
     request.nextUrl.pathname,
-  )?.[1];
+  );
 }
 
 export default process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
 process.env.CLERK_SECRET_KEY
   ? clerkMiddleware(async (auth, request) => {
-      const locale = privateLocale(request);
-      if (locale && !(await auth()).userId)
-        return NextResponse.redirect(new URL(`/${locale}`, request.url));
+      if (isPrivatePage(request) && !(await auth()).userId)
+        return NextResponse.redirect(new URL("/fr", request.url));
       return route(request);
     })
   : (request: NextRequest) => {
-      const locale = privateLocale(request);
-      return locale
-        ? NextResponse.redirect(new URL(`/${locale}`, request.url))
+      return isPrivatePage(request)
+        ? NextResponse.redirect(new URL("/fr", request.url))
         : route(request);
     };
 

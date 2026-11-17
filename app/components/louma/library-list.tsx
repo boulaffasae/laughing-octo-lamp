@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { DayPicker, TZDate, type DateRange } from "react-day-picker";
-import { arMA, fr } from "react-day-picker/locale";
+import { fr } from "react-day-picker/locale";
 import "react-day-picker/style.css";
 import {
   CalendarDays,
@@ -124,13 +124,10 @@ export function PeriodFilter({
   const [today, setToday] = useState<Date>();
   const wrapper = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
-  const dateFormat = new Intl.DateTimeFormat(
-    locale === "ar" ? "ar-MA" : "fr-FR",
-    {
-      dateStyle: "medium",
-      timeZone: libraryTimeZone,
-    },
-  );
+  const dateFormat = new Intl.DateTimeFormat("fr-FR", {
+    dateStyle: "medium",
+    timeZone: libraryTimeZone,
+  });
   const start = open ? selected?.from : value && calendarDate(value.start);
   const end = open ? selected?.to : value && calendarDate(value.end);
   const startText = start ? dateFormat.format(start) : t("Début", "البداية");
@@ -202,8 +199,7 @@ export function PeriodFilter({
           <DayPicker
             mode="range"
             timeZone={libraryTimeZone}
-            locale={locale === "ar" ? arMA : fr}
-            dir={locale === "ar" ? "rtl" : "ltr"}
+            locale={fr}
             selected={selected}
             onSelect={setSelected}
             defaultMonth={selected?.from}
@@ -264,8 +260,6 @@ export function LibraryResults({
   children: ReactNode;
 }) {
   const t = words(locale);
-  const Previous = locale === "ar" ? ChevronRight : ChevronLeft;
-  const Next = locale === "ar" ? ChevronLeft : ChevronRight;
   if (status === "loading") return <LibraryCardsSkeleton locale={locale} />;
   if (status === "error") {
     return (
@@ -302,7 +296,7 @@ export function LibraryResults({
             disabled={page === 1}
             onClick={() => onPage(page - 1)}
           >
-            <Previous size={16} />
+            <ChevronLeft size={16} />
             {t("Précédent", "السابق")}
           </button>
           <button
@@ -312,7 +306,7 @@ export function LibraryResults({
             onClick={() => onPage(page + 1)}
           >
             {t("Suivant", "التالي")}
-            <Next size={16} />
+            <ChevronRight size={16} />
           </button>
         </nav>
       )}

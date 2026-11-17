@@ -287,18 +287,15 @@ function ContractDetails({
 
 export function ContractLibrary({ locale }: { locale: Locale }) {
   const t = words(locale);
-  const date = new Intl.DateTimeFormat(locale === "ar" ? "ar-MA" : "fr-FR", {
+  const date = new Intl.DateTimeFormat("fr-FR", {
     dateStyle: "medium",
     timeZone: libraryTimeZone,
   });
-  const revisionDate = new Intl.DateTimeFormat(
-    locale === "ar" ? "ar-MA" : "fr-FR",
-    {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: libraryTimeZone,
-    },
-  );
+  const revisionDate = new Intl.DateTimeFormat("fr-FR", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: libraryTimeZone,
+  });
   const list = useLibraryList<"contracts", ContractSummary>("contracts");
   const draftPreview = usePreviewRequest(
     (contract: ContractSummary) => `${contract.id}:${contract.updated_at}`,
