@@ -314,10 +314,10 @@ export function ContractLibrary({ locale }: { locale: Locale }) {
     <main className="library-page">
       <section className="library-banner">
         <div className="shell library-banner-inner">
-          <h1>{t("Mes contrats", "عقودي")}</h1>
+          <h1>{t("Mes modèles", "قوالبي")}</h1>
           <a className="button" href={`/${locale}/new`}>
             <Plus size={18} aria-hidden />
-            {t("Nouveau contrat", "عقد جديد")}
+            {t("Nouveau modèle", "قالب جديد")}
           </a>
         </div>
       </section>
@@ -337,10 +337,10 @@ export function ContractLibrary({ locale }: { locale: Locale }) {
           empty={
             list.period
               ? t(
-                  "Aucun contrat sur cette période.",
-                  "لا توجد عقود في هذه الفترة.",
+                  "Aucun modèle sur cette période.",
+                  "لا توجد قوالب في هذه الفترة.",
                 )
-              : t("Aucun contrat enregistré.", "لا توجد عقود محفوظة.")
+              : t("Aucun modèle enregistré.", "لا توجد قوالب محفوظة.")
           }
           onPage={list.changePage}
           onRetry={() => list.refresh()}

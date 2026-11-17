@@ -1217,10 +1217,14 @@ h4 {
     height: 62dvh;
   }
 }
+.contract-workflow,
 .contract-save {
   margin-block-start: 10px;
   text-align: center;
   font-size: 0.9rem;
+}
+.contract-workflow a {
+  text-decoration: underline;
 }
 
 @media (max-width: 670px) {
@@ -1570,11 +1574,9 @@ body {
 .inline-field :is(input, textarea):hover {
   background: #38734f15;
 }
-.inline-field :is(input, textarea):focus {
-  background: white;
-  color: #152821;
-  outline: 2px solid var(--paper-color);
-  outline-offset: 0;
+.paper-scroll .paper :focus-visible,
+.paper-scroll .paper .upload-control:has(:focus-visible) {
+  outline: none;
 }
 .inline-field :is(input, textarea)::placeholder {
   color: currentColor;
@@ -1627,9 +1629,6 @@ body {
 }
 .paper-band :is(input, textarea):hover {
   background: #ffffff26;
-}
-.paper-band :is(input, textarea):focus {
-  outline-color: var(--paper-ink);
 }
 .paper-rows {
   display: grid;
@@ -2154,6 +2153,7 @@ body {
   .contract-tour,
   [data-tour-step="1"]:has(.paper-logo-placeholder),
   .editor-toolbar,
+  .contract-workflow,
   .contract-save,
   .editor-error,
   .paper-logo svg,

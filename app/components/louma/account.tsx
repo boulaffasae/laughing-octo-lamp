@@ -118,11 +118,11 @@ function AccountMenu({
         <div className="account-menu-panel">
           <a href={`/${locale}/contracts`}>
             <FolderOpen size={17} aria-hidden />
-            {t("Mes contrats", "عقودي")}
+            {t("Mes modèles", "قوالبي")}
           </a>
           <a href={`/${locale}/documents`}>
             <FileText size={17} aria-hidden />
-            {t("Mes documents", "مستنداتي")}
+            {t("Mes contrats", "عقودي")}
           </a>
           <button
             type="button"

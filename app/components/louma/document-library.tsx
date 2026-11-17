@@ -133,7 +133,7 @@ export function DocumentLibrary({ locale }: { locale: Locale }) {
         }}
       >
         <div className="shell library-banner-inner">
-          <h1>{t("Mes documents", "مستنداتي")}</h1>
+          <h1>{t("Mes contrats", "عقودي")}</h1>
           <div className="library-banner-actions">
             <button
               type="button"
@@ -142,7 +142,7 @@ export function DocumentLibrary({ locale }: { locale: Locale }) {
               onClick={() => fileInput.current?.click()}
             >
               <Upload size={17} aria-hidden />
-              {t("Importer", "استيراد")}
+              {t("Importer un scan PDF", "استيراد نسخة ممسوحة بصيغة PDF")}
             </button>
             <button
               type="button"
@@ -151,7 +151,7 @@ export function DocumentLibrary({ locale }: { locale: Locale }) {
               onClick={() => cameraInput.current?.click()}
             >
               <Camera size={17} aria-hidden />
-              {t("Photographier", "تصوير")}
+              {t("Photographier le contrat", "تصوير العقد")}
             </button>
             <input
               ref={fileInput}

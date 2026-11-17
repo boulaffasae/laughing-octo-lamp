@@ -14,7 +14,7 @@ Copiez `.env.example` vers `.env.local` et renseignez les services utilisés.
 - **Datalab** : configurez `DATALAB_API_KEY` pour le préremplissage. Le formulaire indique à l’utilisateur que l’import OCR transmet le PDF à Datalab. Les réglages de région et de rétention sont gérés dans le compte fournisseur.
 - **Liens publics** : configurez `NEXT_PUBLIC_CONTACT_EMAIL` si disponible. Les badges des boutiques et les réseaux sans compte sont affichés sans lien ; seul TikTok est actif. Complétez les informations sur l’exploitant du site dans les mentions légales avant publication.
 
-Le formulaire manuel et le téléchargement local fonctionnent sans compte. L’enregistrement d’un contrat exige un compte Clerk et Neon. Une fois connecté, les modifications sont enregistrées automatiquement dans Mes contrats et chaque sauvegarde d’un contenu différent crée une version. L’import de PDF exige aussi Vercel Blob.
+Le formulaire manuel et le téléchargement local fonctionnent sans compte. La sauvegarde des modèles exige un compte Clerk et Neon. Une fois connecté, les modifications sont enregistrées automatiquement dans Mes modèles et chaque sauvegarde d’un contenu différent crée une version. Après impression, remplissage et signature sur papier, importez un scan PDF ou prenez une photo du contrat dans Mes contrats. Cet archivage exige aussi Vercel Blob.
 
 ## Données et vérification
 
@@ -22,6 +22,6 @@ Les API vérifient le compte Clerk et la propriété des fichiers. Neon stocke l
 
 L’OCR conserve sa validation des uploads, ses délais et sa limite concurrente par instance. Pour imposer un quota sur plusieurs instances Vercel, configurez une règle de limitation sur `POST /api/ocr`. Le test OCR live facultatif envoie un document synthétique facturable avec `node --env-file=.env.local scripts/smoke-ocr.mjs`.
 
-Lancez `npm run check` et `npm run build` avant de pousser. Pour le test d’intégration en environnement configuré, créez un contrat en FR et en AR, attendez la synchronisation et reprenez le brouillon depuis Mes contrats. Téléchargez deux versions modifiées, ouvrez la plus ancienne dans l’historique et vérifiez que l’API refuse son accès à un second compte. Testez aussi l’import et une période dont le premier et le dernier jour contiennent chacun un PDF.
+Lancez `npm run check` et `npm run build` avant de pousser. Pour le test d’intégration en environnement configuré, créez un contrat en FR et en AR, attendez la synchronisation et reprenez le brouillon depuis Mes modèles. Téléchargez deux versions modifiées, ouvrez la plus ancienne dans l’historique et vérifiez que l’API refuse son accès à un second compte. Testez aussi l’import et une période dont le premier et le dernier jour contiennent chacun un PDF.
 
 Voir [l’organisation du code](docs/code-organization.md).

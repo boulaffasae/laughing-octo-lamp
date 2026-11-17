@@ -32,7 +32,7 @@ async function EditContract({ params }: ContractPageProps) {
             {t("Impossible de charger le contrat.", "تعذر تحميل العقد.")}
           </p>
           <a className="button secondary" href={`/${locale}/contracts`}>
-            {t("Mes contrats", "عقودي")}
+            {t("Mes modèles", "قوالبي")}
           </a>
         </main>
         <Footer locale={locale} />
@@ -48,7 +48,7 @@ async function EditContract({ params }: ContractPageProps) {
         <section className="hero">
           <div className="shell">
             <a href={`/${locale}/contracts`}>
-              {t("← Mes contrats", "عقودي ←")}
+              {t("← Mes modèles", "قوالبي ←")}
             </a>
             <h1>{t("Modifier le contrat", "تعديل العقد")}</h1>
           </div>

@@ -8,7 +8,6 @@ import {
   CloudCheck,
   CloudOff,
   CircleHelp,
-  FolderPlus,
   ImagePlus,
   LoaderCircle,
   Redo2,
@@ -36,7 +35,6 @@ import {
 } from "@/lib/contract/agreement";
 import { contractTemplates, templateForColor } from "@/lib/contract/templates";
 import { prepareImage } from "@/lib/contract/prepare-image";
-import { MAX_FILE_BYTES } from "@/lib/upload-policy";
 import type { Locale } from "@/i18n/locales";
 import type { SavedDraft } from "@/lib/contract/saved-contract";
 import { useAccount } from "./account";
@@ -134,7 +132,7 @@ export function ContractEditor({
       t("Enregistrement automatique actif", "الحفظ التلقائي مفعّل"),
     ],
     saving: [LoaderCircle, t("Synchronisation…", "جارٍ المزامنة…")],
-    saved: [CloudCheck, t("Contrat synchronisé", "تمت مزامنة العقد")],
+    saved: [CloudCheck, t("Modèle synchronisé", "تمت مزامنة القالب")],
     error: [CloudOff, t("Synchronisation indisponible", "المزامنة غير متاحة")],
     conflict: [CloudOff, t("Conflit de synchronisation", "تعارض في المزامنة")],
   }[persistence.status] as [typeof Cloud, string];
@@ -142,9 +140,6 @@ export function ContractEditor({
   const [exporting, setExporting] = useState(false);
   const [logoError, setLogoError] = useState("");
   const [exportError, setExportError] = useState("");
-  const [documentState, setDocumentState] = useState<
-    "idle" | "saving" | "saved" | "too-large" | "error"
-  >("idle");
   const pdfCache = useRef<{ agreement: Agreement; result: Promise<Blob> }>(
     null,
   );
@@ -206,42 +201,6 @@ export function ContractEditor({
       setExporting(false);
     }
   }
-
-  async function savePdfToDocuments() {
-    setDocumentState("saving");
-    try {
-      const pdf = await getPdf();
-      if (pdf.size > MAX_FILE_BYTES) {
-        setDocumentState("too-large");
-        return;
-      }
-      const body = new FormData();
-      body.set("file", pdf, contractPdfName);
-      body.set("kind", "contract");
-      const response = await fetch("/api/documents", { method: "POST", body });
-      if (!response.ok) throw Error();
-      setDocumentState("saved");
-    } catch {
-      setDocumentState("error");
-    }
-  }
-
-  const documentMessage = {
-    idle: "",
-    saving: t("Enregistrement du PDF…", "جارٍ حفظ ملف PDF…"),
-    saved: t(
-      "PDF enregistré dans Mes documents.",
-      "تم حفظ ملف PDF في مستنداتي.",
-    ),
-    "too-large": t(
-      "Le PDF dépasse la limite de 4 Mo.",
-      "يتجاوز حجم ملف PDF الحد الأقصى البالغ 4 ميغابايت.",
-    ),
-    error: t(
-      "Impossible d’enregistrer le PDF. Réessayez.",
-      "تعذّر حفظ ملف PDF. حاول مرة أخرى.",
-    ),
-  }[documentState];
 
   const caption = (key: string, label: string) => (
     <Inline
@@ -762,32 +721,27 @@ export function ContractEditor({
           </p>
         )}
       </div>
-      {account.signedIn && (
-        <div className="contract-save">
-          <button
-            type="button"
-            className="button secondary"
-            disabled={documentState === "saving" || logoBusy}
-            onClick={() => void savePdfToDocuments()}
-          >
-            <FolderPlus size={17} aria-hidden />
+      <p className="contract-workflow">
+        {t(
+          "Personnalisez le modèle, téléchargez le PDF et imprimez-le. Remplissez et signez le contrat à la main, puis importez un scan PDF ou prenez une photo dans",
+          "خصّص القالب ونزّل ملف PDF واطبعه. املأ العقد ووقّعه بخط اليد، ثم استورد نسخة ممسوحة بصيغة PDF أو التقط صورة من قسم",
+        )}{" "}
+        {account.signedIn ? (
+          <a href={`/${locale}/documents`}>{t("Mes contrats", "عقودي")}</a>
+        ) : (
+          <strong>{t("Mes contrats", "عقودي")}</strong>
+        )}
+        .
+        {account.ready && account.available && !account.signedIn && (
+          <>
+            {" "}
             {t(
-              "Enregistrer le PDF dans Mes documents",
-              "حفظ ملف PDF في مستنداتي",
+              "Connectez-vous pour accéder à vos archives.",
+              "سجّل الدخول للوصول إلى أرشيفك.",
             )}
-          </button>
-          <p
-            role="status"
-            className={
-              documentState === "error" || documentState === "too-large"
-                ? "error"
-                : undefined
-            }
-          >
-            {documentMessage}
-          </p>
-        </div>
-      )}
+          </>
+        )}
+      </p>
       {account.signedIn &&
         (persistence.status === "error" ||
           persistence.status === "conflict") && (
@@ -798,8 +752,8 @@ export function ContractEditor({
                   "المزامنة غير متاحة. انقر على الأيقونة لإعادة المحاولة.",
                 )
               : t(
-                  "Ce contrat a changé ailleurs. Téléchargez vos modifications, puis rouvrez le contrat depuis Mes contrats.",
-                  "تم تعديل هذا العقد في مكان آخر. نزّل تعديلاتك ثم أعد فتح العقد من عقودي.",
+                  "Ce modèle a changé ailleurs. Téléchargez vos modifications, puis rouvrez le modèle depuis Mes modèles.",
+                  "تم تعديل هذا القالب في مكان آخر. نزّل تعديلاتك ثم أعد فتح القالب من قوالبي.",
                 )}
           </p>
         )}

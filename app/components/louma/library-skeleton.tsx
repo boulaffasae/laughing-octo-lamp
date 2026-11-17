@@ -29,8 +29,8 @@ export function LibraryPageSkeleton({
         <div className="shell library-banner-inner">
           <h1>
             {kind === "contracts"
-              ? t("Mes contrats", "عقودي")
-              : t("Mes documents", "مستنداتي")}
+              ? t("Mes modèles", "قوالبي")
+              : t("Mes contrats", "عقودي")}
           </h1>
         </div>
       </section>
