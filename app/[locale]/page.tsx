@@ -5,7 +5,17 @@ import { Header, Footer, AppBanner } from "@/app/components/louma/site";
 import { ContractEditor } from "@/app/components/louma/contract-editor";
 import styles from "@/app/components/louma/home.module.css";
 
-export const metadata = { title: "La location, tout simplement" };
+const description =
+  "Personnalisez votre contrat de location de voiture au Maroc et téléchargez-le en PDF. Bientôt sur Louma : procurations, quittances de loyer, invitations et menus.";
+
+export const metadata = {
+  title: "La location, tout simplement",
+  description,
+  openGraph: {
+    title: "La location, tout simplement",
+    description,
+  },
+};
 
 export default async function Page({ params }: PageProps<"/[locale]">) {
   const { locale } = await params;
@@ -18,14 +28,14 @@ export default async function Page({ params }: PageProps<"/[locale]">) {
           className={`shell ${styles.banner}`}
           aria-labelledby="home-title"
         >
-          <div className={styles.bannerText}>
+          <div>
             <h1 id="home-title">
               La <span className={styles.accent}>location</span>,<br />
               tout simplement
             </h1>
             <p>
-              Vos modèles de documents PDF au Maroc. Personnalisez votre contrat
-              de location de voiture et téléchargez-le en PDF.
+              Vos modèles PDF à personnaliser au Maroc. Créez votre contrat de
+              location de voiture et téléchargez-le en PDF.
             </p>
             <div className={styles.actions}>
               <a className="button" href="#modeles">
